@@ -6799,7 +6799,7 @@ var M = (function (exports) {
             this.message = this.options.text;
             this.panning = false;
             this.timeRemaining = this.options.displayLength;
-            if (Toast._toasts.length === 0) {
+            if (!Toast._container) {
                 Toast._createContainer();
             }
             // Create new toast
@@ -6983,7 +6983,13 @@ var M = (function (exports) {
                 // Remove toast from DOM
                 if (this.el.id != this.options.toastId) {
                     this.el.remove();
-                    Toast._toasts.splice(Toast._toasts.indexOf(this), 1);
+                    const toastIndex = Toast._toasts.indexOf(this);
+                    // indexOf returns -1 if this toast is no longer tracked (e.g. the
+                    // static state was already reset elsewhere); splice(-1, 1) would
+                    // otherwise silently remove an unrelated, still-active toast.
+                    if (toastIndex !== -1) {
+                        Toast._toasts.splice(toastIndex, 1);
+                    }
                     if (Toast._toasts.length === 0) {
                         Toast._removeContainer();
                     }

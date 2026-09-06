@@ -1,4 +1,15 @@
 describe('Toasts:', () => {
+  afterEach(() => {
+    // Toast state (containers, pending dismiss timers) is static/shared across
+    // instances, and specs run in a random order. Without a hard reset here,
+    // a toast/container left over from one spec (or still mid-dismiss) leaks
+    // into the next one, making failures depend on run order.
+    M.Toast._toasts.forEach((toast) => toast.el.remove());
+    M.Toast._toasts = [];
+    M.Toast._removeContainer();
+    document.querySelectorAll('#toast-container').forEach((el) => el.remove());
+  });
+
   describe('Toast javascript functions', () => {
     it('should display and remove a toast', (done) => {
       const instance = new M.Toast({
