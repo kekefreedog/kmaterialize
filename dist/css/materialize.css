@@ -6694,7 +6694,19 @@ body.keyboard-focused .dropdown-content li:focus {
   margin-top: -2px;
   margin-left: 15px;
   margin-right: 15px;
-  display: inline-block;
+  /* Was inline-block, which overrides .btn's own inline-flex;
+     align-items:center and breaks vertical centering of the button's
+     text - visually harmless on .btn-large (tall enough that the
+     misalignment doesn't stand out) but text nearly clips out the
+     bottom on the smaller .btn/.btn-flat/.btn-floating sizes. */
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 .navbar ul:not(.dropdown-content) > li > a.btn > .material-icons,
