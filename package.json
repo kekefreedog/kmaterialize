@@ -87,7 +87,7 @@
   "files": [
     "dist/css",
     "dist/js",
-    "sass/**/*.scss",
+    "sass",
     "components",
     "LICENSE"
   ],
