@@ -50,7 +50,7 @@ textarea.materialize-textarea {
 
   // Default
 
-  input, textarea {
+  input:not([type=checkbox]):not([type=radio]), textarea {
     box-sizing: border-box; /* https://stackoverflow.com/questions/1377719/padding-within-inputs-breaks-width-100*/
     padding: 0 16px;
     padding-top: 20px;
@@ -180,7 +180,7 @@ textarea.materialize-textarea {
 
   &.outlined {
 
-    input, textarea {
+    input:not([type=checkbox]):not([type=radio]), textarea {
       padding-top: 0;
       background-color: transparent; //(--md-sys-color-background);
       border: 1px solid var(--md-sys-color-on-surface-variant);
@@ -225,7 +225,7 @@ textarea.materialize-textarea {
     // border/label/text below should pick up the error color.
     background-color: transparent;
 
-    input, textarea {
+    input:not([type=checkbox]):not([type=radio]), textarea {
       border-color: var(--md-sys-color-error);
     }
     input:focus:not([readonly]), textarea:focus:not([readonly]) {

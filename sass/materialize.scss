@@ -13,7 +13,6 @@
 @forward './grid';
 // animations
 @forward './transitions.css';
-@forward './pulse.css';
 // custom
 @forward './table_of_contents';
 @forward './tapTarget';
@@ -49,3 +48,10 @@
 @forward '../components/textfield/select';
 @forward '../components/textfield/file-input';
 @forward '../components/textfield/formfields.css';
+
+// Forwarded last so its overflow:visible on .pulse wins any specificity
+// ties against components like .btn-floating (overflow:hidden) - pulse's
+// expanding ::before ring needs to render outside its host element's
+// bounds, which an earlier source position let .btn-floating silently
+// clip away.
+@forward './pulse.css';

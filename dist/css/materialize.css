@@ -4920,65 +4920,6 @@ body {
           transform: scale(1);
 }
 
-.pulse {
-  overflow: visible;
-  position: relative;
-  &::before {
-    content: "";
-    display: block;
-    position: absolute;
-    pointer-events: none;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-color: inherit;
-    border-radius: inherit;
-    -webkit-transition: opacity 0.3s, -webkit-transform 0.3s;
-    transition: opacity 0.3s, -webkit-transform 0.3s;
-    transition: opacity 0.3s, transform 0.3s;
-    transition: opacity 0.3s, transform 0.3s, -webkit-transform 0.3s;
-    -webkit-animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
-            animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
-    z-index: -1;
-  }
-}
-
-@-webkit-keyframes pulse-animation {
-  0% {
-    opacity: 1;
-    -webkit-transform: scale(1);
-            transform: scale(1);
-  }
-  50% {
-    opacity: 0;
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5);
-  }
-  100% {
-    opacity: 0;
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5);
-  }
-}
-
-@keyframes pulse-animation {
-  0% {
-    opacity: 1;
-    -webkit-transform: scale(1);
-            transform: scale(1);
-  }
-  50% {
-    opacity: 0;
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5);
-  }
-  100% {
-    opacity: 0;
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5);
-  }
-}
 .table-of-contents {
   list-style: none;
 }
@@ -9365,17 +9306,17 @@ textarea.materialize-textarea {
   background-color: transparent;
 }
 
-.input-field input.invalid, .input-field textarea.invalid {
+.input-field input:not([type=checkbox]):not([type=radio]).invalid, .input-field textarea.invalid {
   border-bottom: 2px solid var(--md-sys-color-error);
   -webkit-box-shadow: 0 1px 0 0 var(--md-sys-color-error);
           box-shadow: 0 1px 0 0 var(--md-sys-color-error);
 }
 
-.input-field input.invalid ~ .supporting-text[data-error] > span, .input-field textarea.invalid ~ .supporting-text[data-error] > span {
+.input-field input:not([type=checkbox]):not([type=radio]).invalid ~ .supporting-text[data-error] > span, .input-field textarea.invalid ~ .supporting-text[data-error] > span {
   display: none;
 }
 
-.input-field input.invalid ~ .supporting-text:after, .input-field textarea.invalid ~ .supporting-text:after {
+.input-field input:not([type=checkbox]):not([type=radio]).invalid ~ .supporting-text:after, .input-field textarea.invalid ~ .supporting-text:after {
   content: attr(data-error);
   color: var(--md-sys-color-error);
 }
@@ -9385,7 +9326,7 @@ textarea.materialize-textarea {
   position: relative;
   clear: both;
 }
-.input-field input, .input-field textarea {
+.input-field input:not([type=checkbox]):not([type=radio]), .input-field textarea {
   -webkit-box-sizing: border-box;
           box-sizing: border-box; /* https://stackoverflow.com/questions/1377719/padding-within-inputs-breaks-width-100*/
   padding: 0 16px;
@@ -9396,35 +9337,35 @@ textarea.materialize-textarea {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
-.input-field input:focus:not([readonly]), .input-field textarea:focus:not([readonly]) {
+.input-field input:not([type=checkbox]):not([type=radio]):focus:not([readonly]), .input-field textarea:focus:not([readonly]) {
   border-bottom: 2px solid var(--input-color);
   padding-top: 21px;
 }
-.input-field input:disabled, .input-field input[readonly=readonly], .input-field textarea:disabled, .input-field textarea[readonly=readonly] {
+.input-field input:not([type=checkbox]):not([type=radio]):disabled, .input-field input:not([type=checkbox]):not([type=radio])[readonly=readonly], .input-field textarea:disabled, .input-field textarea[readonly=readonly] {
   color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
   border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
   background-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 4%);
 }
-.input-field input:focus:not([readonly]) + label, .input-field textarea:focus:not([readonly]) + label {
+.input-field input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label, .input-field textarea:focus:not([readonly]) + label {
   color: var(--input-color);
 }
-.input-field input:not(:-moz-placeholder) + label, .input-field textarea:not(:-moz-placeholder) + label {
+.input-field input:not([type=checkbox]):not([type=radio]):not(:-moz-placeholder) + label, .input-field textarea:not(:-moz-placeholder) + label {
   transform: scale(0.75);
   top: 8px;
 }
-.input-field input:not(:-ms-input-placeholder) + label, .input-field textarea:not(:-ms-input-placeholder) + label {
+.input-field input:not([type=checkbox]):not([type=radio]):not(:-ms-input-placeholder) + label, .input-field textarea:not(:-ms-input-placeholder) + label {
   transform: scale(0.75);
   top: 8px;
 }
-.input-field input:focus:not([readonly]) + label, .input-field input:not([placeholder=" "]) + label, .input-field input:not(:placeholder-shown) + label, .input-field textarea:focus:not([readonly]) + label, .input-field textarea:not([placeholder=" "]) + label, .input-field textarea:not(:placeholder-shown) + label {
+.input-field input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label, .input-field input:not([type=checkbox]):not([type=radio]):not([placeholder=" "]) + label, .input-field input:not([type=checkbox]):not([type=radio]):not(:placeholder-shown) + label, .input-field textarea:focus:not([readonly]) + label, .input-field textarea:not([placeholder=" "]) + label, .input-field textarea:not(:placeholder-shown) + label {
   -webkit-transform: scale(0.75);
           transform: scale(0.75);
   top: 8px;
 }
-.input-field input:disabled + label, .input-field input[readonly=readonly] + label, .input-field textarea:disabled + label, .input-field textarea[readonly=readonly] + label {
+.input-field input:not([type=checkbox]):not([type=radio]):disabled + label, .input-field input:not([type=checkbox]):not([type=radio])[readonly=readonly] + label, .input-field textarea:disabled + label, .input-field textarea[readonly=readonly] + label {
   color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
 }
-.input-field input.invalid ~ label, .input-field input:focus.invalid ~ label, .input-field textarea.invalid ~ label, .input-field textarea:focus.invalid ~ label {
+.input-field input:not([type=checkbox]):not([type=radio]).invalid ~ label, .input-field input:not([type=checkbox]):not([type=radio]):focus.invalid ~ label, .input-field textarea.invalid ~ label, .input-field textarea:focus.invalid ~ label {
   color: var(--md-sys-color-error);
 }
 .input-field input::-webkit-input-placeholder {
@@ -9514,49 +9455,49 @@ textarea.materialize-textarea {
 .input-field .prefix ~ label {
   left: 52px;
 }
-.input-field.outlined input, .input-field.outlined textarea {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]), .input-field.outlined textarea {
   padding-top: 0;
   background-color: transparent;
   border: 1px solid var(--md-sys-color-on-surface-variant);
   border-radius: 4px;
 }
-.input-field.outlined input:focus:not([readonly]), .input-field.outlined textarea:focus:not([readonly]) {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):focus:not([readonly]), .input-field.outlined textarea:focus:not([readonly]) {
   border: 2px solid var(--input-color);
   padding-top: 0;
   margin-left: -1px;
 }
-.input-field.outlined input:focus:not([readonly]) + label, .input-field.outlined textarea:focus:not([readonly]) + label {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label, .input-field.outlined textarea:focus:not([readonly]) + label {
   color: var(--input-color);
 }
-.input-field.outlined input:not(:-moz-placeholder) + label, .input-field.outlined textarea:not(:-moz-placeholder) + label {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):not(:-moz-placeholder) + label, .input-field.outlined textarea:not(:-moz-placeholder) + label {
   top: -8px;
   left: 16px;
   margin-left: -4px;
   padding: 0 4px;
   background-color: var(--md-sys-color-surface);
 }
-.input-field.outlined input:not(:-ms-input-placeholder) + label, .input-field.outlined textarea:not(:-ms-input-placeholder) + label {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):not(:-ms-input-placeholder) + label, .input-field.outlined textarea:not(:-ms-input-placeholder) + label {
   top: -8px;
   left: 16px;
   margin-left: -4px;
   padding: 0 4px;
   background-color: var(--md-sys-color-surface);
 }
-.input-field.outlined input:focus:not([readonly]) + label, .input-field.outlined input:not([placeholder=" "]) + label, .input-field.outlined input:not(:placeholder-shown) + label, .input-field.outlined textarea:focus:not([readonly]) + label, .input-field.outlined textarea:not([placeholder=" "]) + label, .input-field.outlined textarea:not(:placeholder-shown) + label {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label, .input-field.outlined input:not([type=checkbox]):not([type=radio]):not([placeholder=" "]) + label, .input-field.outlined input:not([type=checkbox]):not([type=radio]):not(:placeholder-shown) + label, .input-field.outlined textarea:focus:not([readonly]) + label, .input-field.outlined textarea:not([placeholder=" "]) + label, .input-field.outlined textarea:not(:placeholder-shown) + label {
   top: -8px;
   left: 16px;
   margin-left: -4px;
   padding: 0 4px;
   background-color: var(--md-sys-color-surface);
 }
-.input-field.outlined input:disabled, .input-field.outlined input[readonly=readonly], .input-field.outlined textarea:disabled, .input-field.outlined textarea[readonly=readonly] {
+.input-field.outlined input:not([type=checkbox]):not([type=radio]):disabled, .input-field.outlined input:not([type=checkbox]):not([type=radio])[readonly=readonly], .input-field.outlined textarea:disabled, .input-field.outlined textarea[readonly=readonly] {
   color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
   border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
 }
 .input-field.error {
   background-color: transparent;
 }
-.input-field.error input, .input-field.error textarea {
+.input-field.error input:not([type=checkbox]):not([type=radio]), .input-field.error textarea {
   border-color: var(--md-sys-color-error);
 }
 .input-field.error input:focus:not([readonly]), .input-field.error textarea:focus:not([readonly]) {
@@ -10323,4 +10264,64 @@ fieldset.form-field:has([required]) legend::after {
 
 fieldset.form-field:has([required]) label::after {
   content: " *";
+}
+
+.pulse {
+  overflow: visible;
+  position: relative;
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: inherit;
+    border-radius: inherit;
+    -webkit-transition: opacity 0.3s, -webkit-transform 0.3s;
+    transition: opacity 0.3s, -webkit-transform 0.3s;
+    transition: opacity 0.3s, transform 0.3s;
+    transition: opacity 0.3s, transform 0.3s, -webkit-transform 0.3s;
+    -webkit-animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+            animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    z-index: -1;
+  }
+}
+
+@-webkit-keyframes pulse-animation {
+  0% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5);
+  }
+}
+
+@keyframes pulse-animation {
+  0% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5);
+  }
 }
