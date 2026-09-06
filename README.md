@@ -15,7 +15,7 @@
 ## Getting started
 Read the [getting started guide](https://materialize.kevinzarshenas.com/getting-started.html) for more information on how to use kmaterialize.
 
-- Clone the repo: `git clone https://github.com/materializecss/materialize.git`
+- Clone the repo: `git clone https://github.com/kekefreedog/kmaterialize.git`
 - Install with [npm](https://www.npmjs.com): `npm install kmaterialize`
 
 ## Testing
@@ -31,7 +31,7 @@ This is the core project with all the components. To see how they are used we re
 See [Materialize Docs Repo](https://github.com/materializecss/materialize-docs) to see Materialize in Action.
 
 ### Releases
-Previous releases are available [here](https://github.com/materializecss/materialize/releases). You can also find the changelog under each release.
+Previous releases are available [here](https://github.com/kekefreedog/kmaterialize/releases). You can also find the changelog under each release.
 
 ## Supported Browsers:
 Materialize is compatible with:
@@ -49,7 +49,7 @@ We use Jasmine as our testing framework and we're trying to write a robust test 
 For quick testing install live-server node package globally and run `npm run demo`
 
 ## Contributing
-Check out the [CONTRIBUTING document](docs/CONTRIBUTING.md) in the root of the repository to learn how you can contribute. You can also browse the [help-wanted](https://github.com/materializecss/materialize/labels/help-wanted) tag in our issue tracker to find things to do.
+Check out the [CONTRIBUTING document](docs/CONTRIBUTING.md) in the root of the repository to learn how you can contribute. You can also browse the [help-wanted](https://github.com/kekefreedog/kmaterialize/labels/help-wanted) tag in our issue tracker to find things to do.
 
 ## Copyright and license
 Code Copyright 2026 kmaterialize. Code released under the MIT license.

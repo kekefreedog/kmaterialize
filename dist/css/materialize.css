@@ -5453,6 +5453,7 @@ button.btn-floating {
 .collapsible {
   padding-left: 0;
   list-style-type: none;
+  background-color: var(--md-sys-color-surface);
   border-top: 1px solid var(--md-sys-color-outline-variant);
   border-right: 1px solid var(--md-sys-color-outline-variant);
   border-left: 1px solid var(--md-sys-color-outline-variant);
