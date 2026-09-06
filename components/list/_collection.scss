@@ -3,6 +3,7 @@
 .collection {
   padding-left: 0;
   list-style-type: none;
+  background-color: var(--md-sys-color-surface);
   margin: $element-top-margin 0 $element-bottom-margin 0;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 2px;
