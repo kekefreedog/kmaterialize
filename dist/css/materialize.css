@@ -5163,6 +5163,19 @@ body {
   outline-offset: 2px;
 }
 
+.btn.elevated, .elevated.btn-small, .elevated.btn-large, .elevated.btn-floating {
+  color: var(--md-sys-color-on-secondary-container);
+  background-color: var(--md-sys-color-secondary-container);
+}
+.btn.elevated:hover, .elevated.btn-small:hover, .elevated.btn-large:hover, .elevated.btn-floating:hover, .btn.elevated:focus, .elevated.btn-small:focus, .elevated.btn-large:focus, .elevated.btn-floating:focus {
+  color: var(--md-sys-color-primary);
+}
+.btn.elevated:hover, .elevated.btn-small:hover, .elevated.btn-large:hover, .elevated.btn-floating:hover {
+  background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-on-secondary-container) 16%);
+}
+.btn.elevated:focus, .elevated.btn-small:focus, .elevated.btn-large:focus, .elevated.btn-floating:focus {
+  background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-primary) 20%);
+}
 .btn.elevated:focus-visible, .elevated.btn-small:focus-visible, .elevated.btn-large:focus-visible, .elevated.btn-floating:focus-visible {
   outline: 3px solid var(--md-sys-color-secondary);
   outline-offset: 2px;

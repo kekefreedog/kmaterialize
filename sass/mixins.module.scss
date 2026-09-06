@@ -75,23 +75,23 @@
 }
 
 @mixin btn-elevated {
-  //color: var(--md-sys-color-on-secondary-container);
-  //background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  background-color: var(--md-sys-color-secondary-container);
   @extend .z-depth-1;
 
   &:hover,
   &:focus {
-    //color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
   }
 
   &:hover {
     @extend .z-depth-2;
-    //background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-on-secondary-container) 16%);
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-on-secondary-container) 16%);
   }
 
   &:focus {
     @extend .z-depth-1;
-    //background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-primary) 20%);
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container), var(--md-sys-color-primary) 20%);
   }
 
   @include focus-visible();
