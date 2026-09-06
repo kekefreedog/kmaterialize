@@ -23,7 +23,7 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '22' # Node 20 is being deprecated by GitHub Actions
                   # Configures ~/.npmrc so `npm publish` authenticates via NODE_AUTH_TOKEN.
                   registry-url: 'https://registry.npmjs.org'
 
