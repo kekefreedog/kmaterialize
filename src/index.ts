@@ -59,6 +59,14 @@ export {
 
 export const version = '2.3.3';
 
+/**
+ * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
+ * class in v2 with no bare functional equivalent of its own.
+ */
+export function toast(options: Partial<ToastOptions>): Toast {
+  return new Toast(options as ToastOptions);
+}
+
 export interface AutoInitOptions {
   Autocomplete?: Partial<AutocompleteOptions>;
   Cards?: Partial<CardsOptions>;

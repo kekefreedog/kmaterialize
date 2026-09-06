@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://materialize.kevinzarshenas.com" target="_blank">
-    <img src="https://materializeweb.com/images/materialize.svg" width="200"/>
+    <img src="images/materialize.svg" width="200"/>
   </a>
 </p>
 

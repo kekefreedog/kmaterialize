@@ -8320,6 +8320,13 @@ class Waves {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const version = '2.3.3';
 /**
+ * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
+ * class in v2 with no bare functional equivalent of its own.
+ */
+function toast(options) {
+    return new Toast(options);
+}
+/**
  * Automatically initialize components.
  * @param context Root element to initialize. Defaults to `document.body`.
  * @param options Options for each component.
@@ -8379,4 +8386,4 @@ Waves.Init();
 Range.Init();
 Cards.Init();
 
-export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Tooltip, Waves, version };
+export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Tooltip, Waves, toast, version };

@@ -30,6 +30,9 @@
         height: 42px;
         overflow: hidden;
         left: 15px;
+        top: 21px; // vertically center within the 84px min-height row - without
+                   // this, absolute's default "static position" fallback puts
+                   // an <img> and an <i> icon glyph at different heights
         display: inline-block;
         vertical-align: middle;
       }

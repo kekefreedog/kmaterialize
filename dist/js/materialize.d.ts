@@ -2593,6 +2593,11 @@ class Waves {
 }
 
 declare const version = "2.3.3";
+/**
+ * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
+ * class in v2 with no bare functional equivalent of its own.
+ */
+declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
     Autocomplete?: Partial<AutocompleteOptions>;
     Cards?: Partial<CardsOptions>;
@@ -2621,5 +2626,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Tooltip, Waves, version };
+export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Tooltip, Waves, toast, version };
 export type { AutoInitOptions };

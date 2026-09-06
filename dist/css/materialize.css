@@ -3390,6 +3390,10 @@ html {
   }
 }
 
+html[data-font=muli] {
+  font-family: "Muli", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-weight: 400;
   line-height: 1.3;
@@ -5732,7 +5736,7 @@ table span.badge {
   max-width: 50%;
 }
 .card.horizontal .card-image img {
-  border-radius: 2px 0 0 2px;
+  border-radius: 12px 0 0 12px;
   max-width: 100%;
   width: auto;
 }
@@ -5770,7 +5774,7 @@ table span.badge {
 }
 .card .card-image img {
   display: block;
-  border-radius: 2px 2px 0 0;
+  border-radius: 12px 12px 0 0;
   position: relative;
   left: 0;
   right: 0;
@@ -5799,7 +5803,7 @@ table span.badge {
 }
 .card .card-content {
   padding: 24px;
-  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 12px 12px;
 }
 .card .card-content p {
   margin: 0;
@@ -5819,7 +5823,7 @@ table span.badge {
   padding: 0 1.6rem;
 }
 .card .card-action:last-child {
-  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 12px 12px;
 }
 .card .card-action a {
   height: var(--btn-height);
@@ -6169,7 +6173,9 @@ table span.badge {
   margin: 0;
   display: none;
   min-width: 100px;
+  border-radius: 12px;
   overflow-y: auto;
+  overflow-x: hidden;
   opacity: 0;
   position: absolute;
   left: 0;
@@ -6263,6 +6269,7 @@ body.keyboard-focused .dropdown-content li:focus {
   height: 42px;
   overflow: hidden;
   left: 15px;
+  top: 21px;
   display: inline-block;
   vertical-align: middle;
 }

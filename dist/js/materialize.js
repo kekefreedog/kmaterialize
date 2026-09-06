@@ -8323,6 +8323,13 @@ var M = (function (exports) {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const version = '2.3.3';
     /**
+     * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
+     * class in v2 with no bare functional equivalent of its own.
+     */
+    function toast(options) {
+        return new Toast(options);
+    }
+    /**
      * Automatically initialize components.
      * @param context Root element to initialize. Defaults to `document.body`.
      * @param options Options for each component.
@@ -8408,6 +8415,7 @@ var M = (function (exports) {
     exports.Toast = Toast;
     exports.Tooltip = Tooltip;
     exports.Waves = Waves;
+    exports.toast = toast;
     exports.version = version;
 
     return exports;

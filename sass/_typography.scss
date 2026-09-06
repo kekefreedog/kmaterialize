@@ -21,6 +21,13 @@ html{
   }
 }
 
+// Optional font-family override, e.g. <html data-font="muli">.
+// Load the face itself separately (e.g. Google Fonts) - this only swaps
+// which family is applied once it's available.
+html[data-font="muli"] {
+  font-family: "Muli", $font-stack;
+}
+
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 	line-height: 1.3;
