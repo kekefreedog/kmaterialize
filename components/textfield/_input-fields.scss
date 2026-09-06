@@ -6,27 +6,27 @@
 }
 
 /* Text inputs */
-// input:not([type]):not(.browser-default),
-// input[type=text]:not(.browser-default),
-// input[type=password]:not(.browser-default),
-// input[type=email]:not(.browser-default),
-// input[type=url]:not(.browser-default),
-// input[type=time]:not(.browser-default),
-// input[type=date]:not(.browser-default),
-// input[type=datetime]:not(.browser-default),
-// input[type=datetime-local]:not(.browser-default),
-// input[type=month]:not(.browser-default),
-// input[type=tel]:not(.browser-default),
-// input[type=number]:not(.browser-default),
-// input[type=search]:not(.browser-default),
-// textarea.materialize-textarea {
-//   outline: none;
-//   color: var(--md-sys-color-on-background);
-//   width: 100%;
-//   font-size: $md_sys_typescale_body-large_size; //16px; // => 16 dp
-//   height: 56px; // 56dp
-//   background-color: transparent;
-// }
+input:not([type]):not(.browser-default),
+input[type=text]:not(.browser-default),
+input[type=password]:not(.browser-default),
+input[type=email]:not(.browser-default),
+input[type=url]:not(.browser-default),
+input[type=time]:not(.browser-default),
+input[type=date]:not(.browser-default),
+input[type=datetime]:not(.browser-default),
+input[type=datetime-local]:not(.browser-default),
+input[type=month]:not(.browser-default),
+input[type=tel]:not(.browser-default),
+input[type=number]:not(.browser-default),
+input[type=search]:not(.browser-default),
+textarea.materialize-textarea {
+  outline: none;
+  color: var(--md-sys-color-on-background);
+  width: 100%;
+  font-size: $md_sys_typescale_body-large_size; //16px; // => 16 dp
+  height: 56px; // 56dp
+  background-color: transparent;
+}
 
 %invalid-input-style {
   border-bottom: 2px solid var(--md-sys-color-error);
@@ -204,7 +204,10 @@
         left: 16px;
         margin-left: -4px;
         padding: 0 4px;
-        background-color: transparent; //var(--md-sys-color-background);
+        // A solid chip behind the label masks the border line running
+        // through the text, giving the classic outlined-field notch cut.
+        // Transparent (the old value) let the border show straight through.
+        background-color: var(--md-sys-color-surface);
       }
 
       &:disabled, &[readonly="readonly"] {
@@ -216,6 +219,12 @@
 
   // Error
   &.error {
+    // ".error" alone is also the MD3 color-token utility class (a solid
+    // error-colored background). Reset it here so a "error" state modifier
+    // on an .input-field doesn't paint the whole container red - only the
+    // border/label/text below should pick up the error color.
+    background-color: transparent;
+
     input, textarea {
       border-color: var(--md-sys-color-error);
     }

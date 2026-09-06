@@ -331,6 +331,19 @@ $shades: (
   "transparent":  transparent
 );
 
+$gold: (
+  "base":       #a68b4d,
+  "lighten-5":  #f4f1ea,
+  "lighten-4":  #e4dcca,
+  "lighten-3":  #d2c5a6,
+  "lighten-2":  #c1ae82,
+  "lighten-1":  #b29a64,
+  "darken-1":   #907943,
+  "darken-2":   #746136,
+  "darken-3":   #534626,
+  "darken-4":   #322a17
+);
+
 $colors: (
   "materialize-red": $materialize-red,
   "red": $red,
@@ -352,6 +365,7 @@ $colors: (
   "brown": $brown,
   "blue-grey": $blue-grey,
   "grey": $grey,
+  "gold": $gold,
   "shades": $shades
 ) !default;
 

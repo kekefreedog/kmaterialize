@@ -5,6 +5,7 @@
 @forward './theme.module.css';
 @forward './typography.module.css';
 @forward './colors.module.css';
+@forward './colors'; // legacy .red/.pink/etc palette classes (materialize.com/color.html) - was missing entirely
 @forward './typography';
 @forward './mixins.module';
 @forward './variables';

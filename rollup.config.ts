@@ -3,8 +3,17 @@ import type { RollupOptions } from 'rollup';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import terserPlugin from '@rollup/plugin-terser';
 import dtsPlugin from 'rollup-plugin-dts';
-import scss from 'rollup-plugin-scss';
+import scss, { type CSSPluginOptions } from 'rollup-plugin-scss';
 import copy from 'rollup-plugin-copy';
+
+/**
+ * `rollup-plugin-scss`'s types don't know about Dart Sass's
+ * `silenceDeprecations` option, even though it forwards unknown options
+ * straight through to `sass.renderSync`.
+ */
+interface SassPluginOptions extends CSSPluginOptions {
+  silenceDeprecations?: string[];
+}
 
 import { readFileSync } from 'fs';
 import autoprefixer from 'autoprefixer';
@@ -20,6 +29,36 @@ const bannerText = `/*!
 * Copyright 2014-${new Date().getFullYear()} Materialize
 * MIT License (https://raw.githubusercontent.com/materializecss/materialize/master/LICENSE)
 */`;
+
+const minCssOptions: SassPluginOptions = {
+  fileName: 'materialize.min.css',
+  outputStyle: 'compressed',
+  sourceMap: !(process.env.BUILD === 'release'),
+  silenceDeprecations: ['legacy-js-api'],
+  processor: (css, map) => ({
+    css: postcss([autoprefixer]).process(css, { from: 'materialize.min.css' }).toString(),
+    map
+  })
+};
+
+const cssOptions: SassPluginOptions = {
+  fileName: 'materialize.css',
+  silenceDeprecations: ['legacy-js-api'],
+  processor: (css) =>
+    postcss([autoprefixer])
+      .process(css, { from: 'materialize.min.css' })
+      .then((result) => result.css)
+};
+
+const colorsCssOptions: SassPluginOptions = {
+  fileName: 'materialize.colors.min.css',
+  outputStyle: 'compressed',
+  silenceDeprecations: ['legacy-js-api'],
+  processor: (css) =>
+    postcss([autoprefixer])
+      .process(css, { from: 'materialize.colors.min.css' })
+      .then((result) => result.css)
+};
 
 const config: RollupOptions[] = [
   //--- Replace version in index.ts
@@ -105,17 +144,7 @@ const config: RollupOptions[] = [
   {
     input: 'sass/materialize.scss',
     output: [{ file: 'dist/css/materialize.min.css' }], // overwritten
-    plugins: [
-      scss({
-        fileName: 'materialize.min.css',
-        outputStyle: 'compressed',
-        sourceMap: !(process.env.BUILD === 'release'),
-        processor: (css, map) => ({
-          css: postcss([autoprefixer]).process(css, { from: 'materialize.min.css' }).toString(),
-          map
-        })
-      })
-    ],
+    plugins: [scss(minCssOptions)],
     onwarn: (warning, defaultHandler) => {
       if (!(warning.code === 'FILE_NAME_CONFLICT' || warning.code === 'EMPTY_BUNDLE'))
         defaultHandler(warning);
@@ -124,15 +153,7 @@ const config: RollupOptions[] = [
   {
     input: 'sass/materialize.scss',
     output: [{ file: 'dist/css/materialize.css' }], // overwritten
-    plugins: [
-      scss({
-        fileName: 'materialize.css',
-        processor: (css) =>
-          postcss([autoprefixer])
-            .process(css, { from: 'materialize.min.css' })
-            .then((result) => result.css)
-      })
-    ],
+    plugins: [scss(cssOptions)],
     onwarn: (warning, defaultHandler) => {
       if (!(warning.code === 'FILE_NAME_CONFLICT' || warning.code === 'EMPTY_BUNDLE'))
         defaultHandler(warning);
@@ -141,16 +162,7 @@ const config: RollupOptions[] = [
   {
     input: 'sass/_colors.scss',
     output: [{ file: 'dist/css/materialize.colors.min.css' }], // overwritten
-    plugins: [
-      scss({
-        fileName: 'materialize.colors.min.css',
-        outputStyle: 'compressed',
-        processor: (css) =>
-          postcss([autoprefixer])
-            .process(css, { from: 'materialize.colors.min.css' })
-            .then((result) => result.css)
-      })
-    ],
+    plugins: [scss(colorsCssOptions)],
     onwarn: (warning, defaultHandler) => {
       if (!(warning.code === 'FILE_NAME_CONFLICT' || warning.code === 'EMPTY_BUNDLE'))
         defaultHandler(warning);
