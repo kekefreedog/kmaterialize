@@ -6764,7 +6764,14 @@ body.keyboard-focused .dropdown-content li:focus {
 .navbar .brand-logo {
   color: var(--md-sys-color-on-surface);
   font-size: var(--appbar-title-font-size);
-  display: inline-block;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
   padding: 0;
 }
 
@@ -6786,7 +6793,13 @@ body.keyboard-focused .dropdown-content li:focus {
 .navbar .brand-logo i.material-symbols-outlined,
 .navbar .brand-logo i.material-symbols-rounded,
 .navbar .brand-logo i.material-symbols-sharp {
-  float: left;
+  /* Was float:left, paired with an explicit height/line-height (from
+     the general .navbar i rule) sized to the whole navbar row height,
+     inside a brand-logo that's only ever as tall as its own text.
+     Floating a block that tall out of a small inline-block parent
+     with nothing to clear it let it render outside/clipped by the
+     navbar row - invisible in practice. brand-logo is flex now, so
+     this just needs to be a normal flex item. */
   margin-right: 15px;
 }
 
