@@ -5194,7 +5194,7 @@ body {
 
 .btn.text, .text.btn-small, .text.btn-large, .text.btn-floating, .btn-flat {
   color: var(--md-sys-color-primary);
-  background-color: transparent;
+  background-color: var(--md-sys-color-surface-variant);
 }
 .btn.text:hover, .text.btn-small:hover, .text.btn-large:hover, .text.btn-floating:hover, .btn.text:focus, .text.btn-small:focus, .text.btn-large:focus, .text.btn-floating:focus, .btn-flat:hover, .btn-flat:focus {
   color: var(--md-sys-color-primary);
