@@ -1,0 +1,55 @@
+name: Publish to npm
+
+# Publishes the package to npm when you push a version tag (e.g. v2.4.0).
+# Flow: tag push -> install -> sync package.json version with tag -> build
+# (release mode) -> test -> npm publish (authenticated with the NPM_TOKEN
+# repo secret).
+on:
+    push:
+        tags:
+            - 'v*'
+    workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  # Configures ~/.npmrc so `npm publish` authenticates via NODE_AUTH_TOKEN.
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Sync package.json version with tag
+              # Ensure package.json version matches the pushed tag (e.g. v2.4.0 -> 2.4.0).
+              # If they differ, update package.json version before building and publishing.
+              if: github.ref_type == 'tag'
+              run: |
+                  TARGET_VERSION="${GITHUB_REF_NAME#v}"
+                  PKG_VERSION="$(node -p "require('./package.json').version")"
+                  if [ "$PKG_VERSION" != "$TARGET_VERSION" ]; then
+                    echo "Updating package.json version from ${PKG_VERSION} to ${TARGET_VERSION}"
+                    npm version "$TARGET_VERSION" --no-git-tag-version --allow-same-version
+                  else
+                    echo "Version already matches tag: ${PKG_VERSION}"
+                  fi
+
+            - name: Build dist (JS + CSS, release mode)
+              run: npm run build -- --environment BUILD:release
+
+            - name: Run tests
+              run: npm test
+
+            - name: Publish to npm
+              run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
