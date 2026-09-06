@@ -5638,6 +5638,7 @@ table span.badge {
 }
 
 .card-panel {
+  --background-color: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-tint) 17%);
   -webkit-transition: -webkit-box-shadow 0.25s;
   transition: -webkit-box-shadow 0.25s;
   transition: box-shadow 0.25s;
@@ -5645,7 +5646,7 @@ table span.badge {
   padding: 24px;
   margin: 0.5rem 0 1rem 0;
   border-radius: 12px;
-  background-color: var(--md-sys-color-surface);
+  background-color: var(--background-color);
 }
 
 .card {
