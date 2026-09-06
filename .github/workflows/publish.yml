@@ -39,7 +39,11 @@ jobs:
                   PKG_VERSION="$(node -p "require('./package.json').version")"
                   if [ "$PKG_VERSION" != "$TARGET_VERSION" ]; then
                     echo "Updating package.json version from ${PKG_VERSION} to ${TARGET_VERSION}"
-                    npm version "$TARGET_VERSION" --no-git-tag-version --allow-same-version
+                    # `npm pkg set` edits package.json directly with no lifecycle
+                    # hooks. `npm version` would also fire preversion/version
+                    # scripts (lint+test, a full build, compress.mjs, git add),
+                    # duplicating work this workflow already does explicitly below.
+                    npm pkg set version="$TARGET_VERSION"
                   else
                     echo "Version already matches tag: ${PKG_VERSION}"
                   fi
