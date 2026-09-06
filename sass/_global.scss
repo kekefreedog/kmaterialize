@@ -91,7 +91,15 @@ a {
 }
 
 //  Blockquote
-blockquote { margin: 20px 0; padding-left: 1.5rem; border-left: 5px solid var(--md-sys-color-primary); }
+blockquote { margin: 20px 0; padding-left: 0.9rem; border-left: 1px solid var(--md-sys-color-primary); }
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+// Icon inside a blockquote inherits the surrounding text size and sits on
+// the baseline instead of towering over the first line.
+blockquote i.material-icons {
+  font-size: inherit;
+  vertical-align: sub;
+}
 
 // Icon Styles
 i {
@@ -478,6 +486,82 @@ $spacing-values: ("0": 0, "1": 0.25rem, "2": 0.5rem, "3": 0.75rem, "4": 1rem, "5
   visibility: hidden;
 }
 
+/**************************
+  Utility Typography Classes
+**************************/
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/typography.scss
+// Numeric font weights: .font-weight-100 through .font-weight-900
+@for $i from 1 through 9 {
+  .font-weight-#{$i * 100} {
+    font-weight: $i * 100 !important;
+  }
+}
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/typography.scss
+// Keyword font weights
+.font-weight-normal { font-weight: normal !important; }
+.font-weight-bold { font-weight: bold !important; }
+.font-weight-lighter { font-weight: lighter !important; }
+.font-weight-bolder { font-weight: bolder !important; }
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/typography.scss
+.line-height-normal { line-height: normal !important; }
+
+/**************************
+  Utility Cursor Classes
+**************************/
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/cursors.scss
+// One class per CSS cursor keyword (.cursor-pointer, .cursor-grab, ...),
+// plus an !important variant of each for overriding a more specific rule.
+$cursor-types: (
+  "alias": alias,
+  "all-scroll": all-scroll,
+  "auto": auto,
+  "cell": cell,
+  "col-resize": col-resize,
+  "context-menu": context-menu,
+  "copy": copy,
+  "crosshair": crosshair,
+  "default": default,
+  "e-resize": e-resize,
+  "ew-resize": ew-resize,
+  "grab": grab,
+  "grabbing": grabbing,
+  "help": help,
+  "move": move,
+  "n-resize": n-resize,
+  "ne-resize": ne-resize,
+  "nesw-resize": nesw-resize,
+  "ns-resize": ns-resize,
+  "nw-resize": nw-resize,
+  "nwse-resize": nwse-resize,
+  "no-drop": no-drop,
+  "none": none,
+  "not-allowed": not-allowed,
+  "pointer": pointer,
+  "progress": progress,
+  "row-resize": row-resize,
+  "s-resize": s-resize,
+  "se-resize": se-resize,
+  "sw-resize": sw-resize,
+  "text": text,
+  "w-resize": w-resize,
+  "wait": wait,
+  "zoom-in": zoom-in,
+  "zoom-out": zoom-out
+) !default;
+
+@each $name, $value in $cursor-types {
+  .cursor-#{$name} {
+    cursor: $value;
+  }
+  .cursor-#{$name}-important {
+    cursor: $value !important;
+  }
+}
+
 .confirmation-btns {
   margin-left: auto;
 }
@@ -487,4 +571,11 @@ $spacing-values: ("0": 0, "1": 0.25rem, "2": 0.5rem, "3": 0.75rem, "4": 1rem, "5
 .material-symbols-rounded, .material-symbols-sharp {
   text-rendering: optimizeLegibility;
   font-feature-settings: 'liga';
+
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Icon glyphs are decorative/actionable, not text - a double-click or
+  // drag shouldn't be able to select them.
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

@@ -23,6 +23,11 @@
   opacity: 0;
   width: 0;
   height: 0;
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Without this, an inherited padding can push the (invisible, 0x0)
+  // checkbox out of alignment with the lever it's meant to sit under.
+  box-sizing: border-box;
+  padding: 0 !important;
 
   // CHECKED
   // Track

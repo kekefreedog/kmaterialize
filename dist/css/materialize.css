@@ -3675,8 +3675,13 @@ a {
 
 blockquote {
   margin: 20px 0;
-  padding-left: 1.5rem;
-  border-left: 5px solid var(--md-sys-color-primary);
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--md-sys-color-primary);
+}
+
+blockquote i.material-icons {
+  font-size: inherit;
+  vertical-align: sub;
 }
 
 i {
@@ -4550,6 +4555,356 @@ input[type=range] + .thumb {
   visibility: hidden;
 }
 
+/**************************
+  Utility Typography Classes
+**************************/
+.font-weight-100 {
+  font-weight: 100 !important;
+}
+
+.font-weight-200 {
+  font-weight: 200 !important;
+}
+
+.font-weight-300 {
+  font-weight: 300 !important;
+}
+
+.font-weight-400 {
+  font-weight: 400 !important;
+}
+
+.font-weight-500 {
+  font-weight: 500 !important;
+}
+
+.font-weight-600 {
+  font-weight: 600 !important;
+}
+
+.font-weight-700 {
+  font-weight: 700 !important;
+}
+
+.font-weight-800 {
+  font-weight: 800 !important;
+}
+
+.font-weight-900 {
+  font-weight: 900 !important;
+}
+
+.font-weight-normal {
+  font-weight: normal !important;
+}
+
+.font-weight-bold {
+  font-weight: bold !important;
+}
+
+.font-weight-lighter {
+  font-weight: lighter !important;
+}
+
+.font-weight-bolder {
+  font-weight: bolder !important;
+}
+
+.line-height-normal {
+  line-height: normal !important;
+}
+
+/**************************
+  Utility Cursor Classes
+**************************/
+.cursor-alias {
+  cursor: alias;
+}
+
+.cursor-alias-important {
+  cursor: alias !important;
+}
+
+.cursor-all-scroll {
+  cursor: all-scroll;
+}
+
+.cursor-all-scroll-important {
+  cursor: all-scroll !important;
+}
+
+.cursor-auto {
+  cursor: auto;
+}
+
+.cursor-auto-important {
+  cursor: auto !important;
+}
+
+.cursor-cell {
+  cursor: cell;
+}
+
+.cursor-cell-important {
+  cursor: cell !important;
+}
+
+.cursor-col-resize {
+  cursor: col-resize;
+}
+
+.cursor-col-resize-important {
+  cursor: col-resize !important;
+}
+
+.cursor-context-menu {
+  cursor: context-menu;
+}
+
+.cursor-context-menu-important {
+  cursor: context-menu !important;
+}
+
+.cursor-copy {
+  cursor: copy;
+}
+
+.cursor-copy-important {
+  cursor: copy !important;
+}
+
+.cursor-crosshair {
+  cursor: crosshair;
+}
+
+.cursor-crosshair-important {
+  cursor: crosshair !important;
+}
+
+.cursor-default {
+  cursor: default;
+}
+
+.cursor-default-important {
+  cursor: default !important;
+}
+
+.cursor-e-resize {
+  cursor: e-resize;
+}
+
+.cursor-e-resize-important {
+  cursor: e-resize !important;
+}
+
+.cursor-ew-resize {
+  cursor: ew-resize;
+}
+
+.cursor-ew-resize-important {
+  cursor: ew-resize !important;
+}
+
+.cursor-grab {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.cursor-grab-important {
+  cursor: -webkit-grab !important;
+  cursor: grab !important;
+}
+
+.cursor-grabbing {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.cursor-grabbing-important {
+  cursor: -webkit-grabbing !important;
+  cursor: grabbing !important;
+}
+
+.cursor-help {
+  cursor: help;
+}
+
+.cursor-help-important {
+  cursor: help !important;
+}
+
+.cursor-move {
+  cursor: move;
+}
+
+.cursor-move-important {
+  cursor: move !important;
+}
+
+.cursor-n-resize {
+  cursor: n-resize;
+}
+
+.cursor-n-resize-important {
+  cursor: n-resize !important;
+}
+
+.cursor-ne-resize {
+  cursor: ne-resize;
+}
+
+.cursor-ne-resize-important {
+  cursor: ne-resize !important;
+}
+
+.cursor-nesw-resize {
+  cursor: nesw-resize;
+}
+
+.cursor-nesw-resize-important {
+  cursor: nesw-resize !important;
+}
+
+.cursor-ns-resize {
+  cursor: ns-resize;
+}
+
+.cursor-ns-resize-important {
+  cursor: ns-resize !important;
+}
+
+.cursor-nw-resize {
+  cursor: nw-resize;
+}
+
+.cursor-nw-resize-important {
+  cursor: nw-resize !important;
+}
+
+.cursor-nwse-resize {
+  cursor: nwse-resize;
+}
+
+.cursor-nwse-resize-important {
+  cursor: nwse-resize !important;
+}
+
+.cursor-no-drop {
+  cursor: no-drop;
+}
+
+.cursor-no-drop-important {
+  cursor: no-drop !important;
+}
+
+.cursor-none {
+  cursor: none;
+}
+
+.cursor-none-important {
+  cursor: none !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.cursor-not-allowed-important {
+  cursor: not-allowed !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-pointer-important {
+  cursor: pointer !important;
+}
+
+.cursor-progress {
+  cursor: progress;
+}
+
+.cursor-progress-important {
+  cursor: progress !important;
+}
+
+.cursor-row-resize {
+  cursor: row-resize;
+}
+
+.cursor-row-resize-important {
+  cursor: row-resize !important;
+}
+
+.cursor-s-resize {
+  cursor: s-resize;
+}
+
+.cursor-s-resize-important {
+  cursor: s-resize !important;
+}
+
+.cursor-se-resize {
+  cursor: se-resize;
+}
+
+.cursor-se-resize-important {
+  cursor: se-resize !important;
+}
+
+.cursor-sw-resize {
+  cursor: sw-resize;
+}
+
+.cursor-sw-resize-important {
+  cursor: sw-resize !important;
+}
+
+.cursor-text {
+  cursor: text;
+}
+
+.cursor-text-important {
+  cursor: text !important;
+}
+
+.cursor-w-resize {
+  cursor: w-resize;
+}
+
+.cursor-w-resize-important {
+  cursor: w-resize !important;
+}
+
+.cursor-wait {
+  cursor: wait;
+}
+
+.cursor-wait-important {
+  cursor: wait !important;
+}
+
+.cursor-zoom-in {
+  cursor: -webkit-zoom-in;
+  cursor: zoom-in;
+}
+
+.cursor-zoom-in-important {
+  cursor: -webkit-zoom-in !important;
+  cursor: zoom-in !important;
+}
+
+.cursor-zoom-out {
+  cursor: -webkit-zoom-out;
+  cursor: zoom-out;
+}
+
+.cursor-zoom-out-important {
+  cursor: -webkit-zoom-out !important;
+  cursor: zoom-out !important;
+}
+
 .confirmation-btns {
   margin-left: auto;
 }
@@ -4561,6 +4916,10 @@ input[type=range] + .thumb {
   -webkit-font-feature-settings: "liga";
      -moz-font-feature-settings: "liga";
           font-feature-settings: "liga";
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+       user-select: none;
 }
 
 .container {
@@ -5385,6 +5744,16 @@ button.btn-floating {
 .fixed-action-btn.direction-bottom ul li {
   margin: 15px 0 0 0;
 }
+.fixed-action-btn.top {
+  top: 23px;
+  bottom: unset;
+  padding-bottom: 15px;
+  padding-top: 0;
+}
+.fixed-action-btn.top > ul {
+  top: 64px;
+  bottom: unset;
+}
 .fixed-action-btn.toolbar {
   padding: 0;
   height: 56px;
@@ -5489,6 +5858,10 @@ button.btn-floating {
   border-right: 1px solid var(--md-sys-color-outline-variant);
   border-left: 1px solid var(--md-sys-color-outline-variant);
   margin: 0.5rem 0 1rem 0;
+  border-radius: 12px;
+}
+.collapsible:not(:has(li:last-child.active)) {
+  overflow: hidden;
 }
 
 .collapsible-header {
@@ -5544,6 +5917,28 @@ button.btn-floating {
           box-sizing: border-box;
   padding: 0 2rem;
   overflow: hidden;
+}
+
+.collapsible > li:first-child .collapsible-header {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.collapsible > li:last-child:not(.active) .collapsible-header {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  -webkit-transition-delay: 250ms;
+          transition-delay: 250ms;
+  -webkit-transition-property: border-radius;
+  transition-property: border-radius;
+}
+.collapsible > li:last-child.active .collapsible-body {
+  border-radius: 0 0 12px 12px;
+}
+
+.collapsible > li.active .collapsible-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .collapsible.popout {
@@ -5789,6 +6184,8 @@ table span.badge {
 }
 .card .card-content .card-title i {
   line-height: 32px;
+  vertical-align: text-bottom;
+  margin-right: 6px;
 }
 .card .card-content .card-title.activator {
   cursor: pointer;
@@ -6221,7 +6618,7 @@ body.keyboard-focused .dropdown-content li:focus {
   background-color: var(--md-sys-color-surface);
   margin: 0.5rem 0 1rem 0;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 2px;
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
 }
@@ -6286,7 +6683,11 @@ body.keyboard-focused .dropdown-content li:focus {
   background-color: rgba(0, 0, 0, 0.04);
 }
 .collection.with-header .collection-header {
-  background-color: transparent;
+  background-color: var(--md-sys-color-surface-variant);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
   padding: 10px 20px;
 }
@@ -9085,6 +9486,9 @@ input[type=checkbox]:not(:disabled):hover:before {
   opacity: 0;
   width: 0;
   height: 0;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 0 !important;
 }
 .switch label input[type=checkbox]:checked + .lever {
   background-color: var(--md-sys-color-primary);

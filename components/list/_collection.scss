@@ -6,7 +6,10 @@
   background-color: var(--md-sys-color-surface);
   margin: $element-top-margin 0 $element-bottom-margin 0;
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 2px;
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Matches the 12px corner radius used across cards, dropdowns and
+  // collapsibles instead of the near-square 2px default.
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
 
@@ -90,7 +93,11 @@
 
   &.with-header {
     .collection-header {
-      background-color: transparent;
+      // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+      // A tinted header reads as its own row instead of blending into the
+      // list; it also isn't text, so it shouldn't be selectable.
+      background-color: var(--md-sys-color-surface-variant);
+      user-select: none;
       border-bottom: 1px solid var(--md-sys-color-outline-variant);
       padding: 10px 20px;
     }

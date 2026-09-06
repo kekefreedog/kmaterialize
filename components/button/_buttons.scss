@@ -256,6 +256,22 @@ button.btn-floating {
     }
   }
 
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Anchors the FAB (and its expanded menu) to the top of the viewport
+  // instead of the bottom, for layouts where the bottom edge is already
+  // occupied (e.g. a footer or bottom nav).
+  &.top {
+    top: 23px;
+    bottom: unset;
+    padding-bottom: 15px;
+    padding-top: 0;
+
+    > ul {
+      top: 64px;
+      bottom: unset;
+    }
+  }
+
   &.toolbar {
     padding: 0;
     height: 56px;

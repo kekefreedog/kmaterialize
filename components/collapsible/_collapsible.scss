@@ -9,7 +9,19 @@
   border-right: 1px solid var(--md-sys-color-outline-variant);
   border-left: 1px solid var(--md-sys-color-outline-variant);
   margin: $element-top-margin 0 $element-bottom-margin 0;
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Matches the 12px corner radius used across cards, dropdowns and
+  // collections instead of square corners.
+  border-radius: 12px;
   @extend .z-depth-1;
+
+  // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+  // Only clip to the rounded corners while every item is closed - an open
+  // last item's body needs to be able to grow past the list's own bottom
+  // edge instead of being cut off by it.
+  &:not(:has(li:last-child.active)) {
+    overflow: hidden;
+  }
 }
 
 .collapsible-header {
@@ -60,6 +72,43 @@
   box-sizing: border-box;
   padding: 0 2rem;
   overflow: hidden;
+}
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+// Round the corners of the first/last item's own header/body so they
+// follow the list's rounded outline instead of showing a square edge
+// inside it. Longhand corners (not the `border-radius` shorthand) so that
+// a single-item accordion - where the same <li> is both first and last -
+// gets all 4 corners rounded instead of the last-child rule's shorthand
+// wiping out the top corners the first-child rule just set.
+.collapsible > li:first-child .collapsible-header {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.collapsible > li:last-child {
+  &:not(.active) .collapsible-header {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    transition-delay: 250ms;
+    transition-property: border-radius;
+  }
+
+  &.active .collapsible-body {
+    border-radius: 0 0 12px 12px;
+  }
+}
+
+// CSS resolves border-radius per-corner, not per-rule: once the
+// :not(.active) rule above stops matching, nothing here fixes the bottom
+// corners back to square, so a more specific rule elsewhere (e.g. the
+// sidenav's `li > a { border-radius: 100px; }` pill styling, which also
+// matches .collapsible-header since it's an <a> inside a sidenav <li>)
+// is free to fill that gap and leave the header rounded on all 4 corners
+// while expanded. Force it explicitly instead of leaving it implicit.
+.collapsible > li.active .collapsible-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 // Popout Collapsible

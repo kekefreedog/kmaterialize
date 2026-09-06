@@ -168,6 +168,12 @@
 
       i {
         line-height: 32px;
+
+        // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/component_enhance.scss
+        // Sits on the title's baseline with a small gap before the text,
+        // instead of floating flush against it mid-line.
+        vertical-align: text-bottom;
+        margin-right: 6px;
       }
 
       &.activator {
