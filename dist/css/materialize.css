@@ -3614,15 +3614,15 @@ a {
   clear: both;
 }
 
-.z-depth-0, .pagination li.active a:focus, .pagination li.disabled a, .btn.filled:focus, .btn.tonal:focus, .btn.text, .btn-flat, .btn.disabled, .btn-floating.disabled, .btn-large.disabled, .btn-small.disabled, .btn-flat.disabled,
+.z-depth-0, .pagination li.active a:focus, .pagination li.disabled a, .btn:focus, .btn-large:focus, .btn-small:focus, .btn.filled:focus, .btn.tonal:focus, .btn.text, .btn-flat, .btn.disabled, .btn-floating.disabled, .btn-large.disabled, .btn-small.disabled, .btn-flat.disabled,
 .btn:disabled, .btn-floating:disabled, .btn-large:disabled, .btn-small:disabled, .btn-flat:disabled,
-.btn[disabled], .btn-floating[disabled], .btn-large[disabled], .btn-small[disabled], .btn-flat[disabled], .filled.btn-floating:focus, .tonal.btn-floating:focus, .text.btn-floating, .filled.btn-large:focus, .tonal.btn-large:focus, .text.btn-large, .filled.btn-small:focus, .tonal.btn-small:focus, .text.btn-small {
+.btn[disabled], .btn-floating[disabled], .btn-large[disabled], .btn-small[disabled], .btn-flat[disabled], .btn-floating:focus, .filled.btn-floating:focus, .tonal.btn-floating:focus, .text.btn-floating, .filled.btn-large:focus, .tonal.btn-large:focus, .text.btn-large, .filled.btn-small:focus, .tonal.btn-small:focus, .text.btn-small {
   -webkit-box-shadow: none !important;
           box-shadow: none !important;
 }
 
 /* 2dp elevation modified*/
-.z-depth-1, .sidenav, .dropdown-content, .collapsible, .pagination li.active a:hover, .card-panel, .card, .btn.filled:hover, .btn.tonal:hover, .btn.elevated, .btn.elevated:focus, .filled.btn-floating:hover, .tonal.btn-floating:hover, .elevated.btn-floating, .elevated.btn-floating:focus, .btn-floating, .filled.btn-large:hover, .tonal.btn-large:hover, .elevated.btn-large, .elevated.btn-large:focus, .filled.btn-small:hover, .tonal.btn-small:hover, .elevated.btn-small, .elevated.btn-small:focus {
+.z-depth-1, .sidenav, .dropdown-content, .collapsible, .pagination li.active a:hover, .card-panel, .card, .btn:hover, .btn-large:hover, .btn-small:hover, .btn.filled:hover, .btn.tonal:hover, .btn.elevated, .btn.elevated:focus, .btn-floating:hover, .filled.btn-floating:hover, .tonal.btn-floating:hover, .elevated.btn-floating, .elevated.btn-floating:focus, .btn-floating, .filled.btn-large:hover, .tonal.btn-large:hover, .elevated.btn-large, .elevated.btn-large:focus, .filled.btn-small:hover, .tonal.btn-small:hover, .elevated.btn-small, .elevated.btn-small:focus {
   -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
           box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
 }
@@ -5100,6 +5100,24 @@ body {
 }
 .btn:focus, .btn-floating:focus, .btn-large:focus, .btn-small:focus, .btn-flat:focus {
   background-color: var(--md-sys-color-primary-container);
+}
+
+.btn, .btn-small, .btn-large, .btn-floating {
+  color: var(--md-sys-color-on-primary);
+  background-color: var(--md-sys-color-primary);
+}
+.btn:hover, .btn-floating:hover, .btn:focus, .btn-floating:focus, .btn-large:hover, .btn-large:focus, .btn-small:hover, .btn-small:focus {
+  color: var(--md-sys-color-on-primary);
+}
+.btn:hover, .btn-floating:hover, .btn-large:hover, .btn-small:hover {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary), var(--md-sys-color-on-primary) 16%);
+}
+.btn:focus, .btn-floating:focus, .btn-large:focus, .btn-small:focus {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary), var(--md-sys-color-on-primary) 20%);
+}
+.btn:focus-visible, .btn-floating:focus-visible, .btn-large:focus-visible, .btn-small:focus-visible {
+  outline: 3px solid var(--md-sys-color-secondary);
+  outline-offset: 2px;
 }
 
 .btn.icon-left, .icon-left.btn-small, .icon-left.btn-large, .icon-left.btn-floating, .btn.icon-right, .icon-right.btn-small, .icon-right.btn-large, .icon-right.btn-floating {

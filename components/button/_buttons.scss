@@ -23,6 +23,19 @@
   );
 }
 
+// .btn/.btn-large/.btn-small carry no color of their own - only the
+// .filled/.tonal/.elevated/.outlined/.text modifiers do - so a bare
+// .btn with none of those had no background or text color at all,
+// same "invisible button" bug as .btn.text and .btn.elevated before
+// they were fixed. Default to filled, same as v1's plain .btn always
+// being a real visible button. Modifier classes still win (two
+// classes beats one on specificity), and .btn-floating/.btn-flat
+// already have their own complete color rules elsewhere so are
+// deliberately excluded here.
+.btn, .btn-large, .btn-small {
+  @include btn-filled;
+}
+
 // Icon
 .btn.icon-left, .btn.icon-right {
   position: relative;
