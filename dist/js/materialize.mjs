@@ -7455,6 +7455,15 @@ class Toolbar extends Component {
         this._tracks = Array.from(this.el.querySelectorAll('.toolbar-track'));
         this._setupEventHandlers();
         this._tracks.forEach((track) => this._moveIndicator(track, false));
+        // A custom/web font can still be loading at construction time; its
+        // metrics landing after this first measurement would leave the
+        // indicator very slightly offset from the (now differently-sized)
+        // text it's supposed to sit behind. Re-measure once fonts are ready.
+        if (typeof document !== 'undefined' && document.fonts) {
+            document.fonts.ready.then(() => {
+                this._tracks.forEach((track) => this._moveIndicator(track, false));
+            });
+        }
     }
     static get defaults() {
         return _defaults$5;
@@ -7544,7 +7553,12 @@ class Toolbar extends Component {
             return;
         if (!animate)
             indicator.style.transition = 'none';
-        indicator.style.transform = `translateX(${active.offsetLeft - track.clientLeft}px)`;
+        // No "- track.clientLeft" here: offsetLeft is already relative to the
+        // offsetParent's padding edge, same origin as the indicator's own
+        // `left: 0` (an absolutely positioned element's containing block is
+        // its ancestor's padding box) - subtracting the border width again
+        // was double-counting it, nudging the indicator a px too far left.
+        indicator.style.transform = `translateX(${active.offsetLeft}px)`;
         indicator.style.width = `${active.offsetWidth}px`;
         track.classList.add('is-armed');
         if (!animate) {

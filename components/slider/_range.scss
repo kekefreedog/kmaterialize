@@ -114,7 +114,11 @@ input[type=range]::-moz-focus-inner {
 
 input[type=range]::-moz-range-thumb {
   @include range-thumb;
-  margin-top: -5px;
+  // No margin-top here, unlike the -webkit-slider-thumb rule above:
+  // Firefox already vertically centers ::-moz-range-thumb on the track
+  // by default. Copying webkit's -5px correction (needed there because
+  // Chrome/Safari top-align the thumb by default) over-corrects in
+  // Firefox, pushing an already-centered thumb noticeably too high.
 }
 
 // hide the outline behind the border

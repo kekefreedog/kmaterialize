@@ -109,6 +109,49 @@
   }
 }
 
+/// Slider
+///////////////////////////////////////////////////////
+///
+
+// A pill container for a range-field, matching .toolbar-track's look -
+// also fixes two things a bare range-field has inside a .toolbar: the
+// native track line is var(--md-sys-color-surface-variant), the exact
+// same color as .toolbar's own background, so it's invisible without a
+// container giving it something else to contrast against; and this also
+// vertically centers any label text/icons placed next to it.
+.toolbar-slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+
+  .range-field {
+    width: 120px;
+    margin-top: 18px;
+  }
+
+  // Material icons default to 24px, which crowds a 34px-tall pill and
+  // reads a lot heavier than adjacent 13-14px text labels - match the
+  // track item's scale instead.
+  i.material-icons {
+    font-size: 18px;
+  }
+
+  span {
+    line-height: 1;
+    // Measured against the actual track/thumb center: a "-"/"+" glyph's
+    // ink sits a few px below the middle of its own line box in this
+    // font, even though the box itself is perfectly flex-centered - nudge
+    // the glyph up to compensate.
+    position: relative;
+    top: -3px;
+  }
+}
+
 /// Expandable search
 ///////////////////////////////////////////////////////
 ///

@@ -128,7 +128,13 @@
   }
 
   &:focus {
-    background-color: $button-floating-background-focus;
+    // Was $button-floating-background-focus (--md-ref-palette-secondary80,
+    // a raw MD3 secondary tone) - it doesn't track a custom theme's
+    // primary/container colors the way :hover's color-mix above does, so
+    // it could show as a clashing color (e.g. blue) on a themed palette.
+    // Same formula as :hover, just mixed a bit stronger for the stronger
+    // state.
+    background-color: color-mix(in srgb, var(--md-sys-color-primary-container), var(--md-sys-color-on-primary-container) 24%);
     @extend .z-depth-1-half;
   }
 

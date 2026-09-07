@@ -13504,7 +13504,7 @@ body {
   background-color: color-mix(in srgb, var(--md-sys-color-primary-container), var(--md-sys-color-on-primary-container) 16%);
 }
 .btn-floating:focus {
-  background-color: var(--md-ref-palette-secondary80);
+  background-color: color-mix(in srgb, var(--md-sys-color-primary-container), var(--md-sys-color-on-primary-container) 24%);
 }
 .btn-floating:before {
   border-radius: 0;
@@ -14982,6 +14982,35 @@ body.keyboard-focused .dropdown-content li:focus {
 .toolbar-track-item:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 2px;
+}
+
+.toolbar-slider {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+.toolbar-slider .range-field {
+  width: 120px;
+  margin-top: 18px;
+}
+.toolbar-slider i.material-icons {
+  font-size: 18px;
+}
+.toolbar-slider span {
+  line-height: 1;
+  position: relative;
+  top: -3px;
 }
 
 .toolbar-search {
@@ -17735,7 +17764,6 @@ input[type=range]::-moz-range-thumb {
   background: var(--md-sys-color-primary);
   -moz-transition: box-shadow 0.3s;
   transition: box-shadow 0.3s;
-  margin-top: -5px;
 }
 
 input[type=range]:-moz-focusring {
