@@ -385,6 +385,11 @@ $colors: (
 
 
 // Color Classes
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/color_class.scss
+// Adds the -border variant (background/text already existed) plus
+// .light-mode-*/.dark-mode-* variants below, so a color can be forced
+// regardless of the current color-scheme (e.g. an element that should
+// always render "the light-mode red" no matter which theme is active).
 @each $color_name, $color in $colors {
   @each $color_type, $color_value in $color {
     @if $color_type == "base" {
@@ -394,6 +399,32 @@ $colors: (
       .#{$color_name}-text {
         color: $color_value !important;
       }
+      .#{$color_name}-border {
+        border-color: $color_value !important;
+      }
+
+      @media (prefers-color-scheme: light) {
+        .light-mode-#{$color_name} {
+          background-color: $color_value !important;
+        }
+        .light-mode-#{$color_name}-text {
+          color: $color_value !important;
+        }
+        .light-mode-#{$color_name}-border {
+          border-color: $color_value !important;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        .dark-mode-#{$color_name} {
+          background-color: $color_value !important;
+        }
+        .dark-mode-#{$color_name}-text {
+          color: $color_value !important;
+        }
+        .dark-mode-#{$color_name}-border {
+          border-color: $color_value !important;
+        }
+      }
     }
     @else if $color_name != "shades" {
       .#{$color_name}.#{$color_type} {
@@ -402,16 +433,167 @@ $colors: (
       .#{$color_name}-text.text-#{$color_type} {
         color: $color_value !important;
       }
+      .#{$color_name}-border.border-#{$color_type} {
+        border-color: $color_value !important;
+      }
+
+      @media (prefers-color-scheme: light) {
+        .light-mode-#{$color_name}.#{$color_type}-light-mode {
+          background-color: $color_value !important;
+        }
+        .light-mode-#{$color_name}-text.text-#{$color_type}-light-mode {
+          color: $color_value !important;
+        }
+        .light-mode-#{$color_name}-border.border-#{$color_type}-light-mode {
+          border-color: $color_value !important;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        .dark-mode-#{$color_name}.#{$color_type}-dark-mode {
+          background-color: $color_value !important;
+        }
+        .dark-mode-#{$color_name}-text.text-#{$color_type}-dark-mode {
+          color: $color_value !important;
+        }
+        .dark-mode-#{$color_name}-border.border-#{$color_type}-dark-mode {
+          border-color: $color_value !important;
+        }
+      }
     }
   }
 }
 
 // Shade classes
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/color_class.scss
 @each $color, $color_value in $shades {
   .#{$color} {
     background-color: $color_value !important;
   }
   .#{$color}-text {
     color: $color_value !important;
+  }
+  .#{$color}-border {
+    border-color: $color_value !important;
+  }
+
+  @media (prefers-color-scheme: light) {
+    .light-mode-#{$color} {
+      background-color: $color_value !important;
+    }
+    .light-mode-#{$color}-text {
+      color: $color_value !important;
+    }
+    .light-mode-#{$color}-border {
+      border-color: $color_value !important;
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    .dark-mode-#{$color} {
+      background-color: $color_value !important;
+    }
+    .dark-mode-#{$color}-text {
+      color: $color_value !important;
+    }
+    .dark-mode-#{$color}-border {
+      border-color: $color_value !important;
+    }
+  }
+}
+
+/// Gradients
+///////////////////////////////////////////////////////
+///
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/color_class.scss (angle/direction helpers + linear-gradient mixin)
+// Convert an angle between units. @author Chris Eppstein
+@function convert-angle($value, $unit) {
+  $convertable-units: deg grad turn rad;
+  $conversion-factors: 1 (10grad/9deg) (1turn/360deg) (3.1415926rad/180deg);
+
+  @if index($convertable-units, unit($value)) and index($convertable-units, $unit) {
+    @return $value / nth($conversion-factors, index($convertable-units, unit($value))) * nth($conversion-factors, index($convertable-units, $unit));
+  }
+
+  @warn "Cannot convert `#{unit($value)}` to `#{$unit}`.";
+}
+
+// Is `$value` a direction keyword or an angle?
+@function is-direction($value) {
+  $is-direction: index((to top, to top right, to right top, to right, to bottom right, to right bottom, to bottom, to bottom left, to left bottom, to left, to left top, to top left), $value);
+  $is-angle: type-of($value) == 'number' and index('deg' 'grad' 'turn' 'rad', unit($value));
+
+  @return $is-direction or $is-angle;
+}
+
+// Prints a linear-gradient with a plain color fallback (the gradient's own
+// start color, so something reasonable still shows if gradients aren't
+// supported) ahead of the real `linear-gradient()` declaration.
+@mixin linear-gradient($direction, $color-stops...) {
+  @if is-direction($direction) == false {
+    $color-stops: ($direction, $color-stops);
+    $direction: 180deg;
+  }
+
+  background: nth(nth($color-stops, 1), 1);
+  background: linear-gradient($direction, $color-stops);
+}
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/color_gradient_collection.scss
+// 30 ready-made two-color gradients, each built from the palette above via
+// colorFunc() so they stay in sync if a palette color ever changes.
+$gradient-colors: (
+  gradient-45deg-light-blue-teal: ('start-color': colorFunc("light-blue", "lighten-4"), 'end-color': colorFunc("teal", "accent-2"), 'direction': 45deg),
+  gradient-45deg-indigo-light-blue: ('start-color': colorFunc("indigo", "darken-1"), 'end-color': colorFunc("light-blue", "lighten-2"), 'direction': 45deg),
+  gradient-45deg-light-blue-indigo: ('start-color': colorFunc("light-blue", "lighten-4"), 'end-color': colorFunc("indigo", "lighten-3"), 'direction': 45deg),
+  gradient-45deg-yellow-green: ('start-color': colorFunc("yellow", "accent-1"), 'end-color': colorFunc("green", "accent-1"), 'direction': 45deg),
+  gradient-45deg-orange-deep-orange: ('start-color': colorFunc("orange", "lighten-4"), 'end-color': colorFunc("deep-orange", "lighten-4"), 'direction': 45deg),
+  gradient-45deg-deep-purple-purple: ('start-color': colorFunc("deep-purple", "lighten-4"), 'end-color': colorFunc("purple", "lighten-5"), 'direction': 45deg),
+  gradient-45deg-red-pink: ('start-color': colorFunc("red", "accent-2"), 'end-color': colorFunc("pink", "lighten-3"), 'direction': 45deg),
+  gradient-45deg-light-green-amber: ('start-color': colorFunc("light-green", "lighten-3"), 'end-color': colorFunc("amber", "lighten-5"), 'direction': 45deg),
+  gradient-45deg-amber-amber: ('start-color': colorFunc("amber", "darken-4"), 'end-color': colorFunc("amber", "lighten-1"), 'direction': 45deg),
+  gradient-45deg-purple-pink: ('start-color': colorFunc("purple", "accent-1"), 'end-color': colorFunc("pink", "lighten-5"), 'direction': 45deg),
+  gradient-45deg-teal-cyan: ('start-color': colorFunc("teal", "lighten-5"), 'end-color': colorFunc("cyan", "accent-3"), 'direction': 45deg),
+  gradient-45deg-blue-grey-blue-grey: ('start-color': colorFunc("blue-grey", "lighten-4"), 'end-color': colorFunc("blue-grey", "darken-1"), 'direction': 45deg),
+  gradient-45deg-orange-amber: ('start-color': colorFunc("orange", "darken-4"), 'end-color': colorFunc("blue", "darken-2"), 'direction': 45deg),
+  gradient-45deg-indigo-blue: ('start-color': colorFunc("indigo", "darken-2"), 'end-color': colorFunc("blue", "darken-2"), 'direction': 45deg),
+  gradient-45deg-brown-brown: ('start-color': colorFunc("brown", "darken-1"), 'end-color': colorFunc("blue", "lighten-4"), 'direction': 45deg),
+  gradient-45deg-blue-grey-blue: ('start-color': colorFunc("blue-grey", "darken-4"), 'end-color': colorFunc("blue", "accent-3"), 'direction': 45deg),
+  gradient-45deg-purple-deep-orange: ('start-color': colorFunc("purple", "darken-1"), 'end-color': colorFunc("deep-orange", "accent-2"), 'direction': 45deg),
+  gradient-45deg-green-teal: ('start-color': colorFunc("green", "darken-1"), 'end-color': colorFunc("teal", "accent-3"), 'direction': 45deg),
+  gradient-45deg-purple-light-blue: ('start-color': colorFunc("purple", "accent-2"), 'end-color': colorFunc("light-blue", "lighten-2"), 'direction': 45deg),
+  gradient-45deg-cyan-cyan: ('start-color': colorFunc("cyan", "accent-2"), 'end-color': colorFunc("cyan", "accent-3"), 'direction': 45deg),
+  gradient-45deg-yellow-teal: ('start-color': colorFunc("yellow", "lighten-4"), 'end-color': colorFunc("teal", "accent-2"), 'direction': 45deg),
+  gradient-45deg-purple-deep-purple: ('start-color': colorFunc("purple", "darken-2"), 'end-color': colorFunc("deep-purple", "accent-2"), 'direction': 45deg),
+  gradient-45deg-cyan-light-green: ('start-color': colorFunc("cyan", "darken-2"), 'end-color': colorFunc("light-green", "accent-2"), 'direction': 45deg),
+  gradient-45deg-purple-amber: ('start-color': colorFunc("purple", "accent-3"), 'end-color': colorFunc("amber", "darken-2"), 'direction': 45deg),
+  gradient-45deg-indigo-purple: ('start-color': colorFunc("indigo", "darken-2"), 'end-color': colorFunc("purple", "darken-2"), 'direction': 45deg),
+  gradient-45deg-deep-purple-blue: ('start-color': colorFunc("deep-purple", "accent-4"), 'end-color': colorFunc("blue", "darken-2"), 'direction': 45deg),
+  gradient-45deg-deep-orange-orange: ('start-color': colorFunc("deep-orange", "darken-4"), 'end-color': colorFunc("orange", "darken-2"), 'direction': 45deg),
+  gradient-45deg-light-blue-cyan: ('start-color': colorFunc("light-blue", "darken-2"), 'end-color': colorFunc("cyan", "lighten-1"), 'direction': 45deg),
+  gradient-45deg-blue-indigo: ('start-color': colorFunc("blue", "accent-4"), 'end-color': colorFunc("indigo", "darken-1"), 'direction': 45deg),
+  gradient-45deg-semi-dark: ('start-color': #00aeff, 'end-color': #3369e6, 'direction': -90deg),
+) !default;
+
+@each $gcolor_name, $gcolor in $gradient-colors {
+  $start-color: map-get($gcolor, start-color);
+  $end-color: map-get($gcolor, end-color);
+  $direction: map-get($gcolor, direction);
+
+  .#{$gcolor_name} {
+    @include linear-gradient($direction, $start-color, $end-color);
+
+    // Drop shadow tinted to match the gradient's end color, for a
+    // raised/glowing look instead of a flat generic shadow.
+    &.gradient-shadow {
+      box-shadow: 0 6px 20px 0 rgba($end-color, 0.5) !important;
+    }
+  }
+
+  // Standalone version of the same shadow: doesn't require the matching
+  // .#{$gcolor_name} background class, so it can be dropped onto any
+  // element (e.g. a plain card, a button) that just wants the tinted
+  // glow without the actual gradient fill.
+  .#{$gcolor_name}-shadow {
+    box-shadow: 0 6px 20px 0 rgba($end-color, 0.5) !important;
   }
 }

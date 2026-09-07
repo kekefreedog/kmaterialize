@@ -1,0 +1,176 @@
+@use '../../sass/variables' as *;
+
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/partial/_planning_toolbar.scss
+// A rounded "pill" action bar: a full-width flex row split into groups
+// (buttons, a segmented "track" control, an expandable search field) laid
+// out with space-between, sitting inline above the content it controls -
+// not fixed/sticky, just a normal flex row like the source component.
+//
+// :not(.fixed-action-btn) - "toolbar" is already a FAB display mode
+// (.fixed-action-btn.toolbar, see components/button/_buttons.scss); this
+// guards against also painting pill styles onto that unrelated element.
+.toolbar:not(.fixed-action-btn) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  padding: 5px 8px;
+  margin: $element-top-margin 0 $element-bottom-margin 0;
+  border-radius: 27px;
+  background-color: var(--md-sys-color-surface-variant);
+}
+
+// A cluster of controls inside the toolbar (buttons, a track, a search
+// field, ...) kept together and spaced from the next group.
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/// Track (segmented control)
+///////////////////////////////////////////////////////
+///
+
+// A pill-shaped segmented control - e.g. "Today / Previous / Next" or a
+// "Week / Month / Year" range picker - with a sliding highlight behind
+// whichever item is active.
+.toolbar-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 3px;
+  border-radius: 999px;
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+// A track with no background/border of its own - just for spacing a group
+// of items that don't need the pill-within-a-pill look.
+.toolbar-track.toolbar-track-bare {
+  padding: 3px 0;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+// Positioned/sized by Toolbar's JS (offsetLeft/offsetWidth of the active
+// .toolbar-track-item), not by CSS - the transition below is what makes
+// that JS-driven move/resize animate instead of jumping.
+.toolbar-track-indicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  border-radius: 999px;
+  background-color: var(--md-sys-color-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s cubic-bezier(.2, .7, .3, 1), width .22s cubic-bezier(.2, .7, .3, 1), opacity .14s ease;
+
+  // Only fade in once Toolbar's JS has measured and placed it for the
+  // first time - otherwise it flashes at 0 width in the top-left corner
+  // for a frame before the first real position is set.
+  .toolbar-track.is-armed & {
+    opacity: 1;
+  }
+}
+
+.toolbar-track-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12.5px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .16s ease;
+
+  &:hover {
+    color: var(--md-sys-color-on-surface);
+  }
+  &.is-active {
+    font-weight: 600;
+    color: var(--md-sys-color-on-primary);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/// Expandable search
+///////////////////////////////////////////////////////
+///
+
+// A search field that starts as just an icon button and expands into a
+// full text input once focused (or once it has a value) - Toolbar's JS
+// toggles the .is-expanded class.
+.toolbar-search {
+  display: inline-flex;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  transition: width .2s cubic-bezier(.2, .7, .3, 1);
+
+  &.is-expanded {
+    width: 190px;
+  }
+
+  .toolbar-search-toggle {
+    display: inline-flex;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+  }
+
+  .toolbar-search-input {
+    width: 0;
+    min-width: 0;
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+
+  &.is-expanded .toolbar-search-input {
+    width: 150px;
+    padding-right: 5px;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-track-indicator {
+    transition: opacity .14s ease;
+  }
+}

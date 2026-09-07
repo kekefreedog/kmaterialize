@@ -18,6 +18,7 @@ import { Timepicker, TimepickerOptions } from '../components/timepicker/timepick
 import { Toast, ToastOptions } from '../components/snackbar/toasts';
 import { Tooltip, TooltipOptions } from '../components/tooltip/tooltip';
 import { Range } from '../components/slider/range';
+import { Toolbar, ToolbarOptions } from '../components/toolbar/toolbar';
 
 import { TapTarget, TapTargetOptions } from './tapTarget';
 import { CharacterCounter /*, CharacterCounterOptions*/ } from './characterCounter';
@@ -54,7 +55,8 @@ export {
   Toast,
   Tooltip,
   Waves,
-  Range
+  Range,
+  Toolbar
 };
 
 export const version = '2.3.3';
@@ -87,6 +89,7 @@ export interface AutoInitOptions {
   Timepicker?: Partial<TimepickerOptions>;
   Tooltip?: Partial<TooltipOptions>;
   FloatingActionButton?: Partial<FloatingActionButtonOptions>;
+  Toolbar?: Partial<ToolbarOptions>;
 }
 
 /**
@@ -114,7 +117,10 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     TapTarget: context.querySelectorAll('.tap-target:not(.no-autoinit)'),
     Timepicker: context.querySelectorAll('.timepicker:not(.no-autoinit)'),
     Tooltip: context.querySelectorAll('.tooltipped:not(.no-autoinit)'),
-    FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)')
+    FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)'),
+    // Excludes .fixed-action-btn.toolbar - that's an unrelated FAB display
+    // mode reusing the same class name, not this component.
+    Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)')
   };
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
   Cards.init(registry.Cards, options?.Cards ?? {});
@@ -135,6 +141,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
   Timepicker.init(registry.Timepicker, options?.Timepicker ?? {});
   Tooltip.init(registry.Tooltip, options?.Tooltip ?? {});
   FloatingActionButton.init(registry.FloatingActionButton, options?.FloatingActionButton ?? {});
+  Toolbar.init(registry.Toolbar, options?.Toolbar ?? {});
 }
 
 // Init

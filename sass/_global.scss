@@ -478,6 +478,21 @@ $spacing-values: ("0": 0, "1": 0.25rem, "2": 0.5rem, "3": 0.75rem, "4": 1rem, "5
   }
 }
 
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/dimensions.scss
+// Same all-direction spacing as .p-*/.m-* above (reuses $spacing-values,
+// so the 0-6 steps and their rem values stay a single source of truth),
+// under the .padding-*/.margin-* names some projects already use in their
+// markup. Excludes "auto": the source only ever defined steps 0-6.
+@each $property, $shortcut in $spacing-shortcuts {
+  @each $name, $value in $spacing-values {
+    @if $name != "auto" {
+      .#{$property}-#{$name} {
+        #{$property}: $value !important;
+      }
+    }
+  }
+}
+
 // Docked display
 .display-docked {
   position: absolute;
@@ -564,6 +579,139 @@ $cursor-types: (
 
 .confirmation-btns {
   margin-left: auto;
+}
+
+/**************************
+  Utility Screen-Fit Classes
+**************************/
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/dimensions.scss
+// Size an element to (or at least to) the viewport.
+.screen-fit {
+  width: 100%;
+  height: 100vh;
+}
+
+.screen-fit-x {
+  width: 100%;
+}
+
+.screen-fit-y {
+  align-items: stretch;
+}
+
+.screen-fit-min {
+  min-width: 100%;
+  min-height: 100vh;
+}
+
+.screen-fit-min-x {
+  min-width: 100%;
+  height: 100vh;
+}
+
+.screen-fit-min-y {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/**************************
+  Utility Screen-Flex Classes
+**************************/
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/dimensions.scss
+// A one-class-per-modifier flexbox layout system: `.screen-flex` turns the
+// element into a flex container, and each `.screen-*` modifier below is
+// meant to be combined with it directly on the same element.
+.screen-flex {
+  display: flex;
+
+  &.screen-flex-important {
+    display: flex !important;
+  }
+
+  // Alignment on both axes
+  &.screen-center {
+    justify-content: center;
+    align-items: center;
+  }
+  &.screen-left {
+    justify-content: left;
+    align-items: center;
+  }
+  &.screen-right {
+    justify-content: right;
+    align-items: right;
+  }
+
+  // Wrapping
+  &.screen-wrap {
+    flex-wrap: wrap;
+  }
+  &.screen-no-wrap {
+    flex-wrap: nowrap;
+  }
+
+  // Vertical (cross-axis) alignment only
+  &.screen-center-y {
+    align-items: center;
+  }
+  &.screen-bottom-y {
+    align-items: flex-end;
+  }
+  &.screen-top-y {
+    align-items: flex-start;
+  }
+
+  // Horizontal (main-axis) alignment only
+  &.screen-center-x {
+    justify-content: center;
+  }
+  &.screen-center-space-x {
+    justify-content: space-around;
+  }
+  &.screen-center-distributed-x {
+    justify-content: space-evenly;
+  }
+  &.screen-distributed-x {
+    justify-content: space-between;
+  }
+
+  // Direction
+  &.screen-direction-y-asc {
+    flex-direction: column;
+  }
+  &.screen-direction-y-desc {
+    flex-direction: column-reverse;
+  }
+  &.screen-direction-x-asc {
+    flex-direction: row;
+  }
+  &.screen-direction-x-desc {
+    flex-direction: row-reverse;
+  }
+
+  // Direct children
+  .element-flex-grow-1 {
+    flex-grow: 1;
+  }
+}
+
+.element-flex {
+  display: flex;
+}
+
+/**************************
+  Utility Object-Fit Classes
+**************************/
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/dimensions.scss
+.object-fit-cover {
+  object-fit: cover;
+}
+
+.object-fit-fill {
+  object-fit: fill;
 }
 
 /* This is needed for some mobile phones to display the Google Icon font properly */

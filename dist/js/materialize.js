@@ -400,7 +400,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$o = {
+    const _defaults$p = {
         alignment: 'left',
         autoFocus: true,
         constrainWidth: true,
@@ -453,7 +453,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$o;
+            return _defaults$p;
         }
         /**
          * Initializes instances of Dropdown.
@@ -904,7 +904,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$n = {
+    const _defaults$o = {
         data: [], // Autocomplete data set
         onAutocomplete: null, // Callback for when autocompleted
         dropdownOptions: {
@@ -964,7 +964,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$n;
+            return _defaults$o;
         }
         /**
          * Initializes instances of Autocomplete.
@@ -1372,7 +1372,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$m = {
+    const _defaults$n = {
         direction: 'top',
         hoverEnabled: true,
         toolbarEnabled: false
@@ -1419,7 +1419,7 @@ var M = (function (exports) {
             this.#setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$m;
+            return _defaults$n;
         }
         /**
          * Initializes instances of FloatingActionButton.
@@ -1590,7 +1590,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$l = {
+    const _defaults$m = {
         onOpen: null,
         onClose: null,
         inDuration: 225,
@@ -1626,7 +1626,7 @@ var M = (function (exports) {
             }
         }
         static get defaults() {
-            return _defaults$l;
+            return _defaults$m;
         }
         /**
          * Initializes instances of Cards.
@@ -1737,7 +1737,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$k = {
+    const _defaults$l = {
         duration: 200, // ms
         dist: -100, // zoom scale TODO: make this more intuitive as an option
         shift: 0, // spacing for center image
@@ -1839,7 +1839,7 @@ var M = (function (exports) {
             this._scroll(this.offset);
         }
         static get defaults() {
-            return _defaults$k;
+            return _defaults$l;
         }
         /**
          * Initializes instances of Carousel.
@@ -2311,7 +2311,7 @@ var M = (function (exports) {
     }
 
     var _a;
-    const _defaults$j = {
+    const _defaults$k = {
         data: [],
         placeholder: '',
         secondaryPlaceholder: '',
@@ -2365,7 +2365,7 @@ var M = (function (exports) {
             }
         }
         static get defaults() {
-            return _defaults$j;
+            return _defaults$k;
         }
         /**
          * Initializes instances of Chips.
@@ -2648,7 +2648,7 @@ var M = (function (exports) {
     }
     _a = Chips;
 
-    const _defaults$i = {
+    const _defaults$j = {
         accordion: true,
         onOpenStart: null,
         onOpenEnd: null,
@@ -2684,7 +2684,7 @@ var M = (function (exports) {
             }
         }
         static get defaults() {
-            return _defaults$i;
+            return _defaults$j;
         }
         /**
          * Initializes instances of Collapsible.
@@ -2803,7 +2803,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$h = {
+    const _defaults$i = {
         classes: '',
         dropdownOptions: {}
     };
@@ -2843,7 +2843,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$h;
+            return _defaults$i;
         }
         /**
          * Initializes instances of FormSelect.
@@ -3186,7 +3186,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$g = {
+    const _defaults$h = {
         margin: 5,
         transition: 10,
         duration: 250,
@@ -3203,7 +3203,7 @@ var M = (function (exports) {
         constructor(el, container, options) {
             this.el = el;
             this.options = {
-                ..._defaults$g,
+                ..._defaults$h,
                 ...options
             };
             this.container = document.createElement('div');
@@ -3265,7 +3265,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$f = {
+    const _defaults$g = {
         classList: ['modal'],
         title: null,
         onOpen: null,
@@ -3280,7 +3280,7 @@ var M = (function (exports) {
         constructor(el, container, options) {
             this.el = el;
             this.options = {
-                ..._defaults$f,
+                ..._defaults$g,
                 ...options,
             };
             this.container = document.createElement('dialog');
@@ -3338,7 +3338,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$e = {
+    const _defaults$f = {
         // the default output format for the input field value
         format: 'mmm dd, yyyy',
         // Used to create date object from current input string
@@ -3488,7 +3488,7 @@ var M = (function (exports) {
             this._pickerSetup();
         }
         static get defaults() {
-            return _defaults$e;
+            return _defaults$f;
         }
         /**
          * Initializes instances of Datepicker.
@@ -4541,7 +4541,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$d = {
+    const _defaults$e = {
         inDuration: 275,
         outDuration: 200,
         onOpenStart: null,
@@ -4593,7 +4593,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$d;
+            return _defaults$e;
         }
         /**
          * Initializes instances of MaterialBox.
@@ -4917,7 +4917,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$c = {
+    const _defaults$d = {
         opacity: 0.5,
         inDuration: 250,
         outDuration: 250,
@@ -4942,7 +4942,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$c;
+            return _defaults$d;
         }
         static init(els, options = {}) {
             return super.init(els, options, Modal);
@@ -4985,7 +4985,7 @@ var M = (function (exports) {
         static { }
     }
 
-    const _defaults$b = {
+    const _defaults$c = {
         edge: 'left',
         draggable: true,
         dragTargetWidth: '10px',
@@ -5041,7 +5041,7 @@ var M = (function (exports) {
             Sidenav._sidenavs.push(this);
         }
         static get defaults() {
-            return _defaults$b;
+            return _defaults$c;
         }
         /**
          * Initializes instances of Sidenav.
@@ -5438,7 +5438,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$a = {
+    const _defaults$b = {
         indicators: true,
         height: 400,
         duration: 500,
@@ -5530,7 +5530,7 @@ var M = (function (exports) {
             this.start();
         }
         static get defaults() {
-            return _defaults$a;
+            return _defaults$b;
         }
         /**
          * Initializes instances of Slider.
@@ -5777,7 +5777,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$9 = {
+    const _defaults$a = {
         duration: 300,
         onShow: null,
         swipeable: false,
@@ -5814,7 +5814,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$9;
+            return _defaults$a;
         }
         /**
          * Initializes instances of Tabs.
@@ -6065,7 +6065,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$8 = {
+    const _defaults$9 = {
         dialRadius: 135,
         outerRadius: 105,
         innerRadius: 70,
@@ -6152,7 +6152,7 @@ var M = (function (exports) {
             this._pickerSetup();
         }
         static get defaults() {
-            return _defaults$8;
+            return _defaults$9;
         }
         /**
          * Initializes instances of Timepicker.
@@ -6758,7 +6758,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$7 = {
+    const _defaults$8 = {
         text: '',
         displayLength: 4000,
         inDuration: 300,
@@ -6811,7 +6811,7 @@ var M = (function (exports) {
             this._setTimer();
         }
         static get defaults() {
-            return _defaults$7;
+            return _defaults$8;
         }
         static getInstance(el) {
             return el['M_Toast'];
@@ -7003,7 +7003,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$6 = {
+    const _defaults$7 = {
         exitDelay: 200,
         enterDelay: 0,
         text: '',
@@ -7047,7 +7047,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$6;
+            return _defaults$7;
         }
         /**
          * Initializes instances of Tooltip.
@@ -7272,7 +7272,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$5 = {};
+    const _defaults$6 = {};
     // TODO: !!!!!
     class Range extends Component {
         _mousedown;
@@ -7290,7 +7290,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$5;
+            return _defaults$6;
         }
         /**
          * Initializes instances of Range.
@@ -7438,6 +7438,126 @@ var M = (function (exports) {
         static Init() {
             if (typeof document !== 'undefined')
                 Range.init(document?.querySelectorAll('input[type=range]'), {});
+        }
+    }
+
+    const _defaults$5 = {};
+    // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Environment/Partials/PlanningToolbar.ts
+    // Generic version of that file's track-indicator sliding and expandable
+    // search behavior, decoupled from the page-specific filter/state-binding
+    // system (UtilityFilter) the source used - here it's just plain DOM state.
+    class Toolbar extends Component {
+        _tracks;
+        constructor(el, options) {
+            super(el, options, Toolbar);
+            this.el.M_Toolbar = this;
+            this.options = {
+                ...Toolbar.defaults,
+                ...options
+            };
+            this._tracks = Array.from(this.el.querySelectorAll('.toolbar-track'));
+            this._setupEventHandlers();
+            this._tracks.forEach((track) => this._moveIndicator(track, false));
+        }
+        static get defaults() {
+            return _defaults$5;
+        }
+        static init(els, options = {}) {
+            return super.init(els, options, Toolbar);
+        }
+        static getInstance(el) {
+            return el.M_Toolbar;
+        }
+        destroy() {
+            this._removeEventHandlers();
+            this.el.M_Toolbar = undefined;
+        }
+        /**
+         * Re-measure and reposition every track's sliding indicator - call this
+         * after changing which .toolbar-track-item is active from your own code,
+         * or after anything that could have changed the toolbar's layout/width.
+         */
+        updateIndicators() {
+            this._tracks.forEach((track) => this._moveIndicator(track, true));
+        }
+        _setupEventHandlers() {
+            this.el.addEventListener('click', this._handleTrackClick);
+            this.el.addEventListener('focusin', this._handleSearchFocusIn);
+            this.el.addEventListener('focusout', this._handleSearchFocusOut);
+            this.el.addEventListener('input', this._handleSearchInput);
+            this.el.addEventListener('keydown', this._handleSearchKeydown);
+            window.addEventListener('resize', this._handleWindowResize);
+        }
+        _removeEventHandlers() {
+            this.el.removeEventListener('click', this._handleTrackClick);
+            this.el.removeEventListener('focusin', this._handleSearchFocusIn);
+            this.el.removeEventListener('focusout', this._handleSearchFocusOut);
+            this.el.removeEventListener('input', this._handleSearchInput);
+            this.el.removeEventListener('keydown', this._handleSearchKeydown);
+            window.removeEventListener('resize', this._handleWindowResize);
+        }
+        _handleTrackClick = (e) => {
+            const item = e.target.closest('.toolbar-track-item');
+            if (!item)
+                return;
+            const track = item.closest('.toolbar-track');
+            if (!track || !this._tracks.includes(track))
+                return;
+            track.querySelectorAll('.toolbar-track-item.is-active').forEach((el) => el.classList.remove('is-active'));
+            item.classList.add('is-active');
+            this._moveIndicator(track, true);
+        };
+        _handleSearchFocusIn = (e) => {
+            const search = e.target.closest('.toolbar-search');
+            if (search)
+                search.classList.add('is-expanded');
+        };
+        _handleSearchFocusOut = (e) => {
+            const search = e.target.closest('.toolbar-search');
+            if (!search)
+                return;
+            const input = search.querySelector('.toolbar-search-input');
+            if (input && input.value === '')
+                search.classList.remove('is-expanded');
+        };
+        _handleSearchInput = (e) => {
+            const input = e.target;
+            if (!input.classList.contains('toolbar-search-input'))
+                return;
+            const search = input.closest('.toolbar-search');
+            if (search)
+                search.classList.toggle('is-expanded', input.value !== '' || document.activeElement === input);
+        };
+        _handleSearchKeydown = (e) => {
+            if (e.key !== 'Escape')
+                return;
+            const input = e.target.closest('.toolbar-search')?.querySelector('.toolbar-search-input');
+            if (!input)
+                return;
+            input.value = '';
+            input.blur();
+        };
+        _handleWindowResize = () => {
+            this._tracks.forEach((track) => this._moveIndicator(track, false));
+        };
+        _moveIndicator(track, animate) {
+            const indicator = track.querySelector('.toolbar-track-indicator');
+            const active = track.querySelector('.toolbar-track-item.is-active');
+            if (!indicator || !active)
+                return;
+            if (!animate)
+                indicator.style.transition = 'none';
+            indicator.style.transform = `translateX(${active.offsetLeft - track.clientLeft}px)`;
+            indicator.style.width = `${active.offsetWidth}px`;
+            track.classList.add('is-armed');
+            if (!animate) {
+                // Force layout so the transition-less move above actually applies
+                // before re-enabling transitions on the next frame.
+                void indicator.offsetWidth;
+                requestAnimationFrame(() => {
+                    indicator.style.transition = '';
+                });
+            }
         }
     }
 
@@ -8354,7 +8474,10 @@ var M = (function (exports) {
             TapTarget: context.querySelectorAll('.tap-target:not(.no-autoinit)'),
             Timepicker: context.querySelectorAll('.timepicker:not(.no-autoinit)'),
             Tooltip: context.querySelectorAll('.tooltipped:not(.no-autoinit)'),
-            FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)')
+            FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)'),
+            // Excludes .fixed-action-btn.toolbar - that's an unrelated FAB display
+            // mode reusing the same class name, not this component.
+            Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)')
         };
         Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
         Cards.init(registry.Cards, options?.Cards ?? {});
@@ -8375,6 +8498,7 @@ var M = (function (exports) {
         Timepicker.init(registry.Timepicker, options?.Timepicker ?? {});
         Tooltip.init(registry.Tooltip, options?.Tooltip ?? {});
         FloatingActionButton.init(registry.FloatingActionButton, options?.FloatingActionButton ?? {});
+        Toolbar.init(registry.Toolbar, options?.Toolbar ?? {});
     }
     // Init
     if (typeof document !== 'undefined') {
@@ -8413,6 +8537,7 @@ var M = (function (exports) {
     exports.TapTarget = TapTarget;
     exports.Timepicker = Timepicker;
     exports.Toast = Toast;
+    exports.Toolbar = Toolbar;
     exports.Tooltip = Tooltip;
     exports.Waves = Waves;
     exports.toast = toast;

@@ -2116,6 +2116,33 @@ declare class Range extends Component<RangeOptions> {
     static Init(): void;
 }
 
+interface ToolbarOptions extends BaseOptions$1 {
+}
+declare class Toolbar extends Component<ToolbarOptions> {
+    _tracks: HTMLElement[];
+    constructor(el: HTMLElement, options: Partial<ToolbarOptions>);
+    static get defaults(): ToolbarOptions;
+    static init(el: HTMLElement, options?: Partial<ToolbarOptions>): Toolbar;
+    static init(els: InitElements<MElement>, options?: Partial<ToolbarOptions>): Toolbar[];
+    static getInstance(el: HTMLElement): Toolbar;
+    destroy(): void;
+    /**
+     * Re-measure and reposition every track's sliding indicator - call this
+     * after changing which .toolbar-track-item is active from your own code,
+     * or after anything that could have changed the toolbar's layout/width.
+     */
+    updateIndicators(): void;
+    _setupEventHandlers(): void;
+    _removeEventHandlers(): void;
+    _handleTrackClick: (e: MouseEvent) => void;
+    _handleSearchFocusIn: (e: FocusEvent) => void;
+    _handleSearchFocusOut: (e: FocusEvent) => void;
+    _handleSearchInput: (e: Event) => void;
+    _handleSearchKeydown: (e: KeyboardEvent) => void;
+    _handleWindowResize: () => void;
+    _moveIndicator(track: HTMLElement, animate: boolean): void;
+}
+
 interface TapTargetOptions extends BaseOptions$1 {
     /**
      * Callback function called when Tap Target is opened.
@@ -2618,6 +2645,7 @@ interface AutoInitOptions {
     Timepicker?: Partial<TimepickerOptions>;
     Tooltip?: Partial<TooltipOptions>;
     FloatingActionButton?: Partial<FloatingActionButtonOptions>;
+    Toolbar?: Partial<ToolbarOptions>;
 }
 /**
  * Automatically initialize components.
@@ -2626,5 +2654,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Tooltip, Waves, toast, version };
+export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Toolbar, Tooltip, Waves, toast, version };
 export type { AutoInitOptions };
