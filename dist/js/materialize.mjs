@@ -397,7 +397,7 @@ class Component {
     }
 }
 
-const _defaults$p = {
+const _defaults$v = {
     alignment: 'left',
     autoFocus: true,
     constrainWidth: true,
@@ -450,7 +450,7 @@ class Dropdown extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$p;
+        return _defaults$v;
     }
     /**
      * Initializes instances of Dropdown.
@@ -901,7 +901,7 @@ class Dropdown extends Component {
     };
 }
 
-const _defaults$o = {
+const _defaults$u = {
     data: [], // Autocomplete data set
     onAutocomplete: null, // Callback for when autocompleted
     dropdownOptions: {
@@ -961,7 +961,7 @@ class Autocomplete extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$o;
+        return _defaults$u;
     }
     /**
      * Initializes instances of Autocomplete.
@@ -1369,7 +1369,7 @@ class Autocomplete extends Component {
     }
 }
 
-const _defaults$n = {
+const _defaults$t = {
     direction: 'top',
     hoverEnabled: true,
     toolbarEnabled: false
@@ -1416,7 +1416,7 @@ class FloatingActionButton extends Component {
         this.#setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$n;
+        return _defaults$t;
     }
     /**
      * Initializes instances of FloatingActionButton.
@@ -1587,7 +1587,7 @@ class FloatingActionButton extends Component {
     }
 }
 
-const _defaults$m = {
+const _defaults$s = {
     onOpen: null,
     onClose: null,
     inDuration: 225,
@@ -1623,7 +1623,7 @@ class Cards extends Component {
         }
     }
     static get defaults() {
-        return _defaults$m;
+        return _defaults$s;
     }
     /**
      * Initializes instances of Cards.
@@ -1734,7 +1734,7 @@ class Cards extends Component {
     }
 }
 
-const _defaults$l = {
+const _defaults$r = {
     duration: 200, // ms
     dist: -100, // zoom scale TODO: make this more intuitive as an option
     shift: 0, // spacing for center image
@@ -1836,7 +1836,7 @@ class Carousel extends Component {
         this._scroll(this.offset);
     }
     static get defaults() {
-        return _defaults$l;
+        return _defaults$r;
     }
     /**
      * Initializes instances of Carousel.
@@ -2308,7 +2308,7 @@ class Carousel extends Component {
 }
 
 var _a;
-const _defaults$k = {
+const _defaults$q = {
     data: [],
     placeholder: '',
     secondaryPlaceholder: '',
@@ -2362,7 +2362,7 @@ class Chips extends Component {
         }
     }
     static get defaults() {
-        return _defaults$k;
+        return _defaults$q;
     }
     /**
      * Initializes instances of Chips.
@@ -2645,7 +2645,7 @@ class Chips extends Component {
 }
 _a = Chips;
 
-const _defaults$j = {
+const _defaults$p = {
     accordion: true,
     onOpenStart: null,
     onOpenEnd: null,
@@ -2681,7 +2681,7 @@ class Collapsible extends Component {
         }
     }
     static get defaults() {
-        return _defaults$j;
+        return _defaults$p;
     }
     /**
      * Initializes instances of Collapsible.
@@ -2800,7 +2800,7 @@ class Collapsible extends Component {
     };
 }
 
-const _defaults$i = {
+const _defaults$o = {
     classes: '',
     dropdownOptions: {}
 };
@@ -2840,7 +2840,7 @@ class FormSelect extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$i;
+        return _defaults$o;
     }
     /**
      * Initializes instances of FormSelect.
@@ -3183,7 +3183,7 @@ class FormSelect extends Component {
     }
 }
 
-const _defaults$h = {
+const _defaults$n = {
     margin: 5,
     transition: 10,
     duration: 250,
@@ -3200,7 +3200,7 @@ class DockedDisplayPlugin {
     constructor(el, container, options) {
         this.el = el;
         this.options = {
-            ..._defaults$h,
+            ..._defaults$n,
             ...options
         };
         this.container = document.createElement('div');
@@ -3262,7 +3262,7 @@ class DockedDisplayPlugin {
     };
 }
 
-const _defaults$g = {
+const _defaults$m = {
     classList: ['modal'],
     title: null,
     onOpen: null,
@@ -3277,7 +3277,7 @@ class ModalDisplayPlugin {
     constructor(el, container, options) {
         this.el = el;
         this.options = {
-            ..._defaults$g,
+            ..._defaults$m,
             ...options,
         };
         this.container = document.createElement('dialog');
@@ -3335,7 +3335,7 @@ class ModalDisplayPlugin {
     };
 }
 
-const _defaults$f = {
+const _defaults$l = {
     // the default output format for the input field value
     format: 'mmm dd, yyyy',
     // Used to create date object from current input string
@@ -3485,7 +3485,7 @@ class Datepicker extends Component {
         this._pickerSetup();
     }
     static get defaults() {
-        return _defaults$f;
+        return _defaults$l;
     }
     /**
      * Initializes instances of Datepicker.
@@ -4538,7 +4538,7 @@ class Forms {
     }
 }
 
-const _defaults$e = {
+const _defaults$k = {
     inDuration: 275,
     outDuration: 200,
     onOpenStart: null,
@@ -4590,7 +4590,7 @@ class Materialbox extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$e;
+        return _defaults$k;
     }
     /**
      * Initializes instances of MaterialBox.
@@ -4914,7 +4914,7 @@ class Materialbox extends Component {
     };
 }
 
-const _defaults$d = {
+const _defaults$j = {
     opacity: 0.5,
     inDuration: 250,
     outDuration: 250,
@@ -4939,7 +4939,7 @@ class Modal extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$d;
+        return _defaults$j;
     }
     static init(els, options = {}) {
         return super.init(els, options, Modal);
@@ -4982,7 +4982,7 @@ class Modal extends Component {
     static { }
 }
 
-const _defaults$c = {
+const _defaults$i = {
     edge: 'left',
     draggable: true,
     dragTargetWidth: '10px',
@@ -5038,7 +5038,7 @@ class Sidenav extends Component {
         Sidenav._sidenavs.push(this);
     }
     static get defaults() {
-        return _defaults$c;
+        return _defaults$i;
     }
     /**
      * Initializes instances of Sidenav.
@@ -5435,7 +5435,7 @@ class Sidenav extends Component {
     }
 }
 
-const _defaults$b = {
+const _defaults$h = {
     indicators: true,
     height: 400,
     duration: 500,
@@ -5527,7 +5527,7 @@ class Slider extends Component {
         this.start();
     }
     static get defaults() {
-        return _defaults$b;
+        return _defaults$h;
     }
     /**
      * Initializes instances of Slider.
@@ -5774,7 +5774,7 @@ class Slider extends Component {
     };
 }
 
-const _defaults$a = {
+const _defaults$g = {
     duration: 300,
     onShow: null,
     swipeable: false,
@@ -5811,7 +5811,7 @@ class Tabs extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$a;
+        return _defaults$g;
     }
     /**
      * Initializes instances of Tabs.
@@ -6062,7 +6062,7 @@ class Tabs extends Component {
     }
 }
 
-const _defaults$9 = {
+const _defaults$f = {
     dialRadius: 135,
     outerRadius: 105,
     innerRadius: 70,
@@ -6149,7 +6149,7 @@ class Timepicker extends Component {
         this._pickerSetup();
     }
     static get defaults() {
-        return _defaults$9;
+        return _defaults$f;
     }
     /**
      * Initializes instances of Timepicker.
@@ -6755,7 +6755,7 @@ class Timepicker extends Component {
     }
 }
 
-const _defaults$8 = {
+const _defaults$e = {
     text: '',
     displayLength: 4000,
     inDuration: 300,
@@ -6808,7 +6808,7 @@ class Toast {
         this._setTimer();
     }
     static get defaults() {
-        return _defaults$8;
+        return _defaults$e;
     }
     static getInstance(el) {
         return el['M_Toast'];
@@ -7000,7 +7000,7 @@ class Toast {
     }
 }
 
-const _defaults$7 = {
+const _defaults$d = {
     exitDelay: 200,
     enterDelay: 0,
     text: '',
@@ -7044,7 +7044,7 @@ class Tooltip extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$7;
+        return _defaults$d;
     }
     /**
      * Initializes instances of Tooltip.
@@ -7269,7 +7269,7 @@ class Tooltip extends Component {
     }
 }
 
-const _defaults$6 = {};
+const _defaults$c = {};
 // TODO: !!!!!
 class Range extends Component {
     _mousedown;
@@ -7287,7 +7287,7 @@ class Range extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$6;
+        return _defaults$c;
     }
     /**
      * Initializes instances of Range.
@@ -7438,7 +7438,7 @@ class Range extends Component {
     }
 }
 
-const _defaults$5 = {};
+const _defaults$b = {};
 // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Environment/Partials/PlanningToolbar.ts
 // Generic version of that file's track-indicator sliding and expandable
 // search behavior, decoupled from the page-specific filter/state-binding
@@ -7466,7 +7466,7 @@ class Toolbar extends Component {
         }
     }
     static get defaults() {
-        return _defaults$5;
+        return _defaults$b;
     }
     static init(els, options = {}) {
         return super.init(els, options, Toolbar);
@@ -7568,6 +7568,762 @@ class Toolbar extends Component {
             requestAnimationFrame(() => {
                 indicator.style.transition = '';
             });
+        }
+    }
+}
+
+const _defaults$a = {};
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Password.ts
+// Show/hide toggle for a password input - no third-party dependency, just
+// Materialize's own .prefix/.suffix icon-slot convention (see
+// components/textfield/_input-fields.scss), so unlike the other new form
+// enhancements in this batch this one needs no peer-loader/dynamic import.
+class PasswordInput extends Component {
+    _suffixEl;
+    constructor(el, options) {
+        super(el, options, PasswordInput);
+        this.el.M_PasswordInput = this;
+        this.options = {
+            ...PasswordInput.defaults,
+            ...options
+        };
+        this._suffixEl = this.el.parentElement?.querySelector('[data-password-toggle-icon]') ?? null;
+        if (!this.el.dataset.passwordVisible)
+            this.el.dataset.passwordVisible = '0';
+        this._setupEventHandlers();
+    }
+    static get defaults() {
+        return _defaults$a;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, PasswordInput);
+    }
+    static getInstance(el) {
+        return el.M_PasswordInput;
+    }
+    destroy() {
+        this._removeEventHandlers();
+        this.el.M_PasswordInput = undefined;
+    }
+    _setupEventHandlers() {
+        this._suffixEl?.addEventListener('click', this._handleToggleClick);
+    }
+    _removeEventHandlers() {
+        this._suffixEl?.removeEventListener('click', this._handleToggleClick);
+    }
+    _handleToggleClick = () => {
+        const visible = this.el.dataset.passwordVisible === '1';
+        this.el.type = visible ? 'password' : 'text';
+        this.el.dataset.passwordVisible = visible ? '0' : '1';
+        const iconEl = this._suffixEl?.querySelector('i');
+        if (iconEl)
+            iconEl.textContent = visible ? 'visibility' : 'visibility_off';
+    };
+}
+
+const _cache = new Map();
+async function loadPeer(spec, importer) {
+    if (_cache.has(spec.specifier))
+        return _cache.get(spec.specifier);
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mod = await importer();
+        const resolved = mod?.default ?? mod;
+        _cache.set(spec.specifier, resolved);
+        return resolved;
+    }
+    catch {
+        // fall through to the global-scope lookup below
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globalScope = typeof window !== 'undefined' ? window : undefined;
+    if (globalScope && globalScope[spec.globalName]) {
+        const resolved = globalScope[spec.globalName];
+        _cache.set(spec.specifier, resolved);
+        return resolved;
+    }
+    throw new Error(`kmaterialize's ${spec.feature} requires "${spec.specifier}", which isn't installed/loaded.\n` +
+        `- If you're using a bundler: npm/pnpm/yarn install "${spec.specifier}".\n` +
+        `- If you're using the plain <script> (no-bundler) build: add\n` +
+        `    ${spec.cdnHint}\n` +
+        `  before initializing this component, so window.${spec.globalName} is defined.`);
+}
+
+const _defaults$9 = {
+    thousandsSeparator: ' ',
+    radix: '.',
+    mapToRadix: [',']
+};
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Number.ts
+// Masked/formatted numeric input via IMask (thousands separator, decimal
+// scale, min/max) - deliberately opts in on `type="text" data-type="number"`
+// rather than `type="number"`, so IMask can format the display value
+// (thousands separators etc.) that a native number input wouldn't allow.
+//
+// IMask is an optional peerDependency, loaded on demand via peer-loader -
+// see that file for the bundler/no-bundler resolution strategy.
+class NumberInput extends Component {
+    mask;
+    ready;
+    constructor(el, options) {
+        super(el, options, NumberInput);
+        this.el.M_NumberInput = this;
+        this.options = {
+            ...NumberInput.defaults,
+            ...options
+        };
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$9;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, NumberInput);
+    }
+    static getInstance(el) {
+        return el.M_NumberInput;
+    }
+    destroy() {
+        this.mask?.destroy();
+        this.el.M_NumberInput = undefined;
+    }
+    async _setup() {
+        const IMask = await loadPeer({
+            specifier: 'imask',
+            globalName: 'IMask',
+            feature: 'Number input (IMask) enhancement',
+            cdnHint: '<script src="path/to/imask.min.js"></script> (self-hosted - copy from node_modules/imask/dist/imask.min.js, or a CDN of your choice)'
+        }, () => import('imask'));
+        const maskOptions = {
+            mask: Number,
+            skipInvalid: true,
+            thousandsSeparator: this.options.thousandsSeparator,
+            radix: this.options.radix,
+            mapToRadix: this.options.mapToRadix,
+            autofix: true
+        };
+        const max = this.options.max ?? (this.el.hasAttribute('max') ? Number(this.el.getAttribute('max')) : undefined);
+        if (max !== undefined && !Number.isNaN(max))
+            maskOptions.max = max;
+        const min = this.options.min ?? (this.el.hasAttribute('min') ? Number(this.el.getAttribute('min')) : undefined);
+        if (min !== undefined && !Number.isNaN(min))
+            maskOptions.min = min;
+        const step = this.el.getAttribute('step');
+        const scale = this.options.scale ?? (step?.includes('.') ? step.split('.').at(-1)?.length : undefined);
+        if (scale !== undefined)
+            maskOptions.scale = scale;
+        this.mask = IMask(this.el, maskOptions);
+    }
+}
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Color.ts
+// Built-in French translation for Pickr's UI strings, activated by
+// `data-color-locale="fr-fr"` alone - no separate options object required
+// from the consumer, unlike a fully custom `options.locale` override.
+const FR_FR = {
+    'ui:dialog': 'boîte de dialogue du sélecteur de couleur',
+    'btn:toggle': 'basculer la boîte de dialogue du sélecteur de couleur',
+    'btn:swatch': 'échantillon de couleur',
+    'btn:last-color': 'utiliser la couleur précédente',
+    'btn:save': 'Enregistrer',
+    'btn:cancel': 'Annuler',
+    'btn:clear': 'Effacer',
+    'aria:btn:save': 'enregistrer et fermer',
+    'aria:btn:cancel': 'annuler et fermer',
+    'aria:btn:clear': 'effacer et fermer',
+    'aria:input': 'champ de saisie de couleur',
+    'aria:palette': 'zone de sélection des couleurs',
+    'aria:hue': 'curseur de sélection de teinte',
+    'aria:opacity': "curseur de sélection d'opacité"
+};
+const _defaults$8 = {
+    theme: 'classic',
+    opacity: true,
+    swatches: [
+        'rgba(244, 67, 54, 1)',
+        'rgba(233, 30, 99, 0.95)',
+        'rgba(156, 39, 176, 0.9)',
+        'rgba(103, 58, 183, 0.85)',
+        'rgba(63, 81, 181, 0.8)',
+        'rgba(33, 150, 243, 0.75)',
+        'rgba(3, 169, 244, 0.7)',
+        'rgba(0, 188, 212, 0.7)',
+        'rgba(0, 150, 136, 0.75)',
+        'rgba(76, 175, 80, 0.8)',
+        'rgba(139, 195, 74, 0.85)',
+        'rgba(205, 220, 57, 0.9)',
+        'rgba(255, 235, 59, 0.95)',
+        'rgba(255, 193, 7, 1)'
+    ]
+};
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Color.ts
+// Enhances a native `<input type="color" data-color-picker="pickr">` with a
+// full Pickr popup (palette, hue/opacity sliders, swatches, hex/rgba/hsla).
+// If `data-color-picker` is absent the input is left completely untouched -
+// still a plain native color swatch, matching CrazyPHP's own fallback.
+//
+// Pickr remains an optional peerDependency and is loaded on demand via peer-loader.
+class ColorInput extends Component {
+    pickr;
+    ready;
+    _swatchEl;
+    _labels;
+    constructor(el, options) {
+        super(el, options, ColorInput);
+        this.el.M_ColorInput = this;
+        this.options = {
+            ...ColorInput.defaults,
+            ...options
+        };
+        this._swatchEl = document.createElement('div');
+        this.el.after(this._swatchEl);
+        this.el.classList.add('hide');
+        this.el.addEventListener('change', this._handleInputChange);
+        this._labels = Array.from(document.querySelectorAll('label')).filter(label => label.htmlFor === this.el.id);
+        this._labels.forEach(label => label.addEventListener('click', this._handleLabelClick));
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$8;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, ColorInput);
+    }
+    static getInstance(el) {
+        return el.M_ColorInput;
+    }
+    destroy() {
+        this.el.removeEventListener('change', this._handleInputChange);
+        this._labels.forEach(label => label.removeEventListener('click', this._handleLabelClick));
+        this.pickr?.destroyAndRemove();
+        this._swatchEl.remove();
+        this.el.classList.remove('hide');
+        this.el.M_ColorInput = undefined;
+    }
+    _handleInputChange = () => {
+        this.pickr?.setColor(this.el.value);
+    };
+    _handleLabelClick = (event) => {
+        // A label associated with a hidden input[type=color] otherwise opens
+        // the browser's native picker (notably in Firefox). Route the same
+        // accessible label activation to Pickr instead.
+        event.preventDefault();
+        void this.ready.then(() => this.pickr?.show());
+    };
+    async _setup() {
+        const Pickr = await loadPeer({
+            specifier: '@simonwep/pickr',
+            globalName: 'Pickr',
+            feature: 'Color input (Pickr) enhancement',
+            cdnHint: '<link rel="stylesheet" href="path/to/pickr-classic.min.css">\n' +
+                '    <script src="path/to/pickr.min.js"></script>\n' +
+                '    (self-hosted - copy from node_modules/@simonwep/pickr/dist/, or a CDN of your choice)'
+        }, () => import('@simonwep/pickr'));
+        const dataset = this.el.dataset;
+        const theme = (['classic', 'monolith', 'nano'].includes(dataset.colorTheme ?? '')
+            ? dataset.colorTheme
+            : this.options.theme);
+        const lockOpacity = dataset.colorOpacity !== undefined
+            ? ['false', '0', '', 'null'].includes(dataset.colorOpacity)
+            : !this.options.opacity;
+        const pickrOptions = {
+            el: this._swatchEl,
+            theme,
+            lockOpacity,
+            swatches: this.options.swatches,
+            components: {
+                preview: true,
+                opacity: true,
+                hue: true,
+                interaction: {
+                    hex: true,
+                    rgba: true,
+                    hsla: true,
+                    hsva: true,
+                    cmyk: true,
+                    input: true,
+                    clear: true,
+                    save: true
+                }
+            }
+        };
+        if (this.options.locale) {
+            pickrOptions.i18n = this.options.locale;
+        }
+        else if (dataset.colorLocale === 'fr-fr') {
+            pickrOptions.i18n = FR_FR;
+        }
+        const currentValue = this.el.getAttribute('value');
+        if (currentValue && currentValue !== 'randomHex()') {
+            pickrOptions.default = currentValue;
+        }
+        else if (this.el.hasAttribute('default')) {
+            const currentDefault = this.el.getAttribute('default');
+            if (currentDefault === 'randomHex()') {
+                const randomColor = Math.floor(Math.random() * 16777216);
+                pickrOptions.default = `#${randomColor.toString(16).padStart(6, '0')}`;
+            }
+            else if (currentDefault) {
+                pickrOptions.default = currentDefault;
+            }
+        }
+        this.pickr = Pickr.create(pickrOptions);
+        if (this.el.disabled)
+            this.pickr.disable();
+        this.pickr.on('save', (color, instance) => {
+            const hexa = color?.toHEXA().toString();
+            if (hexa) {
+                this.el.value = hexa;
+                this.el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            instance.hide();
+        });
+    }
+}
+
+const _defaults$7 = {};
+let activeAirDatepickerField;
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Date.ts
+// Enhances `<input type="text" data-type="date" data-date-picker="air-datepicker">`
+// with the air-datepicker calendar/range picker - deliberately separate from
+// kmaterialize's own native `components/datepicker/` (a different, already
+// existing class-based component); this one is opted into per-input via the
+// `data-date-picker` attribute so it never collides with `.datepicker`
+// elements. The `multiple` attribute switches the picker into range mode,
+// `data-date-format`/`data-date-lang` (only "fr-FR" ported so far) mirror
+// CrazyPHP's own dataset convention.
+//
+// air-datepicker is an optional peerDependency, loaded on demand via
+// peer-loader. Its own base stylesheet (air-datepicker/air-datepicker.css)
+// must be imported separately by the consumer - see the docs page.
+class AirDatepickerField extends Component {
+    picker;
+    ready;
+    _triggers;
+    _handleOutsideClick = (e) => {
+        const calendarEl = document.querySelector('.air-datepicker');
+        const clickedTrigger = this._triggers.some(trigger => trigger.contains(e.target));
+        if (calendarEl instanceof HTMLElement &&
+            !calendarEl.contains(e.target) &&
+            !this.el.contains(e.target) &&
+            !clickedTrigger) {
+            this.picker?.hide();
+        }
+    };
+    constructor(el, options) {
+        super(el, options, AirDatepickerField);
+        this.el.M_AirDatepickerField = this;
+        this.options = {
+            ...AirDatepickerField.defaults,
+            ...options
+        };
+        const labels = Array.from(document.querySelectorAll('label')).filter(label => label.htmlFor === this.el.id);
+        const icons = Array.from(this.el.parentElement?.querySelectorAll('.prefix, .suffix') ?? []);
+        this._triggers = [...labels, ...icons];
+        this._triggers.forEach(trigger => trigger.addEventListener('click', this._handleTriggerClick));
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$7;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, AirDatepickerField);
+    }
+    static getInstance(el) {
+        return el.M_AirDatepickerField;
+    }
+    destroy() {
+        document.removeEventListener('click', this._handleOutsideClick);
+        this._triggers.forEach(trigger => trigger.removeEventListener('click', this._handleTriggerClick));
+        this.picker?.destroy();
+        if (activeAirDatepickerField === this)
+            activeAirDatepickerField = undefined;
+        this.el.M_AirDatepickerField = undefined;
+    }
+    _handleTriggerClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void this.ready.then(() => this.picker?.show());
+    };
+    async _setup() {
+        const AirDatepicker = await loadPeer({
+            specifier: 'air-datepicker',
+            globalName: 'AirDatepicker',
+            feature: 'Date input (air-datepicker) enhancement',
+            cdnHint: '<link rel="stylesheet" href="path/to/air-datepicker.css">\n' +
+                '    <script src="path/to/air-datepicker.js"></script>\n' +
+                '    (self-hosted - copy from node_modules/air-datepicker/, or a CDN of your choice)'
+        }, () => import('air-datepicker'));
+        const dataset = this.el.dataset;
+        const builtInLocale = dataset.dateLang === 'fr-FR'
+            ? (await import('air-datepicker/locale/fr')).default
+            : (await import('air-datepicker/locale/en')).default;
+        const pickerOptions = {
+            dateFormat: dataset.dateFormat || 'yyyy-MM-dd',
+            autoClose: dataset.dateAutoClose !== 'false',
+            locale: (this.options.locale ?? builtInLocale),
+            onShow: isAnimationComplete => {
+                if (isAnimationComplete)
+                    return;
+                if (activeAirDatepickerField && activeAirDatepickerField !== this) {
+                    activeAirDatepickerField.picker?.hide();
+                }
+                activeAirDatepickerField = this;
+            },
+            onHide: isAnimationComplete => {
+                if (isAnimationComplete && activeAirDatepickerField === this) {
+                    activeAirDatepickerField = undefined;
+                }
+            }
+        };
+        let multiple = false;
+        if (this.el.multiple || dataset.dateRange === 'true') {
+            pickerOptions.range = true;
+            pickerOptions.multipleDatesSeparator = ' - ';
+            multiple = true;
+        }
+        const initialValue = this.el.getAttribute('value')?.trim();
+        if (initialValue) {
+            pickerOptions.selectedDates = multiple
+                ? initialValue.split(' - ').map(value => value.trim())
+                : [initialValue];
+        }
+        if (dataset.dateTimepicker === 'true') {
+            pickerOptions.timepicker = true;
+            if (dataset.dateTimeFormat)
+                pickerOptions.timeFormat = dataset.dateTimeFormat;
+        }
+        const supportedViews = ['days', 'months', 'years'];
+        if (supportedViews.includes(dataset.dateView ?? '')) {
+            pickerOptions.view = dataset.dateView;
+        }
+        if (supportedViews.includes(dataset.dateMinView ?? '')) {
+            pickerOptions.minView = dataset.dateMinView;
+        }
+        if (dataset.dateMobile === 'true')
+            pickerOptions.isMobile = true;
+        if (dataset.datePosition) {
+            pickerOptions.position = dataset.datePosition;
+        }
+        if (dataset.dateButtons) {
+            const supportedButtons = ['today', 'clear'];
+            pickerOptions.buttons = dataset.dateButtons
+                .split(',')
+                .map(button => button.trim())
+                .filter(button => supportedButtons.includes(button));
+        }
+        if (this.el.hasAttribute('min') && this.el.getAttribute('min')) {
+            pickerOptions.minDate = new Date(this.el.getAttribute('min'));
+        }
+        if (this.el.hasAttribute('max') && this.el.getAttribute('max')) {
+            pickerOptions.maxDate = new Date(this.el.getAttribute('max'));
+        }
+        if (!this.el.required && !pickerOptions.buttons) {
+            pickerOptions.buttons = ['clear'];
+        }
+        pickerOptions.onSelect = ({ date }) => {
+            if (multiple && Array.isArray(date) && date.length === 1)
+                return;
+            this.el.dispatchEvent(new Event('input', { bubbles: true }));
+            this.el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        this.picker = new AirDatepicker(this.el, pickerOptions);
+        document.addEventListener('click', this._handleOutsideClick);
+    }
+}
+
+const _defaults$6 = {
+    plugins: []
+};
+// Each plugin needs its own literal `import('literal-string')` call (see
+// peer-loader.ts) so Vite/webpack/Rollup can statically discover it - a
+// generic specifier-driven loop can't produce that, hence one entry per
+// plugin instead of building the import call from PLUGIN_SPECS's string.
+const PLUGIN_LOADERS = {
+    'image-preview': {
+        specifier: 'filepond-plugin-image-preview',
+        globalName: 'FilePondPluginImagePreview',
+        importer: () => import('filepond-plugin-image-preview')
+    },
+    'file-validate-type': {
+        specifier: 'filepond-plugin-file-validate-type',
+        globalName: 'FilePondPluginFileValidateType',
+        importer: () => import('filepond-plugin-file-validate-type')
+    },
+    'image-exif-orientation': {
+        specifier: 'filepond-plugin-image-exif-orientation',
+        globalName: 'FilePondPluginImageExifOrientation',
+        importer: () => import('filepond-plugin-image-exif-orientation')
+    }
+};
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/File.ts
+// Enhances the EXISTING `.file-field` structure in place - add
+// `data-file-picker="filepond"` (+ optional `data-file-plugins="a,b,c"`) to
+// an otherwise completely stock `.file-field`, nothing else about the
+// markup changes. FilePond.create() hides the native `<input type=file>`
+// and injects its own root as a *sibling*, it never removes anything from
+// the DOM, so the surrounding button/label/file-path-wrapper stay intact
+// at rest - only the interactive drop area swaps in visually.
+//
+// FilePond and its plugins are optional peerDependencies, loaded on demand
+// via peer-loader.
+class FileInput extends Component {
+    pond;
+    ready;
+    _fileEl;
+    _pathEl;
+    constructor(el, options) {
+        super(el, options, FileInput);
+        this.el.M_FileInput = this;
+        const pluginsAttr = this.el.dataset.filePlugins;
+        this.options = {
+            ...FileInput.defaults,
+            plugins: pluginsAttr
+                ? pluginsAttr.split(',').map((p) => p.trim())
+                : FileInput.defaults.plugins,
+            ...options
+        };
+        this._fileEl = this.el.querySelector('input[type="file"]');
+        this._pathEl = this.el.querySelector('.file-path');
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$6;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, FileInput);
+    }
+    static getInstance(el) {
+        return el.M_FileInput;
+    }
+    destroy() {
+        this.el.classList.remove('file-field-enhanced');
+        this.el.querySelector('.btn')?.classList.remove('hide');
+        this.el.querySelector('.file-path-wrapper')?.classList.remove('hide');
+        this.pond?.destroy();
+        this.el.M_FileInput = undefined;
+    }
+    /** Convenience wrapper over the underlying FilePond instance's own getFiles(). */
+    getFiles() {
+        return this.pond?.getFiles() ?? [];
+    }
+    async _setup() {
+        if (!this._fileEl) {
+            console.error(Error('.file-field enhanced with data-file-picker="filepond" needs an input[type=file]'));
+            return;
+        }
+        const FilePond = await loadPeer({
+            specifier: 'filepond',
+            globalName: 'FilePond',
+            feature: 'File input (FilePond) enhancement',
+            cdnHint: '<link rel="stylesheet" href="path/to/filepond.min.css">\n' +
+                '    <script src="path/to/filepond.min.js"></script>\n' +
+                '    (self-hosted - copy from node_modules/filepond/dist/, or a CDN of your choice)'
+        }, () => import('filepond'));
+        const pluginNames = new Set(this.options.plugins);
+        // file-validate-type is auto-registered whenever the input restricts
+        // `accept`, matching CrazyPHP's own convention, even if the consumer
+        // didn't list it explicitly in data-file-plugins.
+        if (this._fileEl.accept)
+            pluginNames.add('file-validate-type');
+        for (const name of pluginNames) {
+            const loader = PLUGIN_LOADERS[name];
+            if (!loader)
+                continue;
+            const plugin = await loadPeer({
+                specifier: loader.specifier,
+                globalName: loader.globalName,
+                feature: `File input FilePond plugin "${name}"`,
+                cdnHint: `<script src="path/to/${loader.specifier}.min.js"></script> (self-hosted - copy from node_modules/${loader.specifier}/dist/, or a CDN of your choice)`
+            }, loader.importer);
+            FilePond.registerPlugin(plugin);
+        }
+        const pondOptions = {};
+        const { dataset } = this._fileEl;
+        const readBoolean = (value) => value !== 'false';
+        pondOptions.allowMultiple = this._fileEl.multiple;
+        pondOptions.disabled = this._fileEl.disabled;
+        if (dataset.defaultFile)
+            pondOptions.files = [dataset.defaultFile];
+        if (dataset.maxFiles)
+            pondOptions.maxFiles = Number(dataset.maxFiles);
+        if (this._fileEl.multiple)
+            pondOptions.allowReorder = readBoolean(dataset.allowReorder);
+        if (dataset.labelIdle)
+            pondOptions.labelIdle = dataset.labelIdle;
+        if (dataset.instantUpload !== undefined)
+            pondOptions.instantUpload = readBoolean(dataset.instantUpload);
+        if (dataset.dropValidation !== undefined)
+            pondOptions.dropValidation = readBoolean(dataset.dropValidation);
+        if (dataset.imagePreviewHeight)
+            pondOptions.imagePreviewHeight = Number(dataset.imagePreviewHeight);
+        if (dataset.stylePanelLayout) {
+            pondOptions.stylePanelLayout = dataset.stylePanelLayout;
+        }
+        if (dataset.stylePanelAspectRatio)
+            pondOptions.stylePanelAspectRatio = dataset.stylePanelAspectRatio;
+        this.pond = FilePond.create(this._fileEl, pondOptions);
+        // FilePond inserts its own root as a *sibling* of the input it was
+        // given - but that input lives inside .btn (stock .file-field markup
+        // is `.btn > input[type=file]`), so the fresh FilePond root lands
+        // inside .btn too. Move it back out to be a direct child of .file-field
+        // itself before hiding .btn, or hiding .btn would take the whole
+        // FilePond widget down with it.
+        const pondRoot = this.pond.element;
+        if (pondRoot) {
+            this.el.appendChild(pondRoot);
+            const fileHeight = Number(dataset.fileHeight);
+            if (Number.isFinite(fileHeight) && fileHeight > 0) {
+                pondRoot.style.height = `${fileHeight}px`;
+            }
+            // Matches CrazyPHP's own File.ts behavior - FilePond's free-tier
+            // "Powered by FilePond" credit link doesn't fit a themed, branded UI.
+            pondRoot.querySelectorAll('.filepond--credits').forEach((el) => el.remove());
+        }
+        // Everything from the stock .file-field is now redundant - FilePond's
+        // own drop zone is the entire upload affordance. Hidden, not removed,
+        // so the .file-field structure this component promises to preserve is
+        // still there, just not shown alongside FilePond's widget.
+        this.el.classList.add('file-field-enhanced');
+        this.el.querySelector('.btn')?.classList.add('hide');
+        this.el.querySelector('.file-path-wrapper')?.classList.add('hide');
+        this._syncPathInput();
+        this.pond.on('updatefiles', this._syncPathInput);
+    }
+    _syncPathInput = () => {
+        if (!this._pathEl || !this.pond)
+            return;
+        this._pathEl.value = this.pond
+            .getFiles()
+            .map((f) => f.filename)
+            .join(', ');
+    };
+}
+
+const _defaults$5 = {};
+function readRemoteSpec(el) {
+    const raw = el.dataset.selectRemote;
+    if (!raw)
+        return undefined;
+    try {
+        return JSON.parse(raw);
+    }
+    catch {
+        return undefined;
+    }
+}
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Select.ts
+// Enhances an EXISTING native `<select class="tomselected">` with Tom
+// Select - searchable, taggable, remote-loading, dependent-field wiring,
+// clear button, drag-drop reorder. Ported in a somewhat scoped form: the
+// CrazyPHP source's remote-loading path goes through its own app-specific
+// Crazyrequest/Crazyurl HTTP-client and query-param helpers, which have no
+// equivalent in a standalone UI library - this version uses a plain
+// `fetch()` instead, keeping the same `data-select-remote` JSON shape
+// (url/value/label/search/dataKey) and the same `{{field}}` render-template
+// convention.
+//
+// Coexistence with FormSelect: `.tomselected` is a recognized exclusion
+// marker in FormSelect's own AutoInit selector (see src/index.ts), so a
+// `.tomselected` select is never picked up by FormSelect regardless of
+// init ordering. This constructor still defensively tears down any
+// FormSelect instance found on the same element, belt-and-suspenders, in
+// case that selector rule is ever violated by hand.
+//
+// Tom Select is an optional peerDependency, loaded on demand via
+// peer-loader.
+class TomSelectField extends Component {
+    tomSelect;
+    ready;
+    _dependsOnEl = null;
+    constructor(el, options) {
+        super(el, options, TomSelectField);
+        this.el.M_TomSelectField = this;
+        FormSelect.getInstance(this.el)?.destroy();
+        this.options = {
+            remote: readRemoteSpec(this.el),
+            ...TomSelectField.defaults,
+            ...options
+        };
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$5;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, TomSelectField);
+    }
+    static getInstance(el) {
+        return el.M_TomSelectField;
+    }
+    destroy() {
+        if (this._dependsOnEl)
+            this._dependsOnEl.removeEventListener('change', this._handleDependencyChange);
+        this.tomSelect?.destroy();
+        this.el.M_TomSelectField = undefined;
+    }
+    _handleDependencyChange = () => {
+        this.tomSelect?.clear();
+        this.tomSelect?.clearOptions();
+        this.tomSelect?.load?.('');
+    };
+    async _setup() {
+        const TomSelect = await loadPeer({
+            specifier: 'tom-select',
+            globalName: 'TomSelect',
+            feature: 'Select (Tom Select) enhancement',
+            cdnHint: '<script src="path/to/tom-select.complete.min.js"></script> (self-hosted - copy from node_modules/tom-select/dist/js/, or a CDN of your choice)'
+        }, () => import('tom-select'));
+        const dataset = this.el.dataset;
+        const settings = {
+            persist: false,
+            createOnBlur: true,
+            create: 'selectTag' in dataset,
+            plugins: {},
+            ...this.options.settings
+        };
+        if ('selectClear' in dataset) {
+            settings.plugins.clear_button = { title: dataset.selectClear || 'Clear' };
+        }
+        if ('selectTag' in dataset || this.el.multiple) {
+            settings.plugins.caret_position = {};
+            settings.plugins.drag_drop = {};
+        }
+        if (this.el.classList.contains('icons')) {
+            const renderWithIcon = (data, escape) => {
+                const icon = data.icon ? `<img src="${escape(String(data.icon))}" alt="" />` : '';
+                return `<div class="ts-option-content">${icon}<span>${escape(String(data.text ?? ''))}</span></div>`;
+            };
+            settings.render = { ...settings.render, option: renderWithIcon, item: renderWithIcon };
+        }
+        const remote = this.options.remote;
+        if (remote) {
+            settings.valueField = remote.value;
+            if (remote.search)
+                settings.searchField = [remote.search];
+            if (remote.label && remote.label.includes('{{') && remote.label.includes('}}')) {
+                const renderTemplate = (data, escape) => `<div>${remote.label.replace(/\{\{(.*?)\}\}/g, (_m, key) => escape(String(data[key] ?? '')))}</div>`;
+                settings.render = { option: renderTemplate, item: renderTemplate };
+            }
+            else {
+                settings.labelField = remote.label;
+            }
+            settings.load = (query, callback) => {
+                fetch(remote.url)
+                    .then((r) => r.json())
+                    .then((value) => {
+                    const results = remote.dataKey
+                        ? remote.dataKey.split('.').reduce((acc, key) => acc && acc[key], value)
+                        : value?.results ?? value;
+                    callback(Array.isArray(results) ? results : []);
+                })
+                    .catch(() => callback([]));
+            };
+        }
+        this.tomSelect = new TomSelect(this.el, settings);
+        if (dataset.depends) {
+            this._dependsOnEl = document.querySelector(dataset.depends);
+            this._dependsOnEl?.addEventListener('change', this._handleDependencyChange);
         }
     }
 }
@@ -8479,7 +9235,9 @@ function AutoInit(context = document.body, options) {
         Parallax: context.querySelectorAll('.parallax:not(.no-autoinit)'),
         Pushpin: context.querySelectorAll('.pushpin:not(.no-autoinit)'),
         ScrollSpy: context.querySelectorAll('.scrollspy:not(.no-autoinit)'),
-        FormSelect: context.querySelectorAll('select:not(.no-autoinit)'),
+        // Excludes .tomselected - a select opted into TomSelectField instead
+        // (see below), never eligible for FormSelect regardless of ordering.
+        FormSelect: context.querySelectorAll('select:not(.no-autoinit):not(.tomselected)'),
         Sidenav: context.querySelectorAll('.sidenav:not(.no-autoinit)'),
         Tabs: context.querySelectorAll('.tabs:not(.no-autoinit)'),
         TapTarget: context.querySelectorAll('.tap-target:not(.no-autoinit)'),
@@ -8488,7 +9246,13 @@ function AutoInit(context = document.body, options) {
         FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)'),
         // Excludes .fixed-action-btn.toolbar - that's an unrelated FAB display
         // mode reusing the same class name, not this component.
-        Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)')
+        Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)'),
+        PasswordInput: context.querySelectorAll('input[data-password-toggle]:not(.no-autoinit)'),
+        NumberInput: context.querySelectorAll('input[data-type="number"]:not(.no-autoinit)'),
+        ColorInput: context.querySelectorAll('input[type="color"][data-color-picker="pickr"]:not(.no-autoinit)'),
+        AirDatepickerField: context.querySelectorAll('input[data-date-picker="air-datepicker"]:not(.no-autoinit)'),
+        FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
+        TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
     };
     Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
     Cards.init(registry.Cards, options?.Cards ?? {});
@@ -8510,6 +9274,12 @@ function AutoInit(context = document.body, options) {
     Tooltip.init(registry.Tooltip, options?.Tooltip ?? {});
     FloatingActionButton.init(registry.FloatingActionButton, options?.FloatingActionButton ?? {});
     Toolbar.init(registry.Toolbar, options?.Toolbar ?? {});
+    PasswordInput.init(registry.PasswordInput, options?.PasswordInput ?? {});
+    NumberInput.init(registry.NumberInput, options?.NumberInput ?? {});
+    ColorInput.init(registry.ColorInput, options?.ColorInput ?? {});
+    AirDatepickerField.init(registry.AirDatepickerField, options?.AirDatepickerField ?? {});
+    FileInput.init(registry.FileInput, options?.FileInput ?? {});
+    TomSelectField.init(registry.TomSelectField, options?.TomSelectField ?? {});
 }
 // Init
 if (typeof document !== 'undefined') {
@@ -8524,4 +9294,4 @@ Waves.Init();
 Range.Init();
 Cards.Init();
 
-export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Toolbar, Tooltip, Waves, toast, version };
+export { AirDatepickerField, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };

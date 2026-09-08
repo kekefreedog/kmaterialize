@@ -19,6 +19,12 @@ import { Toast, ToastOptions } from '../components/snackbar/toasts';
 import { Tooltip, TooltipOptions } from '../components/tooltip/tooltip';
 import { Range } from '../components/slider/range';
 import { Toolbar, ToolbarOptions } from '../components/toolbar/toolbar';
+import { PasswordInput, PasswordInputOptions } from '../components/password-input/password-input';
+import { NumberInput, NumberInputOptions } from '../components/number-input/number-input';
+import { ColorInput, ColorInputOptions } from '../components/color-input/color-input';
+import { AirDatepickerField, AirDatepickerFieldOptions } from '../components/air-datepicker/air-datepicker';
+import { FileInput, FileInputOptions } from '../components/file-input/file-input';
+import { TomSelectField, TomSelectFieldOptions } from '../components/tom-select/tom-select-field';
 
 import { TapTarget, TapTargetOptions } from './tapTarget';
 import { CharacterCounter /*, CharacterCounterOptions*/ } from './characterCounter';
@@ -56,7 +62,13 @@ export {
   Tooltip,
   Waves,
   Range,
-  Toolbar
+  Toolbar,
+  PasswordInput,
+  NumberInput,
+  ColorInput,
+  AirDatepickerField,
+  FileInput,
+  TomSelectField
 };
 
 export const version = '2.3.3';
@@ -90,6 +102,12 @@ export interface AutoInitOptions {
   Tooltip?: Partial<TooltipOptions>;
   FloatingActionButton?: Partial<FloatingActionButtonOptions>;
   Toolbar?: Partial<ToolbarOptions>;
+  PasswordInput?: Partial<PasswordInputOptions>;
+  NumberInput?: Partial<NumberInputOptions>;
+  ColorInput?: Partial<ColorInputOptions>;
+  AirDatepickerField?: Partial<AirDatepickerFieldOptions>;
+  FileInput?: Partial<FileInputOptions>;
+  TomSelectField?: Partial<TomSelectFieldOptions>;
 }
 
 /**
@@ -111,7 +129,9 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     Parallax: context.querySelectorAll('.parallax:not(.no-autoinit)'),
     Pushpin: context.querySelectorAll('.pushpin:not(.no-autoinit)'),
     ScrollSpy: context.querySelectorAll('.scrollspy:not(.no-autoinit)'),
-    FormSelect: context.querySelectorAll('select:not(.no-autoinit)'),
+    // Excludes .tomselected - a select opted into TomSelectField instead
+    // (see below), never eligible for FormSelect regardless of ordering.
+    FormSelect: context.querySelectorAll('select:not(.no-autoinit):not(.tomselected)'),
     Sidenav: context.querySelectorAll('.sidenav:not(.no-autoinit)'),
     Tabs: context.querySelectorAll('.tabs:not(.no-autoinit)'),
     TapTarget: context.querySelectorAll('.tap-target:not(.no-autoinit)'),
@@ -120,7 +140,13 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     FloatingActionButton: context.querySelectorAll('.fixed-action-btn:not(.no-autoinit)'),
     // Excludes .fixed-action-btn.toolbar - that's an unrelated FAB display
     // mode reusing the same class name, not this component.
-    Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)')
+    Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)'),
+    PasswordInput: context.querySelectorAll('input[data-password-toggle]:not(.no-autoinit)'),
+    NumberInput: context.querySelectorAll('input[data-type="number"]:not(.no-autoinit)'),
+    ColorInput: context.querySelectorAll('input[type="color"][data-color-picker="pickr"]:not(.no-autoinit)'),
+    AirDatepickerField: context.querySelectorAll('input[data-date-picker="air-datepicker"]:not(.no-autoinit)'),
+    FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
+    TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
   };
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
   Cards.init(registry.Cards, options?.Cards ?? {});
@@ -142,6 +168,12 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
   Tooltip.init(registry.Tooltip, options?.Tooltip ?? {});
   FloatingActionButton.init(registry.FloatingActionButton, options?.FloatingActionButton ?? {});
   Toolbar.init(registry.Toolbar, options?.Toolbar ?? {});
+  PasswordInput.init(registry.PasswordInput, options?.PasswordInput ?? {});
+  NumberInput.init(registry.NumberInput, options?.NumberInput ?? {});
+  ColorInput.init(registry.ColorInput, options?.ColorInput ?? {});
+  AirDatepickerField.init(registry.AirDatepickerField, options?.AirDatepickerField ?? {});
+  FileInput.init(registry.FileInput, options?.FileInput ?? {});
+  TomSelectField.init(registry.TomSelectField, options?.TomSelectField ?? {});
 }
 
 // Init

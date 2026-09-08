@@ -51,7 +51,10 @@
 
 .btn.icon-left i, .btn.icon-right i {
   position: absolute;
+  top: 50%;
   font-size: var(--btn-font-size-icon);
+  line-height: 1;
+  transform: translateY(-50%);
 }
 
 .btn.icon-left i {

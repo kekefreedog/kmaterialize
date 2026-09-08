@@ -1,0 +1,256 @@
+// Materialize styling for the wrapper generated after select.tomselected.
+.input-field:has(> select.tomselected) {
+  margin-top: 16px;
+}
+
+.input-field > .ts-wrapper {
+  margin-top: 5px;
+
+  &.single > .ts-control,
+  &.multi > .ts-control {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    padding: 0 0 0 15px !important;
+    overflow: hidden;
+    background: var(--md-sys-color-background) !important;
+    background-image: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--md-sys-color-on-surface-variant) !important;
+    border-radius: 4px 4px 0 0;
+    box-shadow: none !important;
+  }
+
+  &.focus > .ts-control {
+    border-bottom: 2px solid var(--input-color) !important;
+  }
+
+  // Join the control visually to its open dropdown. Closed controls retain
+  // their normal corner radius.
+  &.dropdown-active > .ts-control {
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
+
+  .ts-control {
+    font-size: 16px;
+    color: var(--md-sys-color-on-surface);
+
+    > input,
+    input[role="combobox"] {
+      box-sizing: border-box;
+      width: auto !important;
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      color: var(--md-sys-color-on-surface) !important;
+      font-size: 16px;
+      line-height: 24px;
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+
+      &::placeholder {
+        color: color-mix(in srgb, var(--md-sys-color-on-surface) 55%, transparent);
+        opacity: 1;
+      }
+    }
+  }
+
+  // Only multi-select values are rendered as chips. A single value remains
+  // normal input text, matching Materialize's select and text fields.
+  &.multi > .ts-control {
+    gap: 6px;
+    padding: 0 0 0 15px !important;
+    flex-wrap: nowrap;
+
+    .item {
+      flex: 0 0 auto;
+      margin: 0 !important;
+      padding: 4px 10px !important;
+      color: var(--md-sys-color-on-primary-container);
+      line-height: 20px;
+      background: var(--md-sys-color-primary-container);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 999px;
+    }
+  }
+
+  &.single > .ts-control .item {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--md-sys-color-on-surface);
+    line-height: 24px;
+    background: transparent;
+    border: 0;
+  }
+
+  &.disabled > .ts-control {
+    opacity: 1;
+    color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
+    background: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 4%) !important;
+    border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%) !important;
+  }
+
+  // Tom Select hides the native caret, so draw one centered in the field.
+  &.single > .ts-control::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    width: 9px;
+    height: 9px;
+    margin-top: -6px;
+    border: solid var(--md-sys-color-on-surface) !important;
+    border-width: 0 3px 3px 0 !important;
+    transform: rotate(45deg);
+  }
+
+  &.single.dropdown-active > .ts-control::after {
+    margin-top: -3px;
+    transform: rotate(-135deg);
+  }
+
+  .ts-dropdown {
+    z-index: 9999;
+    margin-top: 0;
+    color: var(--md-sys-color-on-surface);
+    background: var(--md-sys-color-background) !important;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 0 0 4px 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 2px #00000024, 0 3px 1px -2px #0000001f, 0 1px 5px #0003;
+
+    .ts-dropdown-content {
+      background: inherit;
+    }
+
+    .create,
+    .no-results,
+    .option {
+      display: block;
+      padding: 14px 16px;
+      color: var(--md-sys-color-on-surface);
+      font-size: 16px;
+      line-height: 22px;
+      background: transparent;
+
+      &.active {
+        background: var(--md-sys-color-primary-container);
+      }
+    }
+  }
+
+  .ts-option-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+
+    img {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  }
+}
+
+// Large multi-value sets can either grow onto additional rows or retain the
+// standard field height and expose a horizontal scrollbar.
+.input-field > select.tomselected[data-select-overflow="wrap"] + .ts-wrapper.multi > .ts-control {
+  height: auto;
+  min-height: 56px;
+  padding: 8px 0 8px 15px !important;
+  overflow: visible;
+  flex-wrap: wrap;
+}
+
+.input-field > select.tomselected[data-select-overflow="scroll"] + .ts-wrapper.multi > .ts-control {
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  scrollbar-color: var(--md-sys-color-outline) transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    border-radius: 999px;
+  }
+}
+
+// Tom Select labels have the same two states as Materialize text fields.
+// State 1: no value and no placeholder — label acts as the in-field prompt.
+.input-field > select.tomselected + .ts-wrapper + label {
+  position: absolute !important;
+  top: 16px !important;
+  left: 16px !important;
+  z-index: 2;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 16px !important;
+  line-height: 24px !important;
+  text-align: left !important;
+  background: transparent;
+  transform: none !important;
+  transform-origin: top left !important;
+  transition: top 0.2s ease-out, transform 0.2s ease-out, color 0.2s ease-out;
+}
+
+// State 2: a placeholder, a selected value, or focus — float from the same
+// 16px base font/position used by Materialize text-input labels.
+.input-field > select.tomselected[placeholder]:not([placeholder=""]) + .ts-wrapper + label,
+.input-field > select.tomselected:has(> option[value=""]:checked:not(:empty)) + .ts-wrapper + label,
+.input-field > select.tomselected + .ts-wrapper.has-items + label,
+.input-field > select.tomselected + .ts-wrapper.focus + label {
+  position: absolute !important;
+  top: -12px !important;
+  left: 16px !important;
+  font-size: 16px !important;
+  transform: scale(0.75) !important;
+}
+
+.input-field > select.tomselected + .ts-wrapper.focus + label {
+  color: var(--input-color);
+}
+
+// Outlined fields use the same two states; only the floating position changes
+// so the small label cuts a notch through the outline like a text input.
+.input-field.outlined > .ts-wrapper.single > .ts-control,
+.input-field.outlined > .ts-wrapper.multi > .ts-control {
+  padding: 0 0 0 15px !important;
+  background: transparent !important;
+  border: 1px solid var(--md-sys-color-on-surface-variant) !important;
+  border-radius: 4px;
+}
+
+.input-field.outlined > .ts-wrapper.focus > .ts-control {
+  border: 2px solid var(--input-color) !important;
+}
+
+.input-field.outlined > select.tomselected[placeholder]:not([placeholder=""]) + .ts-wrapper + label,
+.input-field.outlined > select.tomselected:has(> option[value=""]:checked:not(:empty)) + .ts-wrapper + label,
+.input-field.outlined > select.tomselected + .ts-wrapper.has-items + label,
+.input-field.outlined > select.tomselected + .ts-wrapper.focus + label {
+  top: -8px !important;
+  left: 12px !important;
+  padding: 0 4px !important;
+  line-height: 16px !important;
+  background: var(--md-sys-color-surface);
+  transform: scale(0.75) !important;
+}
+
+div.suffix.suffix-tomselect {
+  z-index: 2;
+  top: 30px;
+}

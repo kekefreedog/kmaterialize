@@ -1,0 +1,124 @@
+@use '../../sass/variables' as *;
+
+:root {
+  --color-input-width: 40px;
+  --color-input-height: 32px;
+}
+
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/enhancement/pickr_materializecss.scss
+// Reskins Pickr's own DOM (it doesn't read Materialize's own tokens) to
+// match the rest of kmaterialize - source used --md-sys-color-on-tertiary
+// for the popup background, swapped here for --md-sys-color-surface since
+// that's what every other popup/menu surface in kmaterialize already uses
+// (a color meant for text-on-tertiary looked wrong as a popup background).
+.pickr button.pcr-button {
+  // Match the native fallback below: a compact filled colour surface with
+  // Materialize's underline retained as its focus/field affordance.
+  width: var(--color-input-width);
+  height: var(--color-input-height);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--md-sys-color-on-surface-variant);
+  border-radius: 6px 6px 0 0;
+
+  &::before,
+  &::after {
+    border-radius: 0;
+  }
+
+  // Pickr's default focus treatment stacks two shadows outside the rounded
+  // button, which appears as mismatched grey arcs around the top corners.
+  &:focus,
+  &.pcr-active {
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: -2px;
+  }
+}
+
+// While Pickr is loading (or when its optional peer is unavailable), make
+// the native colour input use the same compact, fully-filled presentation.
+input[type="color"][data-color-picker] {
+  width: var(--color-input-width);
+  height: var(--color-input-height);
+  min-width: 0;
+  // Override the higher-specificity generic text-input padding, including
+  // its focused state, which otherwise adds a 20px inset above the swatch.
+  padding: 0 !important;
+  margin: 0;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch,
+  &::-moz-color-swatch {
+    border: 0;
+    border-radius: 6px 6px 0 0;
+  }
+}
+
+// The swatch button replaces a hidden `<input type="color">`, so
+// Materialize's usual floating label (meant to sit inside/over a live text
+// input, floating up on focus/value) has nothing correct to float relative
+// to - left alone it overlaps the swatch. Lay the whole field out as a row
+// instead - swatch (and any prefix/suffix icon placed alongside it) then
+// the label to its right, vertically centered - and reset the label itself
+// out of Materialize's floating positioning.
+.input-field:has(> input[type="color"][data-color-picker]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type="color"][data-color-picker] ~ label {
+  position: static;
+  display: inline-block;
+  transform: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+// Disabled - dim the swatch and make the intent obvious; Pickr's own base
+// CSS already sets cursor:not-allowed on .pcr-button.disabled.
+.pickr button.pcr-button.disabled {
+  opacity: 0.38;
+}
+
+.pcr-app {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 6px;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--md-sys-color-shadow) 18%, transparent),
+    0 10px 28px color-mix(in srgb, var(--md-sys-color-shadow) 22%, transparent);
+
+  .pcr-interaction {
+    .pcr-result {
+      height: 25px;
+      color: var(--md-sys-color-on-surface);
+      background-color: var(--md-sys-color-surface-variant);
+    }
+
+    input {
+      color: var(--md-sys-color-on-surface);
+      background-color: var(--md-sys-color-surface-variant);
+    }
+
+    .pcr-save {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+  }
+}

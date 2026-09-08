@@ -89,6 +89,60 @@ select:disabled {
   }
 }
 
+// Keep enhanced FormSelect labels in sync with TomSelectField.
+// FormSelect moves the original label inside its generated .select-wrapper.
+.input-field:has(> .select-wrapper) {
+  margin-top: 16px;
+}
+
+// State 1: a genuinely empty select with no visible placeholder.
+.input-field > .select-wrapper > label {
+  position: absolute !important;
+  top: 16px !important;
+  left: 16px !important;
+  z-index: 2;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 16px !important;
+  line-height: 24px !important;
+  text-align: left !important;
+  background: transparent;
+  transform: none !important;
+  transform-origin: top left !important;
+  transition: top 0.2s ease-out, transform 0.2s ease-out, color 0.2s ease-out;
+}
+
+// State 2: the generated input displays a placeholder/selection, the native
+// select declares a placeholder, or the component currently has focus.
+.input-field > .select-wrapper:has(> input.select-dropdown:not(:placeholder-shown)) > label,
+.input-field > .select-wrapper:has(.hide-select > select[placeholder]:not([placeholder=""])) > label,
+.input-field > .select-wrapper:focus-within > label {
+  position: absolute !important;
+  top: -12px !important;
+  left: 16px !important;
+  padding: 0 4px !important;
+  font-size: 16px !important;
+  background: var(--md-sys-color-surface);
+  transform: scale(0.75) !important;
+}
+
+.input-field > .select-wrapper:focus-within > label {
+  color: var(--input-color);
+}
+
+// Outlined FormSelect uses the same state logic with the label in its notch.
+.input-field.outlined > .select-wrapper:has(> input.select-dropdown:not(:placeholder-shown)) > label,
+.input-field.outlined > .select-wrapper:has(.hide-select > select[placeholder]:not([placeholder=""])) > label,
+.input-field.outlined > .select-wrapper:focus-within > label {
+  top: -8px !important;
+  left: 12px !important;
+  padding: 0 4px !important;
+  line-height: 16px !important;
+  background: var(--md-sys-color-surface);
+  transform: scale(0.75) !important;
+}
+
 // Optgroup styles
 .select-dropdown li.optgroup {
   border-top: 1px solid rgba(0, 0, 0, 0.04);

@@ -142,8 +142,33 @@
 }
 
 .navbar .brand-logo.center {
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* Collision-safe centered app bar: the left link region and the generated
+   right spacer share the available width, keeping the logo truly centered
+   without taking it out of the flex layout. */
+.navbar.appbar-bordered .nav-wrapper.nav-wrapper-centered::after {
+  content: '';
+  order: 3;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.navbar.appbar-bordered .nav-wrapper.nav-wrapper-centered > ul {
+  order: 1;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.navbar.appbar-bordered .nav-wrapper.nav-wrapper-centered > .brand-logo.center {
+  position: static;
+  order: 2;
+  flex: 0 0 auto;
+  left: auto;
+  transform: none;
 }
 
 .navbar .brand-logo.right {
@@ -168,11 +193,188 @@
   margin-right: 15px;
 }
 
+/* Structured MD3 app-bar content. These hooks keep branded demos and app
+   shells from falling back to bare, loosely spaced anchor elements. */
+.navbar.appbar-bordered {
+  overflow: hidden;
+  background: var(--md-sys-color-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow) 18%, transparent);
+}
+
+/* Extended app bars may contain tabs and a halfway FAB. Keep the rounded
+   surface on its children, but let the FAB extend below the bar. */
+.navbar.appbar-bordered.nav-extended {
+  overflow: visible;
+}
+
+.navbar.appbar-bordered.nav-extended .nav-wrapper {
+  border-radius: 15px 15px 0 0;
+}
+
+.navbar.appbar-bordered.nav-extended .nav-content {
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-variant);
+  border-radius: 0 0 15px 15px;
+}
+
+.navbar.appbar-bordered .nav-wrapper {
+  gap: 12px;
+  padding-inline: 12px;
+  background: var(--md-sys-color-surface-variant);
+}
+
+.navbar .brand-logo .brand-logo-image {
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  padding: 8px;
+  object-fit: contain;
+  background: var(--md-sys-color-primary-container);
+  border-radius: 12px;
+}
+
+.navbar .nav-separator {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 32px;
+  margin-inline: 4px;
+  background: var(--md-sys-color-outline-variant);
+}
+
+.navbar .nav-context {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.navbar ul.nav-actions:not(.dropdown-content) {
+  gap: 8px;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.nav-actions):not(.tabs) > li > a:not(.btn):not(.btn-floating) {
+  box-sizing: border-box;
+  height: 40px;
+  padding-inline: 12px;
+  line-height: 40px;
+  border-radius: 20px;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.nav-actions):not(.tabs) > li > a:not(.btn):not(.btn-floating):hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.nav-actions):not(.tabs) > li.active > a:not(.btn):not(.btn-floating) {
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+}
+
+/* Text links use the same centred row as the app bar. The global navbar icon
+   rule intentionally sizes standalone icons to the full bar; undo that for
+   icons embedded beside link text. */
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.tabs) > li > a:not(.btn):not(.btn-floating):has(> .material-icons.left),
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.tabs) > li > a:not(.btn):not(.btn-floating):has(> .material-icons.right),
+.navbar.appbar-bordered .dropdown-trigger:has(> .material-icons) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.tabs) > li > a > .material-icons:is(.left, .right) {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  line-height: 24px;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content):not(.tabs) > li > a > .material-icons.right {
+  order: 1;
+}
+
+/* Tabs retain their component geometry and click target instead of inheriting
+   navigation-pill spacing. */
+.navbar.appbar-bordered .tabs {
+  gap: 0;
+  background: transparent;
+}
+
+.navbar.appbar-bordered .tabs .tab > a {
+  height: 48px;
+  min-height: 48px;
+  padding-inline: 24px;
+  line-height: 48px;
+  border-radius: 0;
+}
+
+/* Buttons must remain legible and vertically centred in the constrained app
+   bar row, including legacy examples using btn-large. */
+.navbar.appbar-bordered ul:not(.dropdown-content) > li > :is(.btn, .btn-large) {
+  box-sizing: border-box;
+  max-height: 48px;
+  margin: 0;
+  color: var(--md-sys-color-on-primary);
+  white-space: nowrap;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content) > li > :is(.btn, .btn-large) > .material-icons {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  line-height: 20px;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content) > li > a:has(> .material-icons:only-child) {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  padding: 0;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content) > li > a:has(> .material-icons:only-child) > .material-icons {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.navbar ul.nav-actions:not(.dropdown-content) > li > :is(.btn, .btn-floating) {
+  margin: 0;
+}
+
+.navbar .nav-actions .btn-floating {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.navbar .nav-actions .btn-floating > .material-icons {
+  display: block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.navbar .nav-actions .btn > .material-icons {
+  height: 16px;
+  line-height: 16px;
+}
+
 /* Title */
 .navbar .nav-title {
   display: inline-block;
+  color: var(--md-sys-color-on-surface);
   font-size: 32px;
-  padding: 28px 0;
+  padding: 20px 24px 28px;
 }
 
 /* Navbar Search Form */
@@ -235,6 +437,7 @@
   }
 
   .nav,
+  .navbar,
   .navbar .nav-wrapper i,
   nav a.sidenav-trigger,
   .navbar a.sidenav-trigger i {

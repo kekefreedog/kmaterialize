@@ -1,0 +1,137 @@
+// @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Front/style/scss/enhancement/airdatepicker_materializecss.scss
+// Remaps air-datepicker's own --adp-* custom properties onto MD3 tokens so
+// its calendar popup auto-themes with the rest of kmaterialize, instead of
+// theming the popup's own markup directly. Requires the consumer to
+// separately import air-datepicker's own base CSS (`air-datepicker/air-datepicker.css`) -
+// kmaterialize can't reach into an optional peer's package at build time
+// without turning it into a hard dependency, so this partial only overrides
+// the custom properties that stylesheet defines.
+//
+// This is the richer Rodeo toolkit variant of the port (rounded corners,
+// circular day cells, weekend/other-month readability fixes, a two-line
+// nav title) rather than CrazyPHP's plainer original.
+input[data-date-picker='air-datepicker'][readonly] {
+  caret-color: transparent;
+  cursor: pointer;
+}
+
+.input-field:has(input[data-date-picker='air-datepicker']) {
+  > label,
+  .prefix,
+  .suffix {
+    z-index: 1;
+    cursor: pointer;
+  }
+}
+
+.air-datepicker {
+  --adp-z-index: 100001; // above modals/SweetAlert-style overlays
+  --adp-transition-duration: 0.11s;
+
+  --adp-font-family: 'Roboto', sans-serif;
+  --adp-background-color: var(--md-sys-color-surface);
+  --adp-color: var(--md-sys-color-on-surface);
+  --adp-color-secondary: var(--md-sys-color-on-surface-variant);
+  --adp-border-color: var(--md-sys-color-outline-variant);
+  --adp-border-color-inner: var(--md-sys-color-outline-variant);
+
+  --adp-color-current-date: var(--md-sys-color-primary);
+
+  --adp-background-color-hover: var(--md-sys-color-surface-variant);
+  --adp-background-color-active: var(--md-sys-color-surface-variant);
+
+  --adp-cell-background-color-selected: var(--md-sys-color-primary);
+  --adp-cell-background-color-selected-hover: var(--md-sys-color-primary-container);
+  --adp-cell-border-color-in-range: var(--md-sys-color-primary);
+  --adp-cell-background-color-in-range: var(--md-sys-color-primary-container);
+  --adp-cell-background-color-in-range-hover: var(--md-sys-color-primary-container);
+  --adp-color-other-month: var(--md-sys-color-outline);
+  --adp-color-other-month-hover: var(--md-sys-color-on-surface-variant);
+
+  --adp-btn-color: var(--md-sys-color-primary);
+  --adp-btn-color-hover: var(--md-sys-color-on-primary);
+  --adp-btn-background-color-hover: var(--md-sys-color-primary-container);
+  --adp-btn-background-color-active: var(--md-sys-color-primary-container);
+
+  --adp-time-track-color: var(--md-sys-color-outline-variant);
+  --adp-time-track-color-hover: var(--md-sys-color-primary);
+  --adp-time-day-period-color: var(--md-sys-color-on-surface-variant);
+
+  // Shape - rounded popup, circular day cells, generous padding, matching
+  // the rest of kmaterialize's MD3 shape language (pill toolbars, rounded
+  // cards) rather than air-datepicker's own square default.
+  --adp-border-radius: 24px;
+  --adp-cell-border-radius: 50%;
+  --adp-padding: 16px;
+
+  --adp-color-disabled: var(--md-sys-color-outline);
+  --adp-color-disabled-in-range: var(--md-sys-color-on-surface-variant);
+
+  .air-datepicker-nav {
+    height: auto;
+    min-height: 32px;
+    padding: 0px;
+    box-shadow: initial;
+    background-color: inherit;
+    color: var(--adp-nav-color-secondary) !important;
+
+    .air-datepicker-nav--title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 14px;
+      line-height: 1.25;
+
+      i {
+        font-size: 14px;
+      }
+
+      // A second line under the month/year, for context (e.g. what range
+      // is about to apply) - opt-in, air-datepicker doesn't emit this
+      // itself, a consumer's own `dateFormatter` can inject it.
+      small {
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        font-variant-numeric: tabular-nums;
+        color: var(--adp-color-secondary);
+      }
+    }
+
+    // Material icons sit larger than the arrows they replace.
+    .air-datepicker-nav--action i {
+      font-size: 18px;
+    }
+  }
+
+  .air-datepicker-cell {
+    font-variant-numeric: tabular-nums;
+  }
+
+  // air-datepicker tags weekends and ships no style for them.
+  .air-datepicker-cell.-day-.-weekend- {
+    color: var(--md-sys-color-outline);
+  }
+
+  .air-datepicker-body--day-name.-weekend- {
+    opacity: 0.7;
+  }
+
+  // Inside a selected range a weekend has to stay readable.
+  .air-datepicker-cell.-day-.-weekend-.-in-range-,
+  .air-datepicker-cell.-day-.-weekend-.-selected- {
+    color: inherit;
+  }
+
+  // The view holds still when a greyed (other-month) day is picked, so the
+  // selection can land off-month - without this it reads as nothing
+  // selected.
+  .air-datepicker-cell.-day-.-other-month-.-selected- {
+    color: var(--md-sys-color-on-primary);
+    background: var(--md-sys-color-primary);
+  }
+
+  i.air-datepicker--pointer {
+    display: none;
+  }
+}

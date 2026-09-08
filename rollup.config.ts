@@ -22,6 +22,24 @@ const packageJson = JSON.parse(readFileSync('./package.json').toString());
 
 const outputPath = 'dist/js/materialize';
 
+// Optional peerDependencies used by the enhanced form-input components
+// (Number/IMask, Color/Pickr, Date/air-datepicker, File/FilePond,
+// Select/Tom Select) - each is referenced only via `import type` (erased at
+// compile time) plus a runtime `await import(...)` in src/peer-loader.ts,
+// never a static value import, so rollup never actually needs to resolve
+// these; listing them as `external` just keeps that explicit and silences
+// warnings, and keeps the bundled .d.ts from trying to inline their types.
+const peerDeps = [
+  'tom-select',
+  'air-datepicker',
+  '@simonwep/pickr',
+  'filepond',
+  'filepond-plugin-image-preview',
+  'filepond-plugin-file-validate-type',
+  'filepond-plugin-image-exif-orientation',
+  'imask'
+];
+
 const version = packageJson.version;
 
 const bannerText = `/*!
@@ -89,6 +107,7 @@ const config: RollupOptions[] = [
   //--- JS
   {
     input: 'src/index.ts',
+    external: peerDeps,
     plugins: [typescriptPlugin()],
     output: [
       {
@@ -100,6 +119,7 @@ const config: RollupOptions[] = [
   },
   {
     input: 'src/index.ts',
+    external: peerDeps,
     plugins: [typescriptPlugin()],
     output: [
       {
@@ -111,6 +131,7 @@ const config: RollupOptions[] = [
   },
   {
     input: 'src/index.ts',
+    external: peerDeps,
     plugins: [typescriptPlugin()],
     output: [
       {
@@ -131,6 +152,7 @@ const config: RollupOptions[] = [
   //--- Types
   {
     input: 'src/index.ts',
+    external: peerDeps,
     plugins: [typescriptPlugin(), dtsPlugin()],
     output: [
       {

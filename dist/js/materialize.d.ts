@@ -1,3 +1,11 @@
+import { InputMask, MaskedNumberOptions } from 'imask';
+import PickrCtor from '@simonwep/pickr';
+import AirDatepickerCtor from 'air-datepicker';
+import * as FilePondNS from 'filepond';
+import TomSelectCtor from 'tom-select';
+import { TomSettings } from 'tom-select/dist/esm/types/settings.js';
+import { RecursivePartial } from 'tom-select/dist/esm/types/core.js';
+
 /**
  * Base options for component initialization.
  */
@@ -2143,6 +2151,133 @@ declare class Toolbar extends Component<ToolbarOptions> {
     _moveIndicator(track: HTMLElement, animate: boolean): void;
 }
 
+interface PasswordInputOptions extends BaseOptions$1 {
+}
+declare class PasswordInput extends Component<PasswordInputOptions> {
+    el: HTMLInputElement;
+    private _suffixEl;
+    constructor(el: HTMLInputElement, options: Partial<PasswordInputOptions>);
+    static get defaults(): PasswordInputOptions;
+    static init(el: HTMLInputElement, options?: Partial<PasswordInputOptions>): PasswordInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<PasswordInputOptions>): PasswordInput[];
+    static getInstance(el: HTMLInputElement): PasswordInput;
+    destroy(): void;
+    _setupEventHandlers(): void;
+    _removeEventHandlers(): void;
+    _handleToggleClick: () => void;
+}
+
+interface NumberInputOptions extends BaseOptions$1 {
+    thousandsSeparator: string;
+    radix: string;
+    mapToRadix: string[];
+    min?: number;
+    max?: number;
+    scale?: number;
+}
+declare class NumberInput extends Component<NumberInputOptions> {
+    el: HTMLInputElement;
+    mask: InputMask<MaskedNumberOptions> | undefined;
+    ready: Promise<void>;
+    constructor(el: HTMLInputElement, options: Partial<NumberInputOptions>);
+    static get defaults(): NumberInputOptions;
+    static init(el: HTMLInputElement, options?: Partial<NumberInputOptions>): NumberInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<NumberInputOptions>): NumberInput[];
+    static getInstance(el: HTMLInputElement): NumberInput;
+    destroy(): void;
+    _setup(): Promise<void>;
+}
+
+interface ColorInputOptions extends BaseOptions$1 {
+    theme: 'classic' | 'monolith' | 'nano';
+    opacity: boolean;
+    swatches: string[];
+    locale?: Record<string, string>;
+}
+declare class ColorInput extends Component<ColorInputOptions> {
+    el: HTMLInputElement;
+    pickr: PickrCtor | undefined;
+    ready: Promise<void>;
+    private _swatchEl;
+    private _labels;
+    constructor(el: HTMLInputElement, options: Partial<ColorInputOptions>);
+    static get defaults(): ColorInputOptions;
+    static init(el: HTMLInputElement, options?: Partial<ColorInputOptions>): ColorInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<ColorInputOptions>): ColorInput[];
+    static getInstance(el: HTMLInputElement): ColorInput;
+    destroy(): void;
+    _handleInputChange: () => void;
+    _handleLabelClick: (event: MouseEvent) => void;
+    _setup(): Promise<void>;
+}
+
+interface AirDatepickerFieldOptions extends BaseOptions$1 {
+    locale?: unknown;
+}
+declare class AirDatepickerField extends Component<AirDatepickerFieldOptions> {
+    el: HTMLInputElement;
+    picker: AirDatepickerCtor | undefined;
+    ready: Promise<void>;
+    private _triggers;
+    private _handleOutsideClick;
+    constructor(el: HTMLInputElement, options: Partial<AirDatepickerFieldOptions>);
+    static get defaults(): AirDatepickerFieldOptions;
+    static init(el: HTMLInputElement, options?: Partial<AirDatepickerFieldOptions>): AirDatepickerField;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<AirDatepickerFieldOptions>): AirDatepickerField[];
+    static getInstance(el: HTMLInputElement): AirDatepickerField;
+    destroy(): void;
+    private _handleTriggerClick;
+    _setup(): Promise<void>;
+}
+
+type FilePondPluginName = 'image-preview' | 'file-validate-type' | 'image-exif-orientation';
+interface FileInputOptions extends BaseOptions$1 {
+    /** Which optional FilePond plugins to register - each is its own optional peerDependency. */
+    plugins: FilePondPluginName[];
+}
+declare class FileInput extends Component<FileInputOptions> {
+    pond: FilePondNS.FilePond | undefined;
+    ready: Promise<void>;
+    private _fileEl;
+    private _pathEl;
+    constructor(el: HTMLElement, options: Partial<FileInputOptions>);
+    static get defaults(): FileInputOptions;
+    static init(el: HTMLElement, options?: Partial<FileInputOptions>): FileInput;
+    static init(els: InitElements<MElement>, options?: Partial<FileInputOptions>): FileInput[];
+    static getInstance(el: HTMLElement): FileInput;
+    destroy(): void;
+    /** Convenience wrapper over the underlying FilePond instance's own getFiles(). */
+    getFiles(): FilePondNS.FilePondFile[];
+    _setup(): Promise<void>;
+    _syncPathInput: () => void;
+}
+
+interface RemoteDataSpec {
+    url: string;
+    value: string;
+    label: string;
+    search?: string;
+    dataKey?: string;
+}
+interface TomSelectFieldOptions extends BaseOptions$1 {
+    remote?: RemoteDataSpec;
+    settings?: RecursivePartial<TomSettings>;
+}
+declare class TomSelectField extends Component<TomSelectFieldOptions> {
+    el: HTMLSelectElement;
+    tomSelect: TomSelectCtor | undefined;
+    ready: Promise<void>;
+    private _dependsOnEl;
+    constructor(el: HTMLSelectElement, options: Partial<TomSelectFieldOptions>);
+    static get defaults(): TomSelectFieldOptions;
+    static init(el: HTMLSelectElement, options?: Partial<TomSelectFieldOptions>): TomSelectField;
+    static init(els: InitElements<HTMLSelectElement | MElement>, options?: Partial<TomSelectFieldOptions>): TomSelectField[];
+    static getInstance(el: HTMLSelectElement): TomSelectField;
+    destroy(): void;
+    _handleDependencyChange: () => void;
+    _setup(): Promise<void>;
+}
+
 interface TapTargetOptions extends BaseOptions$1 {
     /**
      * Callback function called when Tap Target is opened.
@@ -2646,6 +2781,12 @@ interface AutoInitOptions {
     Tooltip?: Partial<TooltipOptions>;
     FloatingActionButton?: Partial<FloatingActionButtonOptions>;
     Toolbar?: Partial<ToolbarOptions>;
+    PasswordInput?: Partial<PasswordInputOptions>;
+    NumberInput?: Partial<NumberInputOptions>;
+    ColorInput?: Partial<ColorInputOptions>;
+    AirDatepickerField?: Partial<AirDatepickerFieldOptions>;
+    FileInput?: Partial<FileInputOptions>;
+    TomSelectField?: Partial<TomSelectFieldOptions>;
 }
 /**
  * Automatically initialize components.
@@ -2654,5 +2795,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, Datepicker, Dropdown, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, Parallax, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, Toolbar, Tooltip, Waves, toast, version };
+export { AirDatepickerField, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
 export type { AutoInitOptions };

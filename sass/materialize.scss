@@ -49,6 +49,10 @@
 @forward '../components/textfield/select';
 @forward '../components/textfield/file-input';
 @forward '../components/textfield/formfields.css';
+@forward '../components/color-input/color-input';
+@forward '../components/air-datepicker/air-datepicker';
+@forward '../components/file-input/file-input-enhanced';
+@forward '../components/tom-select/tom-select-field';
 
 // Forwarded last so its overflow:visible on .pulse wins any specificity
 // ties against components like .btn-floating (overflow:hidden) - pulse's

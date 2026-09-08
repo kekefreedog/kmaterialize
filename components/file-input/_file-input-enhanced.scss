@@ -1,0 +1,61 @@
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/resources/Scss/style/enhancement/filepond_materializecss.scss
+// FilePond's own drop-label defaults to a near-black hardcoded color that
+// doesn't track kmaterialize's theme tokens - use an MD3 token instead.
+// FilePond's injected root is a sibling of the original (now hidden) file
+// input, which pushes the Materialize `<label>` that used to trail the
+// input out of position - pin it back to the field's left edge.
+.filepond--drop-label.filepond--drop-label label {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.filepond--root + label {
+  left: 0;
+}
+
+// Once FileInput (components/file-input/file-input.ts) enhances a
+// .file-field, the stock button/file-path chrome is hidden and FilePond's
+// own root (moved here to be a direct child, not left buried inside the
+// now-hidden .btn) is the entire upload affordance - .file-field's normal
+// 2-column button+text-field grid no longer applies.
+.file-field.file-field-enhanced {
+  display: block;
+
+  > label {
+    position: static;
+    display: block;
+    margin-bottom: 0.375rem;
+    color: var(--md-sys-color-on-surface);
+    transform: none;
+  }
+
+  .filepond--root {
+    margin: 0.5rem 0 1rem 0;
+    font-size: 1rem;
+  }
+
+  .filepond--panel-root {
+    border-radius: 12px;
+    background-color: var(--md-sys-color-surface-variant);
+  }
+
+  .filepond--drop-label {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .filepond--label-action {
+    color: var(--md-sys-color-primary);
+    text-decoration-color: var(--md-sys-color-primary);
+  }
+
+  .filepond--drop-label .material-icons {
+    font-size: 1.25rem;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .filepond-label-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}

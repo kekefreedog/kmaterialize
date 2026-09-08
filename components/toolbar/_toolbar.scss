@@ -15,10 +15,62 @@
   justify-content: space-between;
   width: 100%;
   gap: 8px;
-  padding: 5px 8px;
-  margin: $element-top-margin 0 $element-bottom-margin 0;
-  border-radius: 27px;
+  padding: 5px 5px;
+  margin: 0.5rem 0 1rem 0;
+  border-radius: 20px;
   background-color: var(--md-sys-color-surface-variant);
+
+  // Default overflow behavior: more groups than fit on one line stay on
+  // that one line and become horizontally scrollable, rather than
+  // squeezing/wrapping - a plain, unobtrusive scroll, no visible
+  // scrollbar chrome by default. This is a real native overflow (not a
+  // faked one), so every native way of scrolling it already works with
+  // no extra JS: trackpad/touch swipe, shift+wheel, and middle-click
+  // drag-to-pan (Chrome/Firefox/Edge on Windows) all just work.
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  // Groups (and their contents) keep their natural size instead of being
+  // squashed to fit - that's what makes the row scroll instead of
+  // cramming everything in.
+  > .toolbar-group {
+    flex-shrink: 0;
+  }
+
+  // Opt-in alternative to scrolling: wrap onto as many lines as needed
+  // instead. `overflow-x` reverts to visible since there's nothing left
+  // to scroll horizontally once wrapped, and the row gap matches the
+  // column gap above so wrapped lines aren't crammed together.
+  //
+  // flex-wrap only rearranges its own direct children - a toolbar
+  // usually has just one or two big .toolbar-group children, each
+  // holding many buttons, so the group itself has to be told to wrap
+  // too or nothing visibly changes.
+  &.toolbar-wrap {
+    flex-wrap: wrap;
+    height: auto;
+    overflow-x: visible;
+    overflow-y: visible;
+    row-gap: 8px;
+
+    > .toolbar-group {
+      flex-wrap: wrap;
+      row-gap: 8px;
+      // Undo the scroll-mode flex-shrink: 0 (see above) and let the
+      // group shrink to fit .toolbar's own width - flex-wrap only
+      // triggers once a flex container is actually constrained to less
+      // than its content's natural width; without this the group just
+      // grows past .toolbar's max-width instead of wrapping inside it.
+      flex-shrink: 1;
+      min-width: 0;
+    }
+  }
 }
 
 // A cluster of controls inside the toolbar (buttons, a track, a search
@@ -27,6 +79,59 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-shrink: 0;
+}
+
+/// Separator
+///////////////////////////////////////////////////////
+///
+
+// A thin vertical divider between groups - for when the gap between
+// .toolbar-group elements isn't enough and you want an explicit "these
+// are unrelated" line. Just drop it between two groups as a sibling.
+.toolbar-separator {
+  align-self: stretch;
+  width: 1px;
+  flex-shrink: 0;
+  margin: 4px 2px;
+  // Not --md-sys-color-outline-variant: it's the exact same color as
+  // --md-sys-color-surface-variant (the toolbar's own background) in the
+  // dark theme, making the separator invisible. on-surface-variant is
+  // guaranteed to contrast against surface-variant by design (that's
+  // what the on-*/* pairing is for) - mixed in low instead of used
+  // solid, for a subtle line rather than a harsh one.
+  background-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface-variant) 32%);
+}
+
+/// Freeze (pinned group)
+///////////////////////////////////////////////////////
+///
+
+// Keeps a group in place at the left/right edge of a scrolling toolbar
+// (see Overflow) while the rest scrolls underneath it - e.g. a "refresh"
+// or "close" button that should always stay reachable. Needs its own
+// opaque background to actually cover the content scrolling behind it,
+// a matching end radius so it doesn't show a square corner poking past
+// the pill's own rounded edge, and a small shadow on the scrolling side
+// so it doesn't look like content just abruptly stops.
+.toolbar-freeze-left,
+.toolbar-freeze-right {
+  position: sticky;
+  z-index: 1;
+  flex-shrink: 0;
+  background-color: var(--md-sys-color-surface-variant);
+}
+.toolbar-freeze-left {
+  left: 0;
+  padding-right: 8px;
+  border-radius: 20px 0 0 20px;
+  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, 0.25);
+}
+.toolbar-freeze-right {
+  right: 0;
+  padding-left: 8px;
+  border-radius: 0 20px 20px 0;
+  box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.25);
 }
 
 /// Track (segmented control)

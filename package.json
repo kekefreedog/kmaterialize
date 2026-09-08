@@ -56,8 +56,36 @@
   "dependencies": {
     "normalize.css": "^8.0.1"
   },
+  "peerDependencies": {
+    "@simonwep/pickr": "^1.9.0",
+    "air-datepicker": "^3.5.0",
+    "filepond": "^4.30.0",
+    "filepond-plugin-file-validate-type": "^1.2.0",
+    "filepond-plugin-image-exif-orientation": "^1.0.0",
+    "filepond-plugin-image-preview": "^4.6.0",
+    "imask": "^7.6.0",
+    "tom-select": "^2.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@simonwep/pickr": { "optional": true },
+    "air-datepicker": { "optional": true },
+    "filepond": { "optional": true },
+    "filepond-plugin-file-validate-type": { "optional": true },
+    "filepond-plugin-image-exif-orientation": { "optional": true },
+    "filepond-plugin-image-preview": { "optional": true },
+    "imask": { "optional": true },
+    "tom-select": { "optional": true }
+  },
   "devDependencies": {
     "@fontsource/material-icons": "^5.2.5",
+    "@simonwep/pickr": "^1.9.0",
+    "air-datepicker": "^3.5.0",
+    "filepond": "^4.30.0",
+    "filepond-plugin-file-validate-type": "^1.2.0",
+    "filepond-plugin-image-exif-orientation": "^1.0.0",
+    "filepond-plugin-image-preview": "^4.6.0",
+    "imask": "^7.6.0",
+    "tom-select": "^2.3.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@storybook/addon-docs": "^9.0.12",
