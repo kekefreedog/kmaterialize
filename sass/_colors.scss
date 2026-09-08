@@ -1,4 +1,8 @@
 @charset "UTF-8";
+@use "sass:map";
+@use "sass:list";
+@use "sass:meta";
+@use "sass:math";
 // Google Color Palette defined: http://www.google.com/design/spec/style/color.html
 
 $materialize-red: (
@@ -371,12 +375,12 @@ $colors: (
 
 
 // usage: colorFunc("name_of_color", "type_of_color")
-// to avoid to repeating map-get($colors, ...)
+// to avoid to repeating map.get($colors, ...)
 @function colorFunc($color, $type) {
-  @if map-has-key($colors, $color) {
-    $curr_color: map-get($colors, $color);
-    @if map-has-key($curr_color, $type) {
-      @return map-get($curr_color, $type);
+  @if map.has-key($colors, $color) {
+    $curr_color: map.get($colors, $color);
+    @if map.has-key($curr_color, $type) {
+      @return map.get($curr_color, $type);
     }
   }
   @warn "Unknown `#{$color}` - `#{$type}` in $colors.";
@@ -510,17 +514,17 @@ $colors: (
   $convertable-units: deg grad turn rad;
   $conversion-factors: 1 (10grad/9deg) (1turn/360deg) (3.1415926rad/180deg);
 
-  @if index($convertable-units, unit($value)) and index($convertable-units, $unit) {
-    @return $value / nth($conversion-factors, index($convertable-units, unit($value))) * nth($conversion-factors, index($convertable-units, $unit));
+  @if list.index($convertable-units, math.unit($value)) and list.index($convertable-units, $unit) {
+    @return $value / list.nth($conversion-factors, list.index($convertable-units, math.unit($value))) * list.nth($conversion-factors, list.index($convertable-units, $unit));
   }
 
-  @warn "Cannot convert `#{unit($value)}` to `#{$unit}`.";
+  @warn "Cannot convert `#{math.unit($value)}` to `#{$unit}`.";
 }
 
 // Is `$value` a direction keyword or an angle?
 @function is-direction($value) {
-  $is-direction: index((to top, to top right, to right top, to right, to bottom right, to right bottom, to bottom, to bottom left, to left bottom, to left, to left top, to top left), $value);
-  $is-angle: type-of($value) == 'number' and index('deg' 'grad' 'turn' 'rad', unit($value));
+  $is-direction: list.index((to top, to top right, to right top, to right, to bottom right, to right bottom, to bottom, to bottom left, to left bottom, to left, to left top, to top left), $value);
+  $is-angle: meta.type-of($value) == 'number' and list.index('deg' 'grad' 'turn' 'rad', math.unit($value));
 
   @return $is-direction or $is-angle;
 }
@@ -534,7 +538,7 @@ $colors: (
     $direction: 180deg;
   }
 
-  background: nth(nth($color-stops, 1), 1);
+  background: list.nth(list.nth($color-stops, 1), 1);
   background: linear-gradient($direction, $color-stops);
 }
 
@@ -575,9 +579,9 @@ $gradient-colors: (
 ) !default;
 
 @each $gcolor_name, $gcolor in $gradient-colors {
-  $start-color: map-get($gcolor, start-color);
-  $end-color: map-get($gcolor, end-color);
-  $direction: map-get($gcolor, direction);
+  $start-color: map.get($gcolor, start-color);
+  $end-color: map.get($gcolor, end-color);
+  $direction: map.get($gcolor, direction);
 
   .#{$gcolor_name} {
     @include linear-gradient($direction, $start-color, $end-color);
