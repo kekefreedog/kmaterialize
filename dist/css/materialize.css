@@ -13748,9 +13748,19 @@ button.btn-floating {
   -webkit-flex: 0 0 auto;
       -ms-flex: 0 0 auto;
           flex: 0 0 auto;
-  margin-top: 0.125rem;
+  -webkit-align-self: center;
+      -ms-flex-item-align: center;
+          align-self: center;
+  margin-top: 0;
   font-size: 1.375rem;
   line-height: 1;
+}
+.alert .alert-image {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 .alert .alert-content {
   min-width: 0;
