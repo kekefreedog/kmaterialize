@@ -418,6 +418,9 @@ interface KanbanOptions extends BaseOptions$1 {
 declare class Kanban extends Component<KanbanOptions> {
     private _draggedCard;
     private _dragSourceColumn;
+    private _dropPreview;
+    private _dragImage;
+    private _previewHeight;
     private _onDragStart;
     private _onDragOver;
     private _onDrop;
@@ -431,6 +434,7 @@ declare class Kanban extends Component<KanbanOptions> {
     private _bindEvents;
     private _clearDragState;
     private _updateCounts;
+    private _updateDropPreview;
     destroy(): void;
 }
 

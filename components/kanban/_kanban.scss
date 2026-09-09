@@ -71,6 +71,7 @@
 }
 
 .kanban-card {
+  --kanban-card-accent: var(--md-sys-color-primary);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -83,6 +84,8 @@
   box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
   cursor: grab;
   user-select: none;
+  overflow: hidden;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
 
   &:active,
   &.is-dragging {
@@ -91,12 +94,78 @@
 
   &.is-dragging {
     opacity: 0.45;
+    box-shadow: var(--md-sys-elevation-level3, 0 8px 18px rgba(0, 0, 0, 0.2));
   }
 
   &:focus-visible {
     outline: 2px solid var(--md-sys-color-primary);
     outline-offset: 2px;
   }
+
+  &.kanban-card-accent {
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 0.25rem;
+      background: var(--kanban-card-accent);
+      content: '';
+      pointer-events: none;
+    }
+  }
+
+  &.kanban-card-accent-top::after {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: 0.25rem;
+  }
+
+  &.kanban-card-accent-right::after {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: 0.25rem;
+    height: 100%;
+  }
+
+  &.kanban-card-accent-left::after {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: 0.25rem;
+    height: 100%;
+  }
+
+  &.is-disabled,
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    filter: saturate(0.55);
+  }
+}
+
+.kanban-drag-image {
+  position: fixed !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  z-index: -1;
+  pointer-events: none;
+  transform: rotate(2deg) scale(1.015);
+  transform-origin: center;
+}
+
+.kanban-drop-preview {
+  min-height: 4rem;
+  box-sizing: border-box;
+  border: 2px dashed var(--md-sys-color-primary);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 45%, transparent);
+  pointer-events: none;
 }
 
 .kanban-card-title {
