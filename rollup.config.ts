@@ -32,6 +32,8 @@ const outputPath = 'dist/js/materialize';
 const peerDeps = [
   'tom-select',
   'air-datepicker',
+  'air-datepicker/locale/en',
+  'air-datepicker/locale/fr',
   '@simonwep/pickr',
   'filepond',
   'filepond-plugin-image-preview',
