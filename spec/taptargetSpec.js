@@ -81,8 +81,8 @@ describe('TapTarget', () => {
       setTimeout(() => {
         click(toggleTapTargetElem);
         expect(closed).toEqual(true, 'closed variable should be true after method callback');
+        done();
       }, 400);
-      done();
     });
 
     it('should destroy correctly', function (done) {
