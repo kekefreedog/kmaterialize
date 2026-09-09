@@ -399,7 +399,7 @@ class Component {
     }
 }
 
-const _defaults$w = {
+const _defaults$x = {
     alignment: 'left',
     autoFocus: true,
     constrainWidth: true,
@@ -452,7 +452,7 @@ class Dropdown extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$w;
+        return _defaults$x;
     }
     /**
      * Initializes instances of Dropdown.
@@ -903,7 +903,7 @@ class Dropdown extends Component {
     };
 }
 
-const _defaults$v = {
+const _defaults$w = {
     data: [], // Autocomplete data set
     onAutocomplete: null, // Callback for when autocompleted
     dropdownOptions: {
@@ -963,7 +963,7 @@ class Autocomplete extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$v;
+        return _defaults$w;
     }
     /**
      * Initializes instances of Autocomplete.
@@ -1371,7 +1371,7 @@ class Autocomplete extends Component {
     }
 }
 
-const _defaults$u = {
+const _defaults$v = {
     dismissible: true
 };
 /** A persistent, contextual feedback banner. */
@@ -1385,7 +1385,7 @@ class Alert extends Component {
         this._bindCloseButton();
     }
     static get defaults() {
-        return _defaults$u;
+        return _defaults$v;
     }
     static init(els, options = {}) {
         return super.init(els, options, Alert);
@@ -1422,6 +1422,122 @@ class Alert extends Component {
     destroy() {
         this._closeButton?.removeEventListener('click', this._onClose);
         delete this.el['M_Alert'];
+    }
+}
+
+const _defaults$u = {
+    draggable: true
+};
+/** A lightweight, dependency-free board for columns of draggable cards. */
+class Kanban extends Component {
+    _draggedCard = null;
+    _dragSourceColumn = null;
+    _onDragStart = (event) => {
+        const card = event.target?.closest('.kanban-card');
+        if (!card || !this.options.draggable)
+            return;
+        this._draggedCard = card;
+        this._dragSourceColumn = card.closest('.kanban-column');
+        card.classList.add('is-dragging');
+        event.dataTransfer?.setData('text/plain', card.dataset.kanbanCard || '');
+        if (event.dataTransfer)
+            event.dataTransfer.effectAllowed = 'move';
+    };
+    _onDragOver = (event) => {
+        if (!this._draggedCard)
+            return;
+        const column = event.target?.closest('.kanban-column');
+        if (!column || !this.el.contains(column))
+            return;
+        event.preventDefault();
+        if (event.dataTransfer)
+            event.dataTransfer.dropEffect = 'move';
+        this.el.querySelectorAll('.kanban-column.is-drag-over').forEach((item) => item.classList.remove('is-drag-over'));
+        column.classList.add('is-drag-over');
+    };
+    _onDrop = (event) => {
+        if (!this._draggedCard)
+            return;
+        const column = event.target?.closest('.kanban-column');
+        if (!column || !this.el.contains(column))
+            return;
+        event.preventDefault();
+        const body = column.querySelector('.kanban-column-body') || column;
+        const targetCard = event.target?.closest('.kanban-card');
+        const source = this._dragSourceColumn;
+        if (targetCard && targetCard !== this._draggedCard && targetCard.parentElement === body) {
+            const box = targetCard.getBoundingClientRect();
+            body.insertBefore(this._draggedCard, event.clientY < box.top + box.height / 2 ? targetCard : targetCard.nextSibling);
+        }
+        else {
+            body.appendChild(this._draggedCard);
+        }
+        this._clearDragState();
+        this._updateCounts();
+        if (source && source !== column)
+            this.options.onMove?.({ card: this._draggedCard, from: source, to: column });
+    };
+    _onDragEnd = () => this._clearDragState();
+    constructor(el, options) {
+        super(el, options, Kanban);
+        this.options = { ...Kanban.defaults, ...options };
+        this.el['M_Kanban'] = this;
+        this._prepareMarkup();
+        if (this.options.draggable)
+            this._bindEvents();
+    }
+    static get defaults() {
+        return _defaults$u;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, Kanban);
+    }
+    static getInstance(el) {
+        return el['M_Kanban'];
+    }
+    _prepareMarkup() {
+        this.el.setAttribute('role', 'region');
+        this.el.querySelectorAll('.kanban-column').forEach((column) => {
+            column.setAttribute('role', 'group');
+            const body = column.querySelector('.kanban-column-body');
+            if (body)
+                body.setAttribute('role', 'list');
+            column.querySelectorAll('.kanban-card').forEach((card) => {
+                card.setAttribute('role', 'listitem');
+                card.setAttribute('tabindex', '0');
+                if (this.options.draggable)
+                    card.draggable = true;
+            });
+        });
+        this._updateCounts();
+    }
+    _bindEvents() {
+        this.el.addEventListener('dragstart', this._onDragStart);
+        this.el.addEventListener('dragover', this._onDragOver);
+        this.el.addEventListener('drop', this._onDrop);
+        this.el.addEventListener('dragend', this._onDragEnd);
+    }
+    _clearDragState() {
+        this._draggedCard?.classList.remove('is-dragging');
+        this.el.querySelectorAll('.kanban-column.is-drag-over').forEach((item) => item.classList.remove('is-drag-over'));
+        this._draggedCard = null;
+        this._dragSourceColumn = null;
+    }
+    _updateCounts() {
+        this.el.querySelectorAll('.kanban-column').forEach((column) => {
+            const count = column.querySelector('.kanban-column-count');
+            const body = column.querySelector('.kanban-column-body');
+            if (count && body)
+                count.textContent = String(body.querySelectorAll(':scope > .kanban-card').length);
+        });
+    }
+    destroy() {
+        this._clearDragState();
+        this.el.removeEventListener('dragstart', this._onDragStart);
+        this.el.removeEventListener('dragover', this._onDragOver);
+        this.el.removeEventListener('drop', this._onDrop);
+        this.el.removeEventListener('dragend', this._onDragEnd);
+        delete this.el['M_Kanban'];
     }
 }
 
@@ -9280,6 +9396,7 @@ function toast(options) {
 function AutoInit(context = document.body, options) {
     const registry = {
         Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
+        Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
         Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
         Cards: context.querySelectorAll('.cards:not(.no-autoinit)'),
         Carousel: context.querySelectorAll('.carousel:not(.no-autoinit)'),
@@ -9313,6 +9430,7 @@ function AutoInit(context = document.body, options) {
     };
     Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
     Alert.init(registry.Alert, options?.Alert ?? {});
+    Kanban.init(registry.Kanban, options?.Kanban ?? {});
     Cards.init(registry.Cards, options?.Cards ?? {});
     Carousel.init(registry.Carousel, options?.Carousel ?? {});
     Chips.init(registry.Chips, options?.Chips ?? {});
@@ -9368,6 +9486,7 @@ exports.FileInput = FileInput;
 exports.FloatingActionButton = FloatingActionButton;
 exports.FormSelect = FormSelect;
 exports.Forms = Forms;
+exports.Kanban = Kanban;
 exports.Materialbox = Materialbox;
 exports.Modal = Modal;
 exports.NumberInput = NumberInput;

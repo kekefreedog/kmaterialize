@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Autocomplete, AutocompleteOptions } from '../components/search/autocomplete';
 import { Alert, AlertOptions } from '../components/alert/alert';
+import { Kanban, KanbanOptions } from '../components/kanban/kanban';
 import { FloatingActionButton, FloatingActionButtonOptions } from '../components/button/buttons';
 import { Cards, CardsOptions } from '../components/card/cards';
 import { Carousel, CarouselOptions } from '../components/carousel/carousel';
@@ -39,6 +40,7 @@ import { Component } from './component';
 
 export {
   Alert,
+  Kanban,
   Autocomplete,
   FloatingActionButton,
   Cards,
@@ -85,6 +87,7 @@ export function toast(options: Partial<ToastOptions>): Toast {
 
 export interface AutoInitOptions {
   Alert?: Partial<AlertOptions>;
+  Kanban?: Partial<KanbanOptions>;
   Autocomplete?: Partial<AutocompleteOptions>;
   Cards?: Partial<CardsOptions>;
   Carousel?: Partial<CarouselOptions>;
@@ -121,6 +124,7 @@ export interface AutoInitOptions {
 export function AutoInit(context: HTMLElement = document.body, options?: Partial<AutoInitOptions>) {
   const registry = {
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
+    Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
     Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
     Cards: context.querySelectorAll('.cards:not(.no-autoinit)'),
     Carousel: context.querySelectorAll('.carousel:not(.no-autoinit)'),
@@ -154,6 +158,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
   };
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
   Alert.init(registry.Alert, options?.Alert ?? {});
+  Kanban.init(registry.Kanban, options?.Kanban ?? {});
   Cards.init(registry.Cards, options?.Cards ?? {});
   Carousel.init(registry.Carousel, options?.Carousel ?? {});
   Chips.init(registry.Chips, options?.Chips ?? {});

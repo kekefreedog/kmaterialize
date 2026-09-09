@@ -403,6 +403,37 @@ declare class Alert extends Component<AlertOptions> {
     destroy(): void;
 }
 
+interface KanbanMoveDetail {
+    card: HTMLElement;
+    from: HTMLElement;
+    to: HTMLElement;
+}
+interface KanbanOptions extends BaseOptions$1 {
+    /** Enable native drag-and-drop interactions. */
+    draggable: boolean;
+    /** Called after a card changes column or order. */
+    onMove?: (detail: KanbanMoveDetail) => void;
+}
+/** A lightweight, dependency-free board for columns of draggable cards. */
+declare class Kanban extends Component<KanbanOptions> {
+    private _draggedCard;
+    private _dragSourceColumn;
+    private _onDragStart;
+    private _onDragOver;
+    private _onDrop;
+    private _onDragEnd;
+    constructor(el: HTMLElement, options: Partial<KanbanOptions>);
+    static get defaults(): KanbanOptions;
+    static init(el: HTMLElement, options?: Partial<KanbanOptions>): Kanban;
+    static init(els: InitElements<MElement>, options?: Partial<KanbanOptions>): Kanban[];
+    static getInstance(el: HTMLElement): Kanban;
+    private _prepareMarkup;
+    private _bindEvents;
+    private _clearDragState;
+    private _updateCounts;
+    destroy(): void;
+}
+
 interface FloatingActionButtonOptions extends BaseOptions$1 {
     /**
      * Direction FAB menu opens.
@@ -2785,6 +2816,7 @@ declare const version = "2.3.3";
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
     Alert?: Partial<AlertOptions>;
+    Kanban?: Partial<KanbanOptions>;
     Autocomplete?: Partial<AutocompleteOptions>;
     Cards?: Partial<CardsOptions>;
     Carousel?: Partial<CarouselOptions>;
@@ -2819,5 +2851,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
 export type { AutoInitOptions };

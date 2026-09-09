@@ -13863,6 +13863,227 @@ button.btn-floating {
             transform: translateY(-0.25rem);
   }
 }
+.kanban-board {
+  --kanban-column-width: 20rem;
+  --kanban-gap: 1rem;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: start;
+  -webkit-align-items: flex-start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  gap: var(--kanban-gap);
+  width: 100%;
+  padding: 0.25rem;
+  overflow-x: auto;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  overscroll-behavior-x: contain;
+}
+.kanban-board.kanban-wrap {
+  -webkit-flex-wrap: wrap;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+.kanban-column {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 var(--kanban-column-width);
+      -ms-flex: 0 0 var(--kanban-column-width);
+          flex: 0 0 var(--kanban-column-width);
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  min-height: 15rem;
+  padding: 0.75rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 0.875rem;
+  background: var(--md-sys-color-surface-variant);
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  -webkit-transition: border-color 160ms ease, background-color 160ms ease;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.kanban-column.is-drag-over {
+  border-color: var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 55%, var(--md-sys-color-surface-variant));
+}
+
+.kanban-column-header {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.25rem 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.kanban-column-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.kanban-column-count {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.75rem;
+}
+
+.kanban-column-body {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 auto;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 0.75rem;
+  min-height: 8rem;
+}
+
+.kanban-card {
+  position: relative;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 0.75rem;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  -webkit-box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
+          box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
+  cursor: -webkit-grab;
+  cursor: grab;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.kanban-card:active, .kanban-card.is-dragging {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+.kanban-card.is-dragging {
+  opacity: 0.45;
+}
+.kanban-card:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.kanban-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.kanban-card-description {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.kanban-card-meta {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.75rem;
+}
+
+.kanban-card-label {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-align-self: flex-start;
+      -ms-flex-item-align: start;
+          align-self: flex-start;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: 0.75rem;
+}
+
+.kanban-empty {
+  display: grid;
+  min-height: 5rem;
+  place-items: center;
+  border: 1px dashed var(--md-sys-color-outline);
+  border-radius: 0.625rem;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 600px) {
+  .kanban-board {
+    --kanban-column-width: min(20rem, calc(100vw - 3rem));
+  }
+}
 .collapsible {
   padding-left: 0;
   list-style-type: none;
