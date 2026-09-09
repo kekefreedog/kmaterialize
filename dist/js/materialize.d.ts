@@ -380,6 +380,29 @@ declare class Autocomplete extends Component<AutocompleteOptions> {
     selectOptions(ids: []): void;
 }
 
+interface AlertOptions extends BaseOptions$1 {
+    /** Automatically wire a `.alert-close` button when present. */
+    dismissible: boolean;
+    /** Called after the alert is dismissed. */
+    onDismiss?: (alert: Alert) => void;
+}
+/** A persistent, contextual feedback banner. */
+declare class Alert extends Component<AlertOptions> {
+    private _closeButton;
+    private _onClose;
+    constructor(el: HTMLElement, options: Partial<AlertOptions>);
+    static get defaults(): AlertOptions;
+    static init(el: HTMLElement, options?: Partial<AlertOptions>): Alert;
+    static init(els: InitElements<MElement>, options?: Partial<AlertOptions>): Alert[];
+    static getInstance(el: HTMLElement): Alert;
+    private _bindCloseButton;
+    /** Hide and remove the alert from the document. */
+    dismiss(): void;
+    /** Show an alert that was previously dismissed. */
+    open(): void;
+    destroy(): void;
+}
+
 interface FloatingActionButtonOptions extends BaseOptions$1 {
     /**
      * Direction FAB menu opens.
@@ -2761,6 +2784,7 @@ declare const version = "2.3.3";
  */
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
+    Alert?: Partial<AlertOptions>;
     Autocomplete?: Partial<AutocompleteOptions>;
     Cards?: Partial<CardsOptions>;
     Carousel?: Partial<CarouselOptions>;
@@ -2795,5 +2819,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
 export type { AutoInitOptions };

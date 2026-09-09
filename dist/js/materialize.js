@@ -400,7 +400,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$v = {
+    const _defaults$w = {
         alignment: 'left',
         autoFocus: true,
         constrainWidth: true,
@@ -453,7 +453,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$v;
+            return _defaults$w;
         }
         /**
          * Initializes instances of Dropdown.
@@ -545,7 +545,7 @@ var M = (function (exports) {
                 // isTouchMoving to check if scrolling on mobile.
                 this.close();
             }
-            else if (!target.closest('.dropdown-content')) {
+            else if (!target.closest('.dropdown-content') && !target.closest('.dropdown-trigger')) {
                 // Do this one frame later so that if the element clicked also triggers _handleClick
                 // For example, if a label for a select was clicked, that we don't close/open the dropdown
                 setTimeout(() => {
@@ -904,7 +904,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$u = {
+    const _defaults$v = {
         data: [], // Autocomplete data set
         onAutocomplete: null, // Callback for when autocompleted
         dropdownOptions: {
@@ -964,7 +964,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$u;
+            return _defaults$v;
         }
         /**
          * Initializes instances of Autocomplete.
@@ -1369,6 +1369,60 @@ var M = (function (exports) {
                 return;
             this.selectedValues = entries;
             this._renderDropdown();
+        }
+    }
+
+    const _defaults$u = {
+        dismissible: true
+    };
+    /** A persistent, contextual feedback banner. */
+    class Alert extends Component {
+        _closeButton = null;
+        _onClose = () => this.dismiss();
+        constructor(el, options) {
+            super(el, options, Alert);
+            this.options = { ...Alert.defaults, ...options };
+            this.el['M_Alert'] = this;
+            this._bindCloseButton();
+        }
+        static get defaults() {
+            return _defaults$u;
+        }
+        static init(els, options = {}) {
+            return super.init(els, options, Alert);
+        }
+        static getInstance(el) {
+            return el['M_Alert'];
+        }
+        _bindCloseButton() {
+            this._closeButton = this.el.querySelector('.alert-close');
+            if (this.options.dismissible && this._closeButton) {
+                this._closeButton.addEventListener('click', this._onClose);
+            }
+        }
+        /** Hide and remove the alert from the document. */
+        dismiss() {
+            if (!this.el.isConnected)
+                return;
+            this.el.classList.add('alert-dismissing');
+            const remove = () => {
+                this.el.removeEventListener('transitionend', remove);
+                this.el.hidden = true;
+                this.options.onDismiss?.(this);
+            };
+            if (getComputedStyle(this.el).transitionDuration === '0s')
+                remove();
+            else
+                this.el.addEventListener('transitionend', remove, { once: true });
+        }
+        /** Show an alert that was previously dismissed. */
+        open() {
+            this.el.hidden = false;
+            this.el.classList.remove('alert-dismissing');
+        }
+        destroy() {
+            this._closeButton?.removeEventListener('click', this._onClose);
+            delete this.el['M_Alert'];
         }
     }
 
@@ -9226,6 +9280,7 @@ var M = (function (exports) {
      */
     function AutoInit(context = document.body, options) {
         const registry = {
+            Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
             Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
             Cards: context.querySelectorAll('.cards:not(.no-autoinit)'),
             Carousel: context.querySelectorAll('.carousel:not(.no-autoinit)'),
@@ -9258,6 +9313,7 @@ var M = (function (exports) {
             TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
         };
         Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
+        Alert.init(registry.Alert, options?.Alert ?? {});
         Cards.init(registry.Cards, options?.Cards ?? {});
         Carousel.init(registry.Carousel, options?.Carousel ?? {});
         Chips.init(registry.Chips, options?.Chips ?? {});
@@ -9298,6 +9354,7 @@ var M = (function (exports) {
     Cards.Init();
 
     exports.AirDatepickerField = AirDatepickerField;
+    exports.Alert = Alert;
     exports.AutoInit = AutoInit;
     exports.Autocomplete = Autocomplete;
     exports.Cards = Cards;
