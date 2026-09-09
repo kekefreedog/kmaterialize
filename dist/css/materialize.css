@@ -15410,12 +15410,29 @@ body.keyboard-focused .dropdown-content li:focus {
 /* Structured MD3 app-bar content. These hooks keep branded demos and app
    shells from falling back to bare, loosely spaced anchor elements. */
 .navbar.appbar-bordered {
-  overflow: hidden;
+  overflow: visible;
   background: var(--md-sys-color-surface-variant);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 16px;
   -webkit-box-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow) 18%, transparent);
           box-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow) 18%, transparent);
+}
+
+/* Layout variants. `navbar-rounded` adds the inset treatment; use
+   `navbar-full` for a flush, full-width rectangle. */
+.navbar.appbar-bordered.navbar-rounded {
+  margin: 8px 0;
+  padding: 4px;
+  border-radius: 16px;
+}
+
+.navbar.appbar-bordered.navbar-full {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
 }
 
 /* Extended app bars may contain tabs and a halfway FAB. Keep the rounded
@@ -15438,6 +15455,37 @@ body.keyboard-focused .dropdown-content li:focus {
   gap: 12px;
   padding-inline: 12px;
   background: var(--md-sys-color-surface-variant);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+}
+
+.navbar.appbar-bordered .nav-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul:not(.dropdown-content) {
+  min-width: 0;
+  -webkit-flex-shrink: 1;
+      -ms-flex-negative: 1;
+          flex-shrink: 1;
+}
+
+.navbar.appbar-bordered.navbar-wrap .nav-wrapper {
+  -webkit-flex-wrap: wrap;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+  height: auto;
+  row-gap: 8px;
+  overflow: visible;
+}
+
+.navbar.appbar-bordered.navbar-wrap .nav-wrapper > ul:not(.dropdown-content) {
+  -webkit-flex-wrap: wrap;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+  white-space: normal;
 }
 
 .navbar .brand-logo .brand-logo-image {
@@ -15550,13 +15598,38 @@ body.keyboard-focused .dropdown-content li:focus {
   margin: 0;
   color: var(--md-sys-color-on-primary);
   white-space: nowrap;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  gap: 8px;
 }
 
 .navbar.appbar-bordered ul:not(.dropdown-content) > li > :is(.btn, .btn-large) > .material-icons {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 20px;
+      -ms-flex: 0 0 20px;
+          flex: 0 0 20px;
   width: 20px;
   height: 20px;
   margin-left: 8px;
   line-height: 20px;
+}
+
+.navbar.appbar-bordered .dropdown-trigger {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 auto;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .navbar.appbar-bordered ul:not(.dropdown-content) > li > a:has(> .material-icons:only-child) {
