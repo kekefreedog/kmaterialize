@@ -400,7 +400,7 @@ var M = (function (exports) {
         }
     }
 
-    const _defaults$x = {
+    const _defaults$y = {
         alignment: 'left',
         autoFocus: true,
         constrainWidth: true,
@@ -453,7 +453,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$x;
+            return _defaults$y;
         }
         /**
          * Initializes instances of Dropdown.
@@ -904,7 +904,7 @@ var M = (function (exports) {
         };
     }
 
-    const _defaults$w = {
+    const _defaults$x = {
         data: [], // Autocomplete data set
         onAutocomplete: null, // Callback for when autocompleted
         dropdownOptions: {
@@ -964,7 +964,7 @@ var M = (function (exports) {
             this._setupEventHandlers();
         }
         static get defaults() {
-            return _defaults$w;
+            return _defaults$x;
         }
         /**
          * Initializes instances of Autocomplete.
@@ -1369,6 +1369,194 @@ var M = (function (exports) {
                 return;
             this.selectedValues = entries;
             this._renderDropdown();
+        }
+    }
+
+    const _cache = new Map();
+    async function loadPeer(spec, importer) {
+        if (_cache.has(spec.specifier))
+            return _cache.get(spec.specifier);
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const mod = await importer();
+            const resolved = mod?.default ?? mod;
+            _cache.set(spec.specifier, resolved);
+            return resolved;
+        }
+        catch {
+            // fall through to the global-scope lookup below
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const globalScope = typeof window !== 'undefined' ? window : undefined;
+        if (globalScope && globalScope[spec.globalName]) {
+            const resolved = globalScope[spec.globalName];
+            _cache.set(spec.specifier, resolved);
+            return resolved;
+        }
+        throw new Error(`kmaterialize's ${spec.feature} requires "${spec.specifier}", which isn't installed/loaded.\n` +
+            `- If you're using a bundler: npm/pnpm/yarn install "${spec.specifier}".\n` +
+            `- If you're using the plain <script> (no-bundler) build: add\n` +
+            `    ${spec.cdnHint}\n` +
+            `  before initializing this component, so window.${spec.globalName} is defined.`);
+    }
+
+    function withClass(required, custom) {
+        return [
+            required,
+            ...(typeof custom === 'string'
+                ? custom.split(/\s+/)
+                : custom ?? [])
+        ]
+            .filter((value, index, values) => value && values.indexOf(value) === index)
+            .join(' ');
+    }
+    /** Materialize-themed SweetAlert2 dialogs. No element initialization is needed. */
+    class Popup {
+        /** Fresh defaults so per-dialog customization cannot affect later popups. */
+        static get defaults() {
+            return {
+                buttonsStyling: false,
+                heightAuto: false,
+                customClass: {
+                    container: 'popup-container',
+                    popup: 'popup',
+                    confirmButton: 'btn filled',
+                    cancelButton: 'btn outlined',
+                    denyButton: 'btn tonal'
+                }
+            };
+        }
+        static _load() {
+            // Use the JS-only build: the consumer controls stylesheet order.
+            return loadPeer({
+                specifier: 'sweetalert2',
+                globalName: 'Swal',
+                feature: 'Popup',
+                cdnHint: '<link rel="stylesheet" href="path/to/sweetalert2.min.css">\n' +
+                    '    <script src="path/to/sweetalert2.min.js"></script>\n' +
+                    '    (copy from node_modules/sweetalert2/dist/; load the CSS before materialize.css)'
+            }, () => import('sweetalert2/dist/sweetalert2.js'));
+        }
+        /** Open a dialog and resolve with SweetAlert2's confirmation/dismissal result. */
+        static async fire(options = {}) {
+            const swal = await Popup._load();
+            const defaults = Popup.defaults;
+            const customClass = {
+                ...defaults.customClass,
+                ...options.customClass,
+                // Keep the scoped theme even when consumers add their own classes.
+                container: withClass('popup-container', options.customClass?.container),
+                popup: withClass('popup', options.customClass?.popup)
+            };
+            /*
+             * SweetAlertOptions is a discriminated union because `input: "file"`
+             * uses a different inputValidator signature. Object spreading causes
+             * TypeScript to lose that correlation, even though the resulting
+             * object is valid.
+             */
+            const mergedOptions = {
+                ...defaults,
+                ...options,
+                customClass
+            };
+            const result = await swal.fire(mergedOptions);
+            /*
+             * SweetAlert2 declares its own internal Awaited<T>, while modern
+             * TypeScript provides the global Awaited<T>. They are semantically
+             * equivalent here but TypeScript can report them as unrelated.
+             */
+            return result;
+        }
+        /** Close the current SweetAlert2 dialog, resolving its pending result. */
+        static async close() {
+            const swal = await Popup._load();
+            swal.close();
+        }
+    }
+
+    const _defaults$w = {
+        active: true,
+        label: 'Loading…',
+        completeLabel: 'Ready'
+    };
+    /** A circular loading indicator with an optional centered logo or icon. */
+    class Loading extends Component {
+        _originalAttributes = {};
+        _originalActive;
+        _originalLoading;
+        _generatedSpinner = null;
+        constructor(el, options = {}) {
+            super(el, options, Loading);
+            this.options = { ...Loading.defaults, ...options };
+            this.el['M_Loading'] = this;
+            this._originalActive = this.el.classList.contains('active');
+            this._originalLoading = this.el.classList.contains('loading');
+            for (const name of ['role', 'aria-live', 'aria-busy', 'aria-label']) {
+                this._originalAttributes[name] = this.el.getAttribute(name);
+            }
+            // Preserve an accessible name supplied in the markup unless overridden.
+            if (options.label === undefined && this.el.hasAttribute('aria-label')) {
+                this.options.label = this.el.getAttribute('aria-label');
+            }
+            this.el.classList.add('loading');
+            // Reuse authored Preloader markup; generate it for the compact JS API.
+            if (!this.el.querySelector(':scope > .preloader-wrapper')) {
+                this._generatedSpinner = document.createElement('div');
+                this._generatedSpinner.className = 'preloader-wrapper active';
+                this._generatedSpinner.setAttribute('aria-hidden', 'true');
+                this._generatedSpinner.innerHTML = `<div class="spinner-layer">
+        <div class="circle-clipper left"><div class="circle"></div></div>
+        <div class="gap-patch"><div class="circle"></div></div>
+        <div class="circle-clipper right"><div class="circle"></div></div>
+      </div>`;
+                this.el.appendChild(this._generatedSpinner);
+            }
+            if (!this.el.hasAttribute('role'))
+                this.el.setAttribute('role', 'status');
+            if (!this.el.hasAttribute('aria-live'))
+                this.el.setAttribute('aria-live', 'polite');
+            if (this.options.active)
+                this.start();
+            else
+                this.stop();
+        }
+        static get defaults() {
+            return _defaults$w;
+        }
+        static init(els, options = {}) {
+            return super.init(els, options, Loading);
+        }
+        static getInstance(el) {
+            return el['M_Loading'];
+        }
+        get isActive() {
+            return this.el.classList.contains('active');
+        }
+        /** Show the animated ring and announce the loading status. */
+        start(label = this.options.label) {
+            this.el.setAttribute('aria-label', label);
+            this.el.setAttribute('aria-busy', 'true');
+            this.el.classList.add('active');
+        }
+        /** Hide the ring, keeping the centered content visible. */
+        stop(label = this.options.completeLabel) {
+            this.el.setAttribute('aria-label', label);
+            this.el.setAttribute('aria-busy', 'false');
+            this.el.classList.remove('active');
+        }
+        /** Restore the original markup state and remove the instance. */
+        destroy() {
+            this._generatedSpinner?.remove();
+            this._generatedSpinner = null;
+            for (const [name, value] of Object.entries(this._originalAttributes)) {
+                if (value === null)
+                    this.el.removeAttribute(name);
+                else
+                    this.el.setAttribute(name, value);
+            }
+            this.el.classList.toggle('active', this._originalActive);
+            this.el.classList.toggle('loading', this._originalLoading);
+            delete this.el['M_Loading'];
         }
     }
 
@@ -7846,34 +8034,6 @@ var M = (function (exports) {
         };
     }
 
-    const _cache = new Map();
-    async function loadPeer(spec, importer) {
-        if (_cache.has(spec.specifier))
-            return _cache.get(spec.specifier);
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const mod = await importer();
-            const resolved = mod?.default ?? mod;
-            _cache.set(spec.specifier, resolved);
-            return resolved;
-        }
-        catch {
-            // fall through to the global-scope lookup below
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const globalScope = typeof window !== 'undefined' ? window : undefined;
-        if (globalScope && globalScope[spec.globalName]) {
-            const resolved = globalScope[spec.globalName];
-            _cache.set(spec.specifier, resolved);
-            return resolved;
-        }
-        throw new Error(`kmaterialize's ${spec.feature} requires "${spec.specifier}", which isn't installed/loaded.\n` +
-            `- If you're using a bundler: npm/pnpm/yarn install "${spec.specifier}".\n` +
-            `- If you're using the plain <script> (no-bundler) build: add\n` +
-            `    ${spec.cdnHint}\n` +
-            `  before initializing this component, so window.${spec.globalName} is defined.`);
-    }
-
     const _defaults$9 = {
         thousandsSeparator: ' ',
         radix: '.',
@@ -9448,6 +9608,7 @@ var M = (function (exports) {
      */
     function AutoInit(context = document.body, options) {
         const registry = {
+            Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
             Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
             Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
             Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
@@ -9482,6 +9643,7 @@ var M = (function (exports) {
             TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
         };
         Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
+        Loading.init(registry.Loading, options?.Loading ?? {});
         Alert.init(registry.Alert, options?.Alert ?? {});
         Kanban.init(registry.Kanban, options?.Kanban ?? {});
         Cards.init(registry.Cards, options?.Cards ?? {});
@@ -9540,11 +9702,13 @@ var M = (function (exports) {
     exports.FormSelect = FormSelect;
     exports.Forms = Forms;
     exports.Kanban = Kanban;
+    exports.Loading = Loading;
     exports.Materialbox = Materialbox;
     exports.Modal = Modal;
     exports.NumberInput = NumberInput;
     exports.Parallax = Parallax;
     exports.PasswordInput = PasswordInput;
+    exports.Popup = Popup;
     exports.Pushpin = Pushpin;
     exports.Range = Range;
     exports.ScrollSpy = ScrollSpy;

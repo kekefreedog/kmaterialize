@@ -64,6 +64,7 @@
     "filepond-plugin-image-exif-orientation": "^1.0.0",
     "filepond-plugin-image-preview": "^4.6.0",
     "imask": "^7.6.0",
+    "sweetalert2": "^11.26.25",
     "tom-select": "^2.3.0"
   },
   "peerDependenciesMeta": {
@@ -74,6 +75,7 @@
     "filepond-plugin-image-exif-orientation": { "optional": true },
     "filepond-plugin-image-preview": { "optional": true },
     "imask": { "optional": true },
+    "sweetalert2": { "optional": true },
     "tom-select": { "optional": true }
   },
   "devDependencies": {
@@ -85,6 +87,7 @@
     "filepond-plugin-image-exif-orientation": "^1.0.0",
     "filepond-plugin-image-preview": "^4.6.0",
     "imask": "^7.6.0",
+    "sweetalert2": "^11.26.25",
     "tom-select": "^2.3.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.1.6",

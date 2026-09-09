@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Autocomplete, AutocompleteOptions } from '../components/search/autocomplete';
+import { Popup } from '../components/popup/popup';
+import { Loading, LoadingOptions } from '../components/loading/loading';
 import { Alert, AlertOptions } from '../components/alert/alert';
 import { Kanban, KanbanOptions } from '../components/kanban/kanban';
 import { FloatingActionButton, FloatingActionButtonOptions } from '../components/button/buttons';
@@ -38,7 +40,11 @@ import { Utils } from './utils';
 import { Component } from './component';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
+export type { PopupOptions, PopupResult } from '../components/popup/popup';
+
 export {
+  Popup,
+  Loading,
   Alert,
   Kanban,
   Autocomplete,
@@ -86,6 +92,7 @@ export function toast(options: Partial<ToastOptions>): Toast {
 }
 
 export interface AutoInitOptions {
+  Loading?: Partial<LoadingOptions>;
   Alert?: Partial<AlertOptions>;
   Kanban?: Partial<KanbanOptions>;
   Autocomplete?: Partial<AutocompleteOptions>;
@@ -123,6 +130,7 @@ export interface AutoInitOptions {
  */
 export function AutoInit(context: HTMLElement = document.body, options?: Partial<AutoInitOptions>) {
   const registry = {
+    Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
     Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
     Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
@@ -157,6 +165,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
   };
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
+  Loading.init(registry.Loading, options?.Loading ?? {});
   Alert.init(registry.Alert, options?.Alert ?? {});
   Kanban.init(registry.Kanban, options?.Kanban ?? {});
   Cards.init(registry.Cards, options?.Cards ?? {});

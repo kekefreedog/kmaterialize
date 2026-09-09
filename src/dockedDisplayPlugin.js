@@ -1,0 +1,79 @@
+import { Utils } from './utils';
+const _defaults = {
+    margin: 5,
+    transition: 10,
+    duration: 250,
+    align: 'left',
+    title: null,
+    onOpen: null,
+    onClose: null
+};
+export class DockedDisplayPlugin {
+    el;
+    container;
+    options;
+    visible;
+    constructor(el, container, options) {
+        this.el = el;
+        this.options = {
+            ..._defaults,
+            ...options
+        };
+        this.container = document.createElement('div');
+        this.container.classList.add('display-docked');
+        this.container.append(container);
+        el.parentElement.append(this.container);
+        document.addEventListener('click', (e) => {
+            if (this.visible &&
+                !(this.el === e.target) &&
+                !e.target.closest('.display-docked')) {
+                this.hide();
+            }
+        }, true);
+    }
+    /**
+     * Initializes instance of DockedDisplayPlugin
+     * @param el HTMLElement to position to
+     * @param container HTMLElement to be positioned
+     * @param options Plugin options
+     */
+    static init(el, container, options) {
+        return new DockedDisplayPlugin(el, container, options);
+    }
+    show = () => {
+        if (this.visible)
+            return;
+        this.visible = true;
+        const coordinates = Utils._setAbsolutePosition(this.el, this.container, 'bottom', this.options.margin, this.options.transition, this.options.align);
+        // @todo move to Util? -> duplicate code fragment with tooltip
+        // easeOutCubic
+        this.container.style.visibility = 'visible';
+        this.container.style.transition = `
+      transform ${this.options.duration}ms ease-out,
+      opacity ${this.options.duration}ms ease-out`;
+        setTimeout(() => {
+            this.container.style.transform = `translateX(${coordinates.x}px) translateY(${coordinates.y}px)`;
+            this.container.style.opacity = (1).toString();
+            if (typeof this.options.onOpen == 'function') {
+                this.options.onOpen.call(this);
+            }
+        }, 100);
+    };
+    hide = () => {
+        if (!this.visible)
+            return;
+        this.visible = false;
+        // @todo move to Util? -> duplicate code fragment with tooltip
+        this.container.removeAttribute('style');
+        this.container.style.transition = `
+      transform ${this.options.duration}ms ease-out,
+      opacity ${this.options.duration}ms ease-out`;
+        setTimeout(() => {
+            this.container.style.transform = `translateX(0px) translateY(0px)`;
+            this.container.style.opacity = '0';
+            if (typeof this.options.onClose == 'function') {
+                this.options.onClose.call(this);
+            }
+        }, 100);
+    };
+}

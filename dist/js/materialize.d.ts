@@ -1,3 +1,4 @@
+import { SweetAlertOptions, SweetAlertResult } from 'sweetalert2';
 import { InputMask, MaskedNumberOptions } from 'imask';
 import PickrCtor from '@simonwep/pickr';
 import AirDatepickerCtor from 'air-datepicker';
@@ -378,6 +379,47 @@ declare class Autocomplete extends Component<AutocompleteOptions> {
      */
     selectOption(id: number | string): void;
     selectOptions(ids: []): void;
+}
+
+type PopupOptions = SweetAlertOptions;
+type PopupResult<T = unknown> = SweetAlertResult<T>;
+/** Materialize-themed SweetAlert2 dialogs. No element initialization is needed. */
+declare class Popup {
+    /** Fresh defaults so per-dialog customization cannot affect later popups. */
+    static get defaults(): PopupOptions;
+    private static _load;
+    /** Open a dialog and resolve with SweetAlert2's confirmation/dismissal result. */
+    static fire<T = unknown>(options?: PopupOptions): Promise<PopupResult<Awaited<T>>>;
+    /** Close the current SweetAlert2 dialog, resolving its pending result. */
+    static close(): Promise<void>;
+}
+
+interface LoadingOptions extends BaseOptions$1 {
+    /** Start animating immediately. */
+    active: boolean;
+    /** Accessible status while work is in progress. */
+    label: string;
+    /** Accessible status when work has finished. */
+    completeLabel: string;
+}
+/** A circular loading indicator with an optional centered logo or icon. */
+declare class Loading extends Component<LoadingOptions> {
+    private _originalAttributes;
+    private _originalActive;
+    private _originalLoading;
+    private _generatedSpinner;
+    constructor(el: HTMLElement, options?: Partial<LoadingOptions>);
+    static get defaults(): LoadingOptions;
+    static init(el: HTMLElement, options?: Partial<LoadingOptions>): Loading;
+    static init(els: InitElements<MElement>, options?: Partial<LoadingOptions>): Loading[];
+    static getInstance(el: HTMLElement): Loading;
+    get isActive(): boolean;
+    /** Show the animated ring and announce the loading status. */
+    start(label?: string): void;
+    /** Hide the ring, keeping the centered content visible. */
+    stop(label?: string): void;
+    /** Restore the original markup state and remove the instance. */
+    destroy(): void;
 }
 
 interface AlertOptions extends BaseOptions$1 {
@@ -2819,6 +2861,7 @@ declare const version = "2.3.3";
  */
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
+    Loading?: Partial<LoadingOptions>;
     Alert?: Partial<AlertOptions>;
     Kanban?: Partial<KanbanOptions>;
     Autocomplete?: Partial<AutocompleteOptions>;
@@ -2855,5 +2898,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
-export type { AutoInitOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Loading, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
+export type { AutoInitOptions, PopupOptions, PopupResult };

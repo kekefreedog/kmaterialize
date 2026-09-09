@@ -30,6 +30,8 @@ const outputPath = 'dist/js/materialize';
 // these; listing them as `external` just keeps that explicit and silences
 // warnings, and keeps the bundled .d.ts from trying to inline their types.
 const peerDeps = [
+  'sweetalert2',
+  'sweetalert2/dist/sweetalert2.js',
   'tom-select',
   'air-datepicker',
   'air-datepicker/locale/en',

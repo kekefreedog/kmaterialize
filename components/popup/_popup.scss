@@ -1,0 +1,106 @@
+// SweetAlert2 provides dialog layout, focus management, and behavior.
+// Load its base CSS before materialize.css. Only Popup dialogs are themed.
+.swal2-container.popup-container {
+  --swal2-backdrop: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent);
+  z-index: 1100;
+}
+
+.swal2-popup.popup {
+  --swal2-background: var(--md-sys-color-surface);
+  --swal2-color: var(--md-sys-color-on-surface);
+  --swal2-border: 1px solid var(--md-sys-color-outline-variant);
+  --swal2-border-radius: 28px;
+  --swal2-input-background: var(--md-sys-color-surface);
+  --swal2-input-border: 1px solid var(--md-sys-color-outline);
+  --swal2-input-border-radius: 4px;
+  --swal2-input-box-shadow: none;
+  --swal2-input-hover-box-shadow: none;
+  --swal2-input-focus-border: 1px solid var(--md-sys-color-primary);
+  --swal2-input-focus-box-shadow: 0 0 0 1px var(--md-sys-color-primary);
+  --swal2-validation-message-background: var(--md-sys-color-error-container);
+  --swal2-validation-message-color: var(--md-sys-color-on-error-container);
+  --swal2-footer-border-color: var(--md-sys-color-outline-variant);
+  --swal2-footer-color: var(--md-sys-color-on-surface-variant);
+  --swal2-timer-progress-bar-background: var(--md-sys-color-primary);
+  --swal2-close-button-color: var(--md-sys-color-on-surface-variant);
+  --swal2-close-button-focus-box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+  --swal2-outline: 0 0 0 2px var(--md-sys-color-primary);
+
+  font-family: inherit;
+
+  .swal2-title { font-size: 1.5rem; line-height: 1.3; }
+  .swal2-html-container { font-size: 1rem; line-height: 1.5; }
+  .swal2-actions { gap: 0.75rem; padding: 0 1.5rem; }
+  .swal2-actions .btn { margin: 0; }
+  .swal2-close:hover { color: var(--md-sys-color-primary); }
+  .swal2-loader { border-color: var(--md-sys-color-primary) transparent; }
+
+  // Adapted from Rodeo FX's sweetalert_materializecss.scss. Materialize's
+  // full-width text fields otherwise extend past SweetAlert's input margins.
+  input.swal2-input,
+  textarea.swal2-textarea,
+  select.swal2-select {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 0;
+    max-width: calc(100% - 3rem);
+    margin: 1rem 1.5rem 0;
+    padding: 0.75rem;
+    border: var(--swal2-input-border);
+    border-radius: var(--swal2-input-border-radius);
+    background: var(--swal2-input-background);
+    color: var(--swal2-color);
+    box-shadow: none;
+    font-size: 1rem;
+
+    &:focus {
+      border: var(--swal2-input-focus-border);
+      box-shadow: var(--swal2-input-focus-box-shadow);
+      outline: none;
+    }
+
+    &::placeholder { color: var(--md-sys-color-on-surface-variant); opacity: 1; }
+    &.swal2-inputerror {
+      border-color: var(--md-sys-color-error) !important;
+      box-shadow: 0 0 0 1px var(--md-sys-color-error) !important;
+    }
+  }
+
+  input.swal2-input, select.swal2-select { height: 3rem; }
+  textarea.swal2-textarea { min-height: 7rem; }
+  .swal2-input-label { color: var(--md-sys-color-on-surface); font-size: 1rem; }
+
+  // SweetAlert's generated choice fields use native inputs. Undo the global
+  // Materialize rules that hide them in favor of sibling span pseudo-elements.
+  .swal2-radio input,
+  .swal2-checkbox input {
+    appearance: auto;
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: var(--md-sys-color-primary);
+    background: initial;
+    border: initial;
+
+    &::before, &::after { display: none; }
+    &:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+  }
+
+  .swal2-radio label, .swal2-checkbox { gap: 0.5rem; color: inherit; }
+  .swal2-radio input + span, .swal2-checkbox input + span {
+    padding-left: 0;
+    font-size: 1rem;
+
+    &::before, &::after { display: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup-container .swal2-popup.popup,
+  .popup-container .swal2-popup.popup * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
