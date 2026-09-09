@@ -248,7 +248,7 @@ export class Dropdown extends Component<DropdownOptions> implements Openable {
     if (this.options.closeOnClick && target.closest('.dropdown-content') && !this.isTouchMoving) {
       // isTouchMoving to check if scrolling on mobile.
       this.close();
-    } else if (!target.closest('.dropdown-content')) {
+    } else if (!target.closest('.dropdown-content') && !target.closest('.dropdown-trigger')) {
       // Do this one frame later so that if the element clicked also triggers _handleClick
       // For example, if a label for a select was clicked, that we don't close/open the dropdown
       setTimeout(() => {
