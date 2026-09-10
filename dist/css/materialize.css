@@ -13864,6 +13864,7 @@ button.btn-floating {
   }
 }
 .kanban-board {
+  --kanban-zoom: 1;
   --kanban-column-width: 20rem;
   --kanban-gap: 1rem;
   display: -webkit-box;
@@ -13874,13 +13875,16 @@ button.btn-floating {
   -webkit-align-items: flex-start;
       -ms-flex-align: start;
           align-items: flex-start;
-  gap: var(--kanban-gap);
+  gap: calc(var(--kanban-gap) * var(--kanban-zoom));
   width: 100%;
   padding: 0.25rem;
   overflow-x: auto;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   overscroll-behavior-x: contain;
+}
+.kanban-board > .kanban-column {
+  zoom: var(--kanban-zoom);
 }
 .kanban-board.kanban-wrap {
   -webkit-flex-wrap: wrap;
@@ -13998,8 +14002,8 @@ button.btn-floating {
   padding: 1rem;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 0.75rem;
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
+  background: var(--kanban-card-color, var(--md-sys-color-surface));
+  color: var(--kanban-card-text, var(--md-sys-color-on-surface));
   -webkit-box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
           box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
   cursor: -webkit-grab;
@@ -19009,14 +19013,23 @@ textarea.materialize-textarea {
       -ms-user-select: none;
           user-select: none;
 }
-.input-field .prefix ~ input, .input-field .prefix ~ textarea {
+.input-field .prefix ~ input:not([type=checkbox]):not([type=radio]), .input-field .prefix ~ textarea {
   padding-left: 52px;
 }
-.input-field .suffix ~ input, .input-field .suffix ~ textarea {
+.input-field .suffix ~ input:not([type=checkbox]):not([type=radio]), .input-field .suffix ~ textarea {
   padding-right: 52px;
 }
 .input-field .prefix ~ label {
   left: 52px;
+}
+.input-field:not(.outlined) > input:not([type=checkbox]):not([type=radio]):not(:focus):not(:-moz-placeholder) {
+  padding-top: 20px;
+}
+.input-field:not(.outlined) > input:not([type=checkbox]):not([type=radio]):not(:focus):not(:-ms-input-placeholder) {
+  padding-top: 20px;
+}
+.input-field:not(.outlined) > input:not([type=checkbox]):not([type=radio]):not(:focus):not(:placeholder-shown) {
+  padding-top: 20px;
 }
 .input-field.outlined input:not([type=checkbox]):not([type=radio]), .input-field.outlined textarea {
   padding-top: 0;

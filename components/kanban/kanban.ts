@@ -11,6 +11,20 @@ export interface KanbanOptions extends BaseOptions {
   draggable: boolean;
   /** Called after a card changes column or order. */
   onMove?: (detail: KanbanMoveDetail) => void;
+  zoom?: number;
+  minZoom?: number;
+  maxZoom?: number;
+}
+
+/** Optional per-card appearance overrides. */
+export interface KanbanCardAppearance {
+  /** Exact background color, overriding the Materialize surface color. */
+  color?: string;
+  /** Optional text and icon color. */
+  textColor?: string;
+  /** Optional edge accent color and position. */
+  accent?: string;
+  accentPosition?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 const _defaults: KanbanOptions = {
@@ -19,6 +33,7 @@ const _defaults: KanbanOptions = {
 
 /** A lightweight, dependency-free board for columns of draggable cards. */
 export class Kanban extends Component<KanbanOptions> {
+  private _zoom = 1;
   private _draggedCard: HTMLElement | null = null;
   private _dragSourceColumn: HTMLElement | null = null;
   private _dropPreview: HTMLElement | null = null;
@@ -30,13 +45,15 @@ export class Kanban extends Component<KanbanOptions> {
     if (!card || !this.options.draggable || card.classList.contains('is-disabled') || card.getAttribute('aria-disabled') === 'true') return;
     this._draggedCard = card;
     this._dragSourceColumn = card.closest<HTMLElement>('.kanban-column');
-    this._previewHeight = Math.max(64, Math.round(card.getBoundingClientRect().height));
+    this._previewHeight = card.offsetHeight;
     card.classList.add('is-dragging');
     this._dragImage = card.cloneNode(true) as HTMLElement;
     this._dragImage.classList.remove('is-dragging');
     this._dragImage.classList.add('kanban-drag-image');
     this._dragImage.setAttribute('aria-hidden', 'true');
-    this._dragImage.style.width = `${card.getBoundingClientRect().width}px`;
+    this._dragImage.style.width = `${card.offsetWidth}px`;
+    this._dragImage.style.transform = `scale(${this._zoom})`;
+    this._dragImage.style.transformOrigin = 'top left';
     document.body.appendChild(this._dragImage);
     event.dataTransfer?.setDragImage(this._dragImage, card.offsetWidth / 2, card.offsetHeight / 2);
     event.dataTransfer?.setData('text/plain', card.dataset.kanbanCard || '');
@@ -81,13 +98,41 @@ export class Kanban extends Component<KanbanOptions> {
   constructor(el: HTMLElement, options: Partial<KanbanOptions>) {
     super(el, options, Kanban);
     this.options = { ...Kanban.defaults, ...options };
+    this._zoom = this._clampZoom(this.options.zoom ?? 1);
     this.el['M_Kanban'] = this;
     this._prepareMarkup();
+    this._applyZoom();
     if (this.options.draggable) this._bindEvents();
   }
 
   static get defaults(): KanbanOptions {
-    return _defaults;
+    return { ..._defaults, zoom: 1, minZoom: 0.5, maxZoom: 2 };
+  }
+
+  /** Set the board scale, clamped to the configured limits. */
+  setZoom(value: number): void {
+    if (!Number.isFinite(value)) throw new TypeError('Zoom must be finite.');
+    this._zoom = this._clampZoom(value);
+    this._applyZoom();
+  }
+
+  /** Return the current board scale multiplier. */
+  getZoom(): number { return this._zoom; }
+
+  /** Restore the board to 100% scale. */
+  resetZoom(): void { this.setZoom(1); }
+
+  private _clampZoom(value: number): number {
+    if (!Number.isFinite(value)) throw new TypeError('Zoom must be finite.');
+    const min = this.options.minZoom ?? 0.5;
+    const max = this.options.maxZoom ?? 2;
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max < min) throw new TypeError('Invalid zoom limits.');
+    return Math.min(max, Math.max(min, value));
+  }
+
+  private _applyZoom(): void {
+    this.el.style.setProperty('--kanban-zoom', String(this._zoom));
+    this.el.dataset.zoom = String(this._zoom);
   }
 
   static init(el: HTMLElement, options?: Partial<KanbanOptions>): Kanban;
@@ -107,6 +152,21 @@ export class Kanban extends Component<KanbanOptions> {
       const body = column.querySelector<HTMLElement>('.kanban-column-body');
       if (body) body.setAttribute('role', 'list');
       column.querySelectorAll<HTMLElement>('.kanban-card').forEach((card) => {
+        // Optional inline item colors override the Materialize defaults while
+        // keeping the public markup independent from the Sass implementation.
+        const color = card.dataset.kanbanColor;
+        const textColor = card.dataset.kanbanTextColor;
+        const accent = card.dataset.kanbanAccent;
+        const accentPosition = card.dataset.kanbanAccentPosition;
+        if (color && CSS.supports('color', color)) card.style.setProperty('--kanban-card-color', color);
+        if (textColor && CSS.supports('color', textColor)) card.style.setProperty('--kanban-card-text', textColor);
+        if (accent && CSS.supports('color', accent)) {
+          card.style.setProperty('--kanban-card-accent', accent);
+          card.classList.add('kanban-card-accent');
+        }
+        if (['top', 'right', 'bottom', 'left'].includes(accentPosition || '')) {
+          card.classList.add(`kanban-card-accent-${accentPosition}`);
+        }
         card.setAttribute('role', 'listitem');
         const disabled = card.classList.contains('is-disabled') || card.getAttribute('aria-disabled') === 'true';
         card.setAttribute('tabindex', disabled ? '-1' : '0');

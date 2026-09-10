@@ -455,9 +455,13 @@ interface KanbanOptions extends BaseOptions$1 {
     draggable: boolean;
     /** Called after a card changes column or order. */
     onMove?: (detail: KanbanMoveDetail) => void;
+    zoom?: number;
+    minZoom?: number;
+    maxZoom?: number;
 }
 /** A lightweight, dependency-free board for columns of draggable cards. */
 declare class Kanban extends Component<KanbanOptions> {
+    private _zoom;
     private _draggedCard;
     private _dragSourceColumn;
     private _dropPreview;
@@ -469,6 +473,14 @@ declare class Kanban extends Component<KanbanOptions> {
     private _onDragEnd;
     constructor(el: HTMLElement, options: Partial<KanbanOptions>);
     static get defaults(): KanbanOptions;
+    /** Set the board scale, clamped to the configured limits. */
+    setZoom(value: number): void;
+    /** Return the current board scale multiplier. */
+    getZoom(): number;
+    /** Restore the board to 100% scale. */
+    resetZoom(): void;
+    private _clampZoom;
+    private _applyZoom;
     static init(el: HTMLElement, options?: Partial<KanbanOptions>): Kanban;
     static init(els: InitElements<MElement>, options?: Partial<KanbanOptions>): Kanban[];
     static getInstance(el: HTMLElement): Kanban;

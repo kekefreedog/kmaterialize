@@ -1,14 +1,19 @@
 .kanban-board {
+  --kanban-zoom: 1;
   --kanban-column-width: 20rem;
   --kanban-gap: 1rem;
   display: flex;
   align-items: flex-start;
-  gap: var(--kanban-gap);
+  gap: calc(var(--kanban-gap) * var(--kanban-zoom));
   width: 100%;
   padding: 0.25rem;
   overflow-x: auto;
   box-sizing: border-box;
   overscroll-behavior-x: contain;
+
+  // Unlike transform, zoom reserves the scaled space in the flex layout.
+  // This also keeps wrapping and the scrollable area aligned with the cards.
+  & > .kanban-column { zoom: var(--kanban-zoom); }
 
   &.kanban-wrap {
     flex-wrap: wrap;
@@ -79,8 +84,8 @@
   padding: 1rem;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 0.75rem;
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
+  background: var(--kanban-card-color, var(--md-sys-color-surface));
+  color: var(--kanban-card-text, var(--md-sys-color-on-surface));
   box-shadow: var(--md-sys-elevation-level1, 0 1px 2px rgba(0, 0, 0, 0.14));
   cursor: grab;
   user-select: none;

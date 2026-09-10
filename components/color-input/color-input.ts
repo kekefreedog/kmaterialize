@@ -116,7 +116,8 @@ export class ColorInput extends Component<ColorInputOptions> {
   }
 
   _handleInputChange = () => {
-    this.pickr?.setColor(this.el.value);
+    // A programmatic sync must not emit save and recursively dispatch change.
+    this.pickr?.setColor(this.el.value, true);
   };
 
   _handleLabelClick = (event: MouseEvent) => {

@@ -163,14 +163,19 @@ textarea.materialize-textarea {
     user-select: none;
   }
 
-  .prefix ~ input, .prefix ~ textarea {
+  .prefix ~ input:not([type=checkbox]):not([type=radio]), .prefix ~ textarea {
     padding-left: calc(12px + 24px + 16px);
   }
-  .suffix ~ input, .suffix ~ textarea {
+  .suffix ~ input:not([type=checkbox]):not([type=radio]), .suffix ~ textarea {
     padding-right: calc(12px + 24px + 16px);
   }
   .prefix ~ label {
     left: calc(12px + 24px + 16px);
+  }
+
+  // Reserve space beneath an already-floating label even before focus.
+  &:not(.outlined) > input:not([type=checkbox]):not([type=radio]):not(:focus):not(:placeholder-shown) {
+    padding-top: 20px;
   }
 
   // Outlined
