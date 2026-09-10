@@ -62,7 +62,17 @@
     display: grid;
     align-content: center;
   }
-  li > a {
+  // Native button headers share the same layout as navigation links.
+  li > button.collapsible-header {
+    width: auto;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+  }
+
+  li > a,
+  li > button.collapsible-header {
     /* https://stackoverflow.com/questions/5848090/full-width-hover-background-for-nested-lists */
     //padding-left: calc(100% + var(--sidenav-padding));
     //margin-left: -100%;
@@ -101,6 +111,8 @@
     & > .material-icons, & > .material-symbols-outlined,
     & > .material-symbols-rounded, & > .material-symbols-sharp {
       display: inline-flex;
+      width: 24px;
+      flex-shrink: 0;
       vertical-align: middle;
       margin-right: 12px;
     }
@@ -244,4 +256,16 @@
   .collapsible-body {
     border: none;
   }
+}
+
+// Section headers use compact corners in every position, including grouped
+// accordions where the expanded section is not the first list item.
+// Match the link/button row specificity so its pill radius cannot win.
+.sidenav li > :is(a, button).collapsible-header {
+  border-radius: 12px;
+}
+
+.sidenav li.active > :is(a, button).collapsible-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }

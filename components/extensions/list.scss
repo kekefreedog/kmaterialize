@@ -1,0 +1,193 @@
+// Material-themed lists. Load after Materialize; no changes to legacy collections.
+.list {
+  --list-gap: 2px;
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  > li {
+    list-style: none;
+  }
+}
+// Edge-to-edge interactive rows, clipped to the enclosing surface's corners.
+.list.list-flush {
+  padding: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  width: 100%;
+  padding: 8px 16px;
+  box-sizing: border-box;
+  color: inherit;
+  &.list-two-line {
+    min-height: 72px;
+  }
+  &.list-three-line {
+    min-height: 88px;
+    align-items: flex-start;
+    padding-block: 12px;
+  }
+}
+.list-content {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.list-headline {
+  display: block;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--md-sys-color-on-surface);
+}
+.list-supporting {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.list-leading,
+.list-trailing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.list-trailing {
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+}
+.list-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.list-image {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+// Use native links, buttons, and labels for their built-in keyboard behavior.
+.list-interactive {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  &:hover {
+    background: color-mix(
+      in srgb,
+      var(--md-sys-color-on-surface) 8%,
+      transparent
+    );
+  }
+  &:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: -2px;
+  }
+  &:disabled {
+    opacity: 0.38;
+    cursor: default;
+  }
+}
+.list-item:has(.list-control:checked),
+.list-item[aria-current="page"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+// Checkbox inputs use Materialize's shared checkbox styles without overrides.
+// Keep the standard radio visual while allowing list text to wrap.
+.list .list-control[type="radio"] + .list-content {
+  height: auto;
+  min-height: 25px;
+}
+.list-item:has(.list-control[type="radio"]:focus-visible) {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+
+// Segmented rows retain their silhouette when selected.
+.list-segmented {
+  display: flex;
+  flex-direction: column;
+  gap: var(--list-gap);
+  padding: 0;
+  background: transparent;
+  > li > .list-item {
+    border-radius: 4px;
+    background-color: var(--md-sys-color-surface-variant);
+  }
+  > li:first-child > .list-item {
+    border-start-start-radius: 16px;
+    border-start-end-radius: 16px;
+  }
+  > li:last-child > .list-item {
+    border-end-start-radius: 16px;
+    border-end-end-radius: 16px;
+  }
+  > li > .list-item:has(.list-control:checked),
+  > li > .list-item[aria-current="page"] {
+    background-color: var(--md-sys-color-secondary-container);
+  }
+  > li > .list-interactive:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--md-sys-color-surface-variant),
+      var(--md-sys-color-on-surface) 8%
+    );
+  }
+}
+.list-divider {
+  height: 1px;
+  margin: 0 16px 0 56px;
+  background: var(--md-sys-color-outline-variant);
+}
+.list-check-stamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.list-check-stamp[hidden] {
+  display: none;
+}
+.list-check-stamp > .material-icons {
+  font-size: 16px;
+}
+.list-check-note {
+  margin: 8px 0 0;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--md-sys-color-outline);
+  font-style: italic;
+}
+.list-checklist-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.list-checklist-footer > progress {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  accent-color: var(--md-sys-color-primary);
+}

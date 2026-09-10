@@ -1,0 +1,78 @@
+// Load after Materialize. The opt-in base preserves existing .divider elements.
+.divider.divider-line {
+  --divider-color: var(--md-sys-color-outline-variant);
+  --divider-thickness: 1px;
+  --divider-style: solid;
+  --divider-spacing: 16px;
+  --divider-inset: 16px;
+  display: block;
+  flex-shrink: 0;
+  height: 0;
+  margin: var(--divider-spacing) 0;
+  border: 0;
+  border-block-start: var(--divider-thickness) var(--divider-style)
+    var(--divider-color);
+  background: transparent;
+  overflow: visible;
+
+  // Logical properties support both left-to-right and right-to-left layouts.
+  &.divider-inset {
+    margin-inline-start: var(--divider-inset);
+  }
+  &.divider-middle {
+    margin-inline: var(--divider-inset);
+  }
+  &.divider-strong {
+    --divider-color: var(--md-sys-color-outline);
+  }
+  &.divider-accent {
+    --divider-color: var(--md-sys-color-primary);
+  }
+  &.divider-thick {
+    --divider-thickness: 4px;
+  }
+  &.divider-dashed {
+    --divider-style: dashed;
+  }
+  &.divider-dotted {
+    --divider-style: dotted;
+  }
+
+  // A flex or grid parent supplies the vertical divider's available height.
+  &.divider-vertical {
+    width: 0;
+    height: auto;
+    align-self: stretch;
+    margin: 0 var(--divider-spacing);
+    border-block-start: 0;
+    border-inline-start: var(--divider-thickness) var(--divider-style)
+      var(--divider-color);
+  }
+
+  // Real text stays selectable; pseudo-elements draw the surrounding lines.
+  &.divider-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: auto;
+    border: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      min-width: 8px;
+      border-block-start: var(--divider-thickness) var(--divider-style)
+        var(--divider-color);
+    }
+    &.divider-label-start::before {
+      flex: 0 0 24px;
+    }
+    &.divider-label-end::after {
+      flex: 0 0 24px;
+    }
+  }
+}

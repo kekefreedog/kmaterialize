@@ -208,3 +208,17 @@ Chips.Init();
 Waves.Init();
 Range.Init();
 Cards.Init();
+
+// Reusable components formerly hosted in the documentation project.
+export * from '../components/extensions/material-buttons';
+export * from '../components/extensions/list';
+export * from '../components/extensions/org-chart';
+export * from '../components/extensions/card-drag-handles';
+export * from '../components/extensions/chart-connections';
+export * from '../components/extensions/chart-gestures';
+export * from '../components/extensions/chart-print';
+export { default as Kmcomponent } from '../components/extensions/web/kmcomponent';
+export * from '../components/extensions/web/kmcomponent';
+export { default as CrazyButton } from '../components/extensions/web/crazy-button';
+
+export { default as CrazyLoading, LoadingScreenBtn } from '../components/extensions/web/crazy-loading';

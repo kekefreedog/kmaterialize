@@ -1,0 +1,64 @@
+:is(crazy-button, regular-btn) {
+  display: inline-flex;
+  vertical-align: middle;
+  max-width: 100%;
+  > .btn, > .btn-split > .btn { position: relative; }
+  .btn > img { width: var(--button-icon); height: var(--button-icon); object-fit: contain; }
+  .btn > i { color: inherit; flex-shrink: 0; }
+  slot { display: contents; }
+  &[size="small"] .btn { --button-height: 30px; }
+  &[size="extra-large"] .btn { --button-height: 100px; }
+}
+.btn-group > :is(crazy-button, regular-btn) {
+  flex: 1 1 0;
+  min-width: 0;
+  > .btn { width: 100%; }
+}
+.btn-group-standard > :is(crazy-button, regular-btn):has(> .btn:hover:not(:disabled)) { flex-grow: 1.2; }
+.btn-group-connected > :is(crazy-button, regular-btn) {
+  > .btn.btn-expressive { border-radius: 4px; }
+  &:first-child > .btn { border-start-start-radius: 999px; border-end-start-radius: 999px; }
+  &:last-child > .btn { border-start-end-radius: 999px; border-end-end-radius: 999px; }
+}
+
+// Navigation rail items keep the label below a pill-shaped icon container.
+:is(crazy-button, regular-btn) > .btn.btn-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 88px;
+  height: auto;
+  min-height: 76px;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  text-align: center;
+  white-space: normal;
+  .m3-rail-icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 32px;
+    border-radius: 18px;
+    > i { position: static; margin: 0; transform: none; color: inherit; font-size: 28px; line-height: 1; }
+    > img { width: 28px; height: 28px; object-fit: contain; }
+  }
+  &:hover:not(:disabled) .m3-rail-icon { background: var(--md-sys-color-surface-variant); }
+  &[aria-current]:not([aria-current='false']) .m3-rail-icon {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  &:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+  &:disabled { opacity: .38; cursor: default; }
+}

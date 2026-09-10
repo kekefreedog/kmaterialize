@@ -1,0 +1,11 @@
+// Optional Material palette; the classic variant uses unmodified Tippy colors.
+.tippy-box[data-theme~="materialize"] {
+  background-color: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  > .tippy-backdrop {
+    background-color: var(--md-sys-color-inverse-surface);
+  }
+  > .tippy-arrow {
+    color: var(--md-sys-color-inverse-surface);
+  }
+}

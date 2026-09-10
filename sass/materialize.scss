@@ -64,3 +64,17 @@
 // bounds, which an earlier source position let .btn-floating silently
 // clip away.
 @forward './pulse.css';
+
+// Reusable extensions, included in both compiled CSS and Sass consumers.
+@forward '../components/extensions/material-buttons';
+@forward '../components/extensions/list';
+@forward '../components/extensions/divider';
+@forward '../components/extensions/card-drag-handles';
+@forward '../components/extensions/org-chart';
+@forward '../components/extensions/tippy';
+@forward '../components/extensions/web/crazy-button';
+@forward './enhancement/textfield_layout';
+
+@forward '../components/extensions/web/crazy-loading';
+
+@forward '../components/number-input/number-input';

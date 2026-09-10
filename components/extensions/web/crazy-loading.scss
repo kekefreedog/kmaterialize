@@ -1,0 +1,23 @@
+:is(crazy-loading, loading-screen-btn) {
+  --loading-size: 7rem;
+  --loading-color: var(--md-sys-color-primary);
+  --loading-background: var(--md-sys-color-surface-container, var(--md-sys-color-surface));
+  --loading-thickness: 3px;
+  display: inline-flex;
+  vertical-align: middle;
+
+  &[size="small"] { --loading-size: 4rem; }
+  &[size="normal"] { --loading-size: 7rem; }
+  &[size="large"] { --loading-size: 10rem; }
+  &[hidden] { display: none; }
+
+  // Forward host customizations through Loading's own default declarations.
+  > .loading {
+    --loading-size: inherit;
+    --loading-color: inherit;
+    --loading-background: inherit;
+    --loading-thickness: inherit;
+  }
+  .loading-content > slot { display: contents; }
+}
+loading-screen-btn { --loading-size: 10rem; }

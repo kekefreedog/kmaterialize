@@ -1,0 +1,17 @@
+// Match the base input selector's specificity so its padding reset cannot
+// remove the space reserved for leading and trailing icons.
+.input-field {
+  > .prefix ~ input:not([type='checkbox']):not([type='radio']),
+  > .prefix ~ textarea {
+    padding-left: 52px;
+  }
+  > .suffix ~ input:not([type='checkbox']):not([type='radio']),
+  > .suffix ~ textarea {
+    padding-right: 52px;
+  }
+
+  // Filled values need room beneath the floating label before focus, too.
+  &:not(.outlined) > input:not([type='checkbox']):not([type='radio']):not(:focus):not(:placeholder-shown) {
+    padding-top: 20px;
+  }
+}

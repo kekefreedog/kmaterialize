@@ -8112,9 +8112,148 @@ class NumberInput extends Component {
         return el.M_NumberInput;
     }
     destroy() {
+        this._destroyed = true;
+        this._events?.abort();
+        this._observer?.disconnect();
+        this.mask?.off('accept', this.syncControls);
         this.mask?.destroy();
+        if (this._controls) {
+            this._controls.replaceWith(this.el);
+            this._controls = undefined;
+        }
+        for (const [name, value] of this._originalAttributes) {
+            if (value === null)
+                this.el.removeAttribute(name);
+            else
+                this.el.setAttribute(name, value);
+        }
         this.el.M_NumberInput = undefined;
     }
+    _destroyed = false;
+    _controls;
+    _events;
+    _observer;
+    _originalAttributes = new Map();
+    get stepSize() {
+        const value = this.options.step ?? Number(this.el.getAttribute('step') || 1);
+        return Number.isFinite(value) && value > 0 ? value : 1;
+    }
+    get largeStepSize() {
+        const value = this.options.largeStep ?? Number(this.el.dataset.numberLargeStep || this.stepSize * 10);
+        return Number.isFinite(value) && value > 0 ? value : this.stepSize * 10;
+    }
+    bound(name) {
+        const value = this.options[name] ?? (this.el.hasAttribute(name) ? Number(this.el.getAttribute(name)) : undefined);
+        return Number.isFinite(value) ? value : undefined;
+    }
+    decimalPlaces(value) {
+        const [coefficient, exponent = '0'] = String(value).split('e');
+        return Math.max(0, (coefficient.split('.')[1]?.length || 0) - Number(exponent));
+    }
+    /** Increase by the fine step, or the coarse step when large is true. */
+    increment(large = false) { this.adjust(large ? this.largeStepSize : this.stepSize); }
+    /** Decrease by the fine step, or the coarse step when large is true. */
+    decrement(large = false) { this.adjust(-(large ? this.largeStepSize : this.stepSize)); }
+    adjust(delta) {
+        if (!this.mask || this._destroyed || this.el.matches(':disabled') || this.el.readOnly)
+            return;
+        const current = Number(this.mask.typedValue) || 0;
+        // Round decimal steps before formatting: 0.2 + 0.1 must display 0.3.
+        const precision = Math.min(15, Math.max(this.decimalPlaces(current), this.decimalPlaces(delta)));
+        let next = Number((current + delta).toFixed(precision));
+        next = Math.max(this.bound('min') ?? -Infinity, Math.min(this.bound('max') ?? Infinity, next));
+        if (!Number.isFinite(next))
+            return;
+        if (next === current && this.el.value !== '')
+            return;
+        this.mask.typedValue = next;
+        this.syncControls();
+        this.el.dispatchEvent(new Event('input', { bubbles: true }));
+        this.el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    setupControls() {
+        this._events = new AbortController();
+        const signal = this._events.signal;
+        for (const name of ['role', 'inputmode', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow']) {
+            this._originalAttributes.set(name, this.el.getAttribute(name));
+        }
+        this.el.setAttribute('role', 'spinbutton');
+        this.el.setAttribute('inputmode', 'decimal');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'number-input-stepper';
+        this.el.before(wrapper);
+        wrapper.append(this.el);
+        this._controls = wrapper;
+        const makeButton = (direction, large) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.direction = String(direction);
+            button.dataset.large = String(large);
+            button.innerHTML = `<span aria-hidden="true">${direction < 0 ? large ? '«' : '‹' : large ? '»' : '›'}</span><small aria-hidden="true"></small>`;
+            button.addEventListener('click', () => {
+                this.adjust(direction * (large ? this.largeStepSize : this.stepSize));
+            }, { signal });
+            return button;
+        };
+        wrapper.prepend(makeButton(-1, true), makeButton(-1, false));
+        wrapper.append(makeButton(1, false), makeButton(1, true));
+        this.el.addEventListener('keydown', event => {
+            if (event.altKey || event.ctrlKey || event.metaKey)
+                return;
+            if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(event.key))
+                return;
+            event.preventDefault();
+            const large = event.shiftKey || event.key.startsWith('Page');
+            if (event.key === 'ArrowUp' || event.key === 'PageUp')
+                this.increment(large);
+            else
+                this.decrement(large);
+        }, { signal });
+        this.el.addEventListener('change', () => { this.mask?.updateValue(); this.syncControls(); }, { signal });
+        this.mask.on('accept', this.syncControls);
+        this._observer = new MutationObserver(() => {
+            this.mask?.updateOptions({ min: this.bound('min'), max: this.bound('max') });
+            this.syncControls();
+        });
+        this._observer.observe(this.el, { attributes: true, attributeFilter: ['disabled', 'readonly', 'min', 'max', 'step', 'data-number-large-step'] });
+        for (let parent = this.el.parentElement; parent; parent = parent.parentElement) {
+            if (parent instanceof HTMLFieldSetElement)
+                this._observer.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
+        }
+        this.el.form?.addEventListener('reset', () => {
+            queueMicrotask(() => { if (!this._destroyed) {
+                this.mask?.updateValue();
+                this.syncControls();
+            } });
+        }, { signal });
+        this.syncControls();
+    }
+    syncControls = () => {
+        if (!this._controls || !this.mask)
+            return;
+        const value = Number(this.mask.typedValue) || 0;
+        const min = this.bound('min');
+        const max = this.bound('max');
+        for (const [name, bound] of [['aria-valuemin', min], ['aria-valuemax', max]]) {
+            if (bound === undefined)
+                this.el.removeAttribute(name);
+            else
+                this.el.setAttribute(name, String(bound));
+        }
+        if (this.el.value === '')
+            this.el.removeAttribute('aria-valuenow');
+        else
+            this.el.setAttribute('aria-valuenow', String(value));
+        this._controls.querySelectorAll('button').forEach(button => {
+            const direction = Number(button.dataset.direction);
+            const step = button.dataset.large === 'true' ? this.largeStepSize : this.stepSize;
+            button.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} by ${step}`);
+            button.title = button.getAttribute('aria-label');
+            button.querySelector('small').textContent = String(step);
+            button.disabled = this.el.matches(':disabled') || this.el.readOnly ||
+                (this.el.value !== '' && (direction < 0 ? min !== undefined && value <= min : max !== undefined && value >= max));
+        });
+    };
     async _setup() {
         const IMask = await loadPeer({
             specifier: 'imask',
@@ -8122,6 +8261,8 @@ class NumberInput extends Component {
             feature: 'Number input (IMask) enhancement',
             cdnHint: '<script src="path/to/imask.min.js"></script> (self-hosted - copy from node_modules/imask/dist/imask.min.js, or a CDN of your choice)'
         }, () => import('imask'));
+        if (this._destroyed)
+            return;
         const maskOptions = {
             mask: Number,
             skipInvalid: true,
@@ -8137,10 +8278,13 @@ class NumberInput extends Component {
         if (min !== undefined && !Number.isNaN(min))
             maskOptions.min = min;
         const step = this.el.getAttribute('step');
-        const scale = this.options.scale ?? (step?.includes('.') ? step.split('.').at(-1)?.length : undefined);
+        const controls = this.options.controls ?? (this.el.hasAttribute('data-number-controls') && this.el.dataset.numberControls !== 'false');
+        const scale = this.options.scale ?? (controls ? Math.max(this.decimalPlaces(this.stepSize), this.decimalPlaces(this.largeStepSize)) : step?.includes('.') ? step.split('.').at(-1)?.length : undefined);
         if (scale !== undefined)
             maskOptions.scale = scale;
         this.mask = IMask(this.el, maskOptions);
+        if (controls)
+            this.setupControls();
     }
 }
 
@@ -9636,6 +9780,1903 @@ class Waves {
   }
 }
 
+/** Initialize Materialize dropdowns and the additional button selection states. */
+function initMaterialButtons(root) {
+    const events = new AbortController();
+    const triggers = Array.from(root.querySelectorAll(".dropdown-trigger"));
+    // Remember ownership before Dropdown moves a FAB menu into document.body.
+    const menus = new Set(triggers.map((trigger) => document.getElementById(trigger.dataset.target)));
+    const owns = (element) => root.contains(element) ||
+        Array.from(menus).some((menu) => menu.contains(element));
+    const dropdowns = triggers.map((trigger) => Dropdown.init(trigger, {
+        alignment: "right",
+        constrainWidth: false,
+        coverTrigger: false,
+        closeOnClick: true,
+        // FAB popups escape their demo container; split menus keep their default parent.
+        ...(trigger.closest(".btn-fab-menu") ? { container: document.body } : {}),
+    }));
+    // Dropdown activates its focused item on Enter. Suppress the native follow-up
+    // click when focus returns to a button trigger, which would reopen the menu.
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" &&
+            owns(event.target) &&
+            event.target.closest(".dropdown-content")) {
+            event.preventDefault();
+        }
+    }, { capture: true, signal: events.signal });
+    document.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action], .btn-toggle");
+        if (!action || !owns(action) || action.matches(":disabled"))
+            return;
+        // Demo menu actions are links, following the standard dropdown markup.
+        if (action.matches("a[data-action]"))
+            event.preventDefault();
+        if (action.classList.contains("btn-toggle")) {
+            const group = action.closest("[data-selection]");
+            const selected = action.getAttribute("aria-pressed") === "true";
+            if (group?.dataset.selection === "single") {
+                group.querySelectorAll(".btn-toggle").forEach((item) => {
+                    item.setAttribute("aria-pressed", String(item === action));
+                });
+            }
+            else {
+                action.setAttribute("aria-pressed", String(!selected));
+            }
+        }
+        // Keep application behavior separate from selection and dropdown behavior.
+        if (action.dataset.action) {
+            root.dispatchEvent(new CustomEvent("buttonaction", {
+                bubbles: true,
+                detail: {
+                    action: action.dataset.action,
+                    pressed: action.getAttribute("aria-pressed"),
+                },
+            }));
+        }
+    }, { signal: events.signal });
+    return () => {
+        dropdowns.forEach((dropdown) => dropdown.destroy());
+        events.abort();
+    };
+}
+
+/** Enhance a submission-style checklist. Ordinary lists need no initialization. */
+function initListChecklist(root) {
+    const events = new AbortController();
+    const controls = () => Array.from(root.querySelectorAll('.list-control[type="checkbox"]'));
+    function updateProgress() {
+        const items = controls();
+        const completed = items.filter((item) => item.checked).length;
+        const label = root.querySelector("[data-list-progress-label]");
+        const progress = root.querySelector("progress");
+        if (label)
+            label.textContent = `${completed} / ${items.length} completed`;
+        if (progress) {
+            progress.max = Math.max(items.length, 1);
+            progress.value = completed;
+        }
+        return { completed, total: items.length };
+    }
+    root.addEventListener("change", (event) => {
+        const control = event.target;
+        if (!(control instanceof HTMLInputElement) ||
+            !control.matches('.list-control[type="checkbox"]'))
+            return;
+        const stamp = control
+            .closest(".list-item")
+            ?.querySelector("[data-list-stamp]");
+        if (stamp) {
+            stamp.hidden = !control.checked;
+            const name = stamp.querySelector("[data-list-checker]");
+            const time = stamp.querySelector("time");
+            if (control.checked) {
+                if (name)
+                    name.textContent = root.dataset.checker || "You";
+                if (time) {
+                    const now = new Date();
+                    time.dateTime = now.toISOString();
+                    time.textContent = now.toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                    });
+                }
+            }
+            else {
+                if (name)
+                    name.textContent = "";
+                if (time) {
+                    time.textContent = "";
+                    time.removeAttribute("datetime");
+                }
+            }
+        }
+        root.dispatchEvent(new CustomEvent("listchange", {
+            bubbles: true,
+            detail: {
+                value: control.value,
+                checked: control.checked,
+                ...updateProgress(),
+            },
+        }));
+    }, { signal: events.signal });
+    // Preserve supplied author/time data for items checked before initialization.
+    controls().forEach((control) => {
+        const stamp = control
+            .closest(".list-item")
+            ?.querySelector("[data-list-stamp]");
+        if (stamp)
+            stamp.hidden = !control.checked;
+    });
+    updateProgress();
+    return () => events.abort();
+}
+
+/** Pointer-based handles keep ordinary swipes available for page scrolling. */
+function enableCardHandles(root, options) {
+    const events = new AbortController();
+    const handles = [];
+    let drag;
+    let frame = 0;
+    const targets = () => Array.from(root.querySelectorAll(options.dropSelector));
+    const cards = (parent) => Array.from(parent.querySelectorAll(options.cardSelector)).filter(card => card !== drag?.card);
+    root.addEventListener('carddragcancel', () => end(false), { signal: events.signal });
+    function locate() {
+        if (!drag)
+            return;
+        drag.ghost.style.left = `${drag.x + 12}px`;
+        drag.ghost.style.top = `${drag.y + 12}px`;
+        const target = document.elementFromPoint(drag.x, drag.y)?.closest(options.dropSelector);
+        if (!target || !root.contains(target)) {
+            drag.placeholder.remove();
+            return;
+        }
+        const before = cards(target).find(card => {
+            const box = card.getBoundingClientRect();
+            return drag.y < box.top + box.height / 2;
+        });
+        target.insertBefore(drag.placeholder, before || null);
+    }
+    function scroll() {
+        if (!drag)
+            return;
+        const box = root.getBoundingClientRect();
+        const velocity = (value, start, end) => value < start + 40 ? -8 : value > end - 40 ? 8 : 0;
+        root.scrollLeft += velocity(drag.x, box.left, Math.min(box.right, innerWidth));
+        root.scrollTop += velocity(drag.y, Math.max(box.top, 0), Math.min(box.bottom, innerHeight));
+        window.scrollBy(0, velocity(drag.y, 0, innerHeight));
+        locate();
+        frame = requestAnimationFrame(scroll);
+    }
+    function end(commit) {
+        if (!drag)
+            return;
+        const current = drag;
+        drag = undefined;
+        cancelAnimationFrame(frame);
+        const to = current.placeholder.parentElement;
+        const oldNext = current.card.nextElementSibling;
+        if (commit && to)
+            to.insertBefore(current.card, current.placeholder);
+        current.placeholder.remove();
+        current.ghost.remove();
+        current.card.classList.remove('card-handle-dragging');
+        if (current.handle.hasPointerCapture(current.pointer))
+            current.handle.releasePointerCapture(current.pointer);
+        current.handle.focus({ preventScroll: true });
+        if (commit && to && (to !== current.from || current.card.nextElementSibling !== oldNext))
+            options.onMove(current.card, current.from, to);
+    }
+    root.querySelectorAll(options.cardSelector).forEach(card => {
+        if (!options.enabled(card))
+            return;
+        const handle = document.createElement('button');
+        handle.type = 'button';
+        handle.className = 'card-drag-handle';
+        handle.setAttribute('aria-label', `Move ${card.querySelector('strong, h4')?.textContent || 'card'}. Drag, or use arrow keys.`);
+        const icon = document.createElement('i');
+        icon.className = 'material-icons';
+        icon.textContent = 'drag_indicator';
+        icon.setAttribute('aria-hidden', 'true');
+        handle.append(icon);
+        card.prepend(handle);
+        handles.push(handle);
+        handle.addEventListener('pointerdown', event => {
+            if (event.button !== 0 || drag || !options.enabled(card))
+                return;
+            event.preventDefault();
+            event.stopPropagation();
+            handle.focus({ preventScroll: true });
+            const ghost = card.cloneNode(true);
+            ghost.removeAttribute('id');
+            ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            ghost.classList.add('card-drag-ghost');
+            ghost.setAttribute('aria-hidden', 'true');
+            ghost.inert = true;
+            // The ghost lives outside the zoomed board; the placeholder stays inside.
+            const scale = card.getBoundingClientRect().width / card.offsetWidth;
+            ghost.style.width = `${card.offsetWidth}px`;
+            ghost.style.transform = `scale(${scale})`;
+            ghost.style.transformOrigin = 'top left';
+            document.body.append(ghost);
+            const placeholder = document.createElement('div');
+            placeholder.className = 'card-drag-placeholder';
+            placeholder.setAttribute('aria-hidden', 'true');
+            placeholder.style.height = `${card.offsetHeight}px`;
+            drag = { card, from: card.parentElement, handle, pointer: event.pointerId, ghost, placeholder, x: event.clientX, y: event.clientY };
+            card.classList.add('card-handle-dragging');
+            handle.setPointerCapture(event.pointerId);
+            locate();
+            scroll();
+        }, { signal: events.signal });
+        handle.addEventListener('pointermove', event => {
+            if (!drag || drag.pointer !== event.pointerId)
+                return;
+            drag.x = event.clientX;
+            drag.y = event.clientY;
+            locate();
+        }, { signal: events.signal });
+        handle.addEventListener('pointerup', event => { if (drag?.pointer === event.pointerId)
+            end(true); }, { signal: events.signal });
+        handle.addEventListener('pointercancel', event => { if (drag?.pointer === event.pointerId)
+            end(false); }, { signal: events.signal });
+        handle.addEventListener('lostpointercapture', () => end(false), { signal: events.signal });
+        handle.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                end(false);
+                return;
+            }
+            if (!options.enabled(card) || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key))
+                return;
+            event.preventDefault();
+            event.stopPropagation();
+            const from = card.parentElement;
+            const columns = targets();
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                const to = columns[columns.indexOf(from) + (event.key === 'ArrowLeft' ? -1 : 1)];
+                if (!to)
+                    return;
+                to.append(card);
+                options.onMove(card, from, to);
+            }
+            else {
+                const siblings = cards(from);
+                const index = siblings.indexOf(card);
+                const adjacent = siblings[index + (event.key === 'ArrowUp' ? -1 : 1)];
+                if (!adjacent)
+                    return;
+                from.insertBefore(card, event.key === 'ArrowUp' ? adjacent : adjacent.nextSibling);
+                options.onMove(card, from, from);
+            }
+            if (handle.isConnected)
+                handle.focus();
+        }, { signal: events.signal });
+    });
+    // The rest of a Kanban card retains its native desktop drag behavior.
+    root.addEventListener('dragstart', event => {
+        if (drag || event.target.closest('.card-drag-handle'))
+            event.preventDefault();
+    }, { capture: true, signal: events.signal });
+    return () => { end(false); events.abort(); handles.forEach(handle => handle.remove()); };
+}
+
+/** Print a full-size snapshot, without changing the live chart or its zoom. */
+async function printChart(stage, title, options = {}) {
+    const theme = options.theme ?? 'light';
+    if (theme !== 'light' && theme !== 'dark')
+        throw new TypeError('Invalid PDF theme.');
+    // Open synchronously from the button click so popup blockers allow the preview.
+    const preview = window.open('', '_blank');
+    if (!preview)
+        throw new Error('Allow popups to open the PDF print preview.');
+    const doc = preview.document;
+    doc.title = title;
+    doc.documentElement.setAttribute('theme', theme);
+    doc.documentElement.style.colorScheme = theme;
+    doc.documentElement.style.fontSize = getComputedStyle(document.documentElement).fontSize;
+    const snapshot = stage.cloneNode(true);
+    const sourceStyle = getComputedStyle(stage);
+    // Keep both Materialize palettes, then select the requested one in the preview.
+    // Do not freeze computed card colors: that would bake in the screen's dark mode.
+    for (const property of Array.from(sourceStyle)) {
+        if (!property.startsWith('--md-'))
+            continue;
+        doc.body.style.setProperty(property, sourceStyle.getPropertyValue(property));
+    }
+    for (const property of Array.from(sourceStyle)) {
+        if (property.startsWith('--md-sys-color-') && property.endsWith(`-${theme}`)) {
+            doc.body.style.setProperty(property.slice(0, -theme.length - 1), sourceStyle.getPropertyValue(property));
+        }
+    }
+    doc.body.style.fontFamily = sourceStyle.fontFamily;
+    doc.body.style.fontSize = sourceStyle.fontSize;
+    doc.body.style.lineHeight = sourceStyle.lineHeight;
+    // Inline item overrides remain on the clone; theme-based colors resolve afresh.
+    [snapshot, ...snapshot.querySelectorAll('*')].forEach(node => node.removeAttribute('id'));
+    // Keep stylesheets for pseudo-elements (edge accents) and web fonts.
+    const resources = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map(node => {
+        const clone = node.cloneNode(true);
+        if (clone instanceof HTMLLinkElement)
+            clone.href = node.href;
+        const ready = clone instanceof HTMLLinkElement
+            ? new Promise(resolve => { clone.onload = () => resolve(); clone.onerror = () => resolve(); })
+            : Promise.resolve();
+        doc.head.append(clone);
+        return ready;
+    });
+    const width = stage.offsetWidth, height = stage.offsetHeight;
+    // A3 landscape, 10 mm margins. Shrink large charts to one page.
+    const scale = Math.min(1, (400 * 96 / 25.4) / width, (277 * 96 / 25.4) / height);
+    const style = doc.createElement('style');
+    style.textContent = `@page { size: A3 landscape; margin: 10mm; } html, body { margin: 0; padding: 0; } body { background: ${theme === 'light' ? 'white' : 'var(--md-sys-color-surface)'}; color: var(--md-sys-color-on-surface); } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }`;
+    doc.head.append(style);
+    snapshot.style.setProperty('zoom', '1');
+    snapshot.style.transform = `scale(${scale})`;
+    snapshot.style.transformOrigin = 'top left';
+    snapshot.style.position = 'absolute';
+    snapshot.style.left = '0';
+    snapshot.style.top = '0';
+    snapshot.querySelectorAll('.card-drag-handle, .org-chart-drag-icon, .org-chart-connect-port, .org-chart-link-remove, .org-chart-connection-preview').forEach(handle => {
+        // Opacity hides descendants too, even with their copied visibility styles.
+        handle.style.opacity = '0';
+    });
+    const page = doc.createElement('div');
+    page.style.cssText = `position:relative;width:${width * scale}px;height:${height * scale}px;overflow:hidden`;
+    page.append(snapshot);
+    doc.body.replaceChildren(page);
+    await Promise.all(resources);
+    await doc.fonts.ready;
+    if (!preview.closed) {
+        preview.focus();
+        preview.print();
+    }
+}
+
+/** Two-finger pinch and Ctrl/trackpad wheel zoom; ordinary wheel keeps scrolling. */
+function enableChartGestures(root, getZoom, setZoom, cancelDrag) {
+    const events = new AbortController();
+    const signal = events.signal;
+    const oldTouchAction = root.style.touchAction;
+    root.style.touchAction = 'none';
+    let previous;
+    let panning = false;
+    const position = (touches) => {
+        const first = touches[0], second = touches[1] || first;
+        return { x: (first.clientX + second.clientX) / 2, y: (first.clientY + second.clientY) / 2,
+            distance: Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY) };
+    };
+    const zoomAt = (value, x, y, oldX = x, oldY = y) => {
+        const rect = root.getBoundingClientRect();
+        const localX = x - rect.left - root.clientLeft, localY = y - rect.top - root.clientTop;
+        const worldX = (root.scrollLeft + oldX - rect.left - root.clientLeft) / getZoom();
+        const worldY = (root.scrollTop + oldY - rect.top - root.clientTop) / getZoom();
+        setZoom(value);
+        root.scrollLeft = worldX * getZoom() - localX;
+        root.scrollTop = worldY * getZoom() - localY;
+    };
+    root.addEventListener('wheel', event => {
+        if (!event.ctrlKey && !event.metaKey)
+            return;
+        event.preventDefault();
+        cancelDrag();
+        const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? root.clientHeight : 1);
+        zoomAt(getZoom() * Math.exp(-delta * 0.01), event.clientX, event.clientY);
+    }, { passive: false, signal });
+    root.addEventListener('touchstart', event => {
+        previous = position(event.touches);
+        panning = event.touches.length > 1 || !event.target.closest('.card-drag-handle, [data-team], button, input, a, .org-chart-link-label, .org-chart-link-remove');
+        if (event.touches.length > 1) {
+            event.preventDefault();
+            cancelDrag();
+        }
+    }, { passive: false, capture: true, signal });
+    root.addEventListener('touchmove', event => {
+        if (!previous || !panning)
+            return;
+        event.preventDefault();
+        const next = position(event.touches);
+        if (event.touches.length > 1 && previous.distance > 0) {
+            zoomAt(getZoom() * next.distance / previous.distance, next.x, next.y, previous.x, previous.y);
+        }
+        else {
+            root.scrollLeft += previous.x - next.x;
+            root.scrollTop += previous.y - next.y;
+        }
+        previous = next;
+    }, { passive: false, signal });
+    const end = (event) => {
+        previous = event.touches.length ? position(event.touches) : undefined;
+        if (!previous)
+            panning = false;
+    };
+    root.addEventListener('touchend', end, { signal });
+    root.addEventListener('touchcancel', end, { signal });
+    return () => { events.abort(); root.style.touchAction = oldTouchAction; };
+}
+
+/** Drag a connection port without moving the underlying card or team. */
+function enableChartConnections(root, stage, getZoom, canConnect, connect) {
+    const events = new AbortController();
+    const signal = events.signal;
+    const ns = 'http://www.w3.org/2000/svg';
+    let active;
+    const endpoint = (node) => node.dataset.orgPerson !== undefined
+        ? { id: node.dataset.orgPerson, type: 'person' }
+        : { id: node.dataset.orgTeam, type: 'team' };
+    const cancel = () => {
+        if (!active)
+            return;
+        const previous = active;
+        active = undefined;
+        previous.target?.classList.remove('org-chart-connect-target');
+        previous.svg.remove();
+        if (previous.handle.hasPointerCapture(previous.pointer))
+            previous.handle.releasePointerCapture(previous.pointer);
+    };
+    const move = (event) => {
+        if (!active || event.pointerId !== active.pointer)
+            return;
+        event.preventDefault();
+        event.stopPropagation();
+        active.target?.classList.remove('org-chart-connect-target');
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-org-person], [data-org-team]');
+        const to = target && root.contains(target) ? endpoint(target) : undefined;
+        active.to = to && canConnect(active.from, to) ? to : undefined;
+        active.target = active.to ? target : undefined;
+        active.target?.classList.add('org-chart-connect-target');
+        const origin = stage.getBoundingClientRect(), port = active.handle.getBoundingClientRect();
+        const zoom = getZoom();
+        const x = (port.left + port.width / 2 - origin.left) / zoom;
+        const y = (port.top + port.height / 2 - origin.top) / zoom;
+        const endX = (event.clientX - origin.left) / zoom, endY = (event.clientY - origin.top) / zoom;
+        const bend = Math.max(40, Math.abs(endX - x) / 2);
+        active.path.setAttribute('d', `M ${x} ${y} C ${x + bend} ${y}, ${endX - bend} ${endY}, ${endX} ${endY}`);
+    };
+    root.addEventListener('pointerdown', event => {
+        const handle = event.target.closest('.org-chart-connect-port');
+        if (!handle || event.button !== 0 || active)
+            return;
+        event.preventDefault();
+        event.stopPropagation();
+        root.dispatchEvent(new Event('carddragcancel'));
+        const node = handle.closest('[data-org-person], [data-org-team]');
+        const svg = document.createElementNS(ns, 'svg'), path = document.createElementNS(ns, 'path');
+        svg.classList.add('org-chart-connection-preview');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.append(path);
+        stage.append(svg);
+        active = { pointer: event.pointerId, handle, from: endpoint(node), svg, path };
+        handle.focus({ preventScroll: true });
+        handle.setPointerCapture(event.pointerId);
+        move(event);
+    }, { capture: true, signal });
+    root.addEventListener('pointermove', move, { capture: true, signal });
+    root.addEventListener('pointerup', event => {
+        if (!active || event.pointerId !== active.pointer)
+            return;
+        move(event);
+        const { from, to } = active;
+        cancel();
+        if (to)
+            connect(from, to);
+    }, { capture: true, signal });
+    const lost = (event) => { if (event.pointerId === active?.pointer)
+        cancel(); };
+    root.addEventListener('pointercancel', lost, { capture: true, signal });
+    root.addEventListener('lostpointercapture', lost, { capture: true, signal });
+    document.addEventListener('keydown', event => {
+        if (active && event.key === 'Escape') {
+            event.preventDefault();
+            cancel();
+        }
+    }, { signal });
+    return { cancel, destroy: () => { cancel(); events.abort(); } };
+}
+
+const svgNS = "http://www.w3.org/2000/svg";
+const copy = (data) => JSON.parse(JSON.stringify(data));
+const element = (tag, className, text) => {
+    const el = document.createElement(tag);
+    el.className = className;
+    if (text !== undefined)
+        el.textContent = text;
+    return el;
+};
+/** Materialize organization chart; no graph dependency. */
+class OrgChart {
+    el;
+    options;
+    zoom = 1;
+    labelEditor;
+    static instances = new WeakMap();
+    data;
+    stage = element("div", "org-chart-stage");
+    svg = document.createElementNS(svgNS, "svg");
+    summary = element("div", "org-chart-summary");
+    people = new Map();
+    panels = new Map();
+    events = new AbortController();
+    observer;
+    drag;
+    frame = 0;
+    removeCardHandles;
+    originalNodes;
+    hadClass;
+    removeGestures;
+    connections;
+    static init(el, options) {
+        return new OrgChart(el, options);
+    }
+    static getInstance(el) { return this.instances.get(el); }
+    constructor(el, options) {
+        this.el = el;
+        this.options = options;
+        this.validate(options.data);
+        this.zoom = this.clampZoom(options.zoom ?? 1);
+        OrgChart.getInstance(el)?.destroy();
+        this.data = copy(options.data);
+        this.originalNodes = Array.from(el.childNodes);
+        this.hadClass = el.classList.contains("org-chart");
+        el.classList.add("org-chart");
+        this.svg.classList.add("org-chart-links");
+        this.svg.setAttribute("aria-hidden", options.editable === true ? "false" : "true");
+        el.replaceChildren(this.stage, this.summary);
+        OrgChart.instances.set(el, this);
+        const signal = this.events.signal;
+        this.stage.addEventListener("pointerdown", this.startDrag, { signal });
+        this.stage.addEventListener("pointermove", this.moveDrag, { signal });
+        this.stage.addEventListener("pointerup", this.endDrag, { signal });
+        this.stage.addEventListener("pointercancel", this.endDrag, { signal });
+        this.stage.addEventListener("lostpointercapture", this.endDrag, { signal });
+        this.stage.addEventListener("keydown", this.moveWithKeyboard, { signal });
+        this.observer = new ResizeObserver(() => this.scheduleDraw());
+        this.render();
+        this.setZoom(this.zoom);
+        if (options.connectable !== false)
+            this.connections = enableChartConnections(el, this.stage, () => this.zoom, (from, to) => !(from.id === to.id && from.type === to.type) && !this.data.links.some(link => link.from === from.id && (link.fromType || 'person') === from.type && link.to === to.id && (link.toType || 'person') === to.type), (from, to) => {
+                const link = { from: from.id, fromType: from.type, to: to.id, toType: to.type, label: "New link" };
+                // Consumers may intercept insertion; labels can be edited on the canvas.
+                if (el.dispatchEvent(new CustomEvent('orgconnect', { detail: link, cancelable: true }))) {
+                    this.setData({ ...this.getData(), links: [...this.data.links, link] });
+                }
+            });
+        this.removeGestures = enableChartGestures(el, () => this.getZoom(), value => this.setZoom(value), () => {
+            this.endDrag();
+            this.connections?.cancel();
+            el.dispatchEvent(new Event('carddragcancel'));
+        });
+    }
+    getData() { return copy(this.data); }
+    /** Set the canvas scale, clamped to the configured limits. */
+    setZoom(value) {
+        if (!Number.isFinite(value))
+            throw new TypeError("Zoom must be finite.");
+        this.connections?.cancel();
+        this.zoom = this.clampZoom(value);
+        this.stage.style.setProperty('zoom', String(this.zoom));
+        this.el.dataset.zoom = String(this.zoom);
+        this.draw();
+        this.el.dispatchEvent(new CustomEvent('zoomchange', { detail: this.zoom }));
+        this.options.onZoomChange?.(this.zoom);
+    }
+    /** Return the current canvas scale multiplier. */
+    getZoom() { return this.zoom; }
+    /** Restore the canvas to 100% scale. */
+    resetZoom() { this.setZoom(1); }
+    /** Open a full-chart print preview; select Save as PDF in the browser. */
+    exportPdf(title = 'Org chart', options = {}) {
+        this.connections?.cancel();
+        this.draw();
+        return printChart(this.stage, title, options);
+    }
+    clampZoom(value) {
+        if (!Number.isFinite(value))
+            throw new TypeError('Zoom must be finite.');
+        const min = this.options.minZoom ?? 0.5;
+        const max = this.options.maxZoom ?? 2;
+        if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max < min)
+            throw new TypeError("Invalid zoom limits.");
+        return Math.min(max, Math.max(min, value));
+    }
+    setData(data) {
+        this.validate(data);
+        this.endDrag();
+        this.data = copy(data);
+        this.render();
+        this.options.onChange?.(this.getData());
+    }
+    destroy() {
+        this.finishLabelEdit(false);
+        this.connections?.destroy();
+        this.removeGestures();
+        this.removeCardHandles?.();
+        this.events.abort();
+        this.endDrag();
+        this.observer.disconnect();
+        cancelAnimationFrame(this.frame);
+        this.el.replaceChildren(...this.originalNodes);
+        if (!this.hadClass)
+            this.el.classList.remove("org-chart");
+        OrgChart.instances.delete(this.el);
+    }
+    validate(data) {
+        const teams = new Set();
+        const people = new Set();
+        for (const team of data.teams) {
+            if (!team.id || teams.has(team.id) || !team.name.trim() || !Number.isFinite(team.x) || !Number.isFinite(team.y) || team.x < 0 || team.y < 0)
+                throw new Error("Teams need unique IDs, a name, and finite, non-negative coordinates.");
+            teams.add(team.id);
+        }
+        for (const person of data.people) {
+            if (!person.id || people.has(person.id) || !teams.has(person.teamId) || !person.name.trim())
+                throw new Error("People need unique IDs, a name, and an existing team.");
+            people.add(person.id);
+        }
+        for (const link of data.links) {
+            if (!(link.fromType === "team" ? teams : people).has(link.from) || !(link.toType === "team" ? teams : people).has(link.to) || (link.from === link.to && (link.fromType || "person") === (link.toType || "person")))
+                throw new Error("Relationships must connect two different, existing people or teams.");
+        }
+    }
+    applyAppearance(el, appearance) {
+        if (appearance.color) {
+            el.style.setProperty("--org-item-color", appearance.color);
+            el.classList.add("org-chart-tinted");
+        }
+        if (appearance.textColor)
+            el.style.setProperty("--org-item-text", appearance.textColor);
+        if (appearance.borderColor)
+            el.style.border = `2px solid ${appearance.borderColor}`;
+        if (appearance.accent) {
+            el.style.setProperty("--org-item-accent", appearance.accent);
+            el.dataset.accent = appearance.accentPosition || "bottom";
+        }
+    }
+    render() {
+        this.finishLabelEdit(false);
+        this.connections?.cancel();
+        this.removeCardHandles?.();
+        this.observer.disconnect();
+        this.people.clear();
+        this.panels.clear();
+        this.stage.replaceChildren(this.svg);
+        for (const team of this.data.teams) {
+            const panel = element("section", "org-chart-team");
+            this.applyAppearance(panel, team);
+            panel.style.left = `${team.x}px`;
+            panel.style.top = `${team.y}px`;
+            panel.setAttribute("aria-label", team.name);
+            panel.dataset.orgTeam = team.id;
+            const members = this.data.people.filter(person => person.teamId === team.id);
+            const header = element("button", "org-chart-team-handle");
+            header.type = "button";
+            header.dataset.team = team.id;
+            header.disabled = this.options.draggable === false;
+            header.setAttribute("aria-label", `${team.name}, ${members.length} people. Drag or use arrow keys to move; Shift moves faster.`);
+            header.append(element("span", "org-chart-team-name", team.name), element("span", "org-chart-count", String(members.length)));
+            if (this.options.draggable !== false) {
+                const icon = element("i", "material-icons org-chart-drag-icon", "drag_indicator");
+                icon.setAttribute("aria-hidden", "true");
+                header.prepend(icon);
+            }
+            panel.append(header);
+            if (this.options.connectable !== false)
+                panel.append(this.connectionPort(team.name));
+            for (const person of members) {
+                const card = element("article", "org-chart-person");
+                this.applyAppearance(card, person);
+                card.dataset.orgPerson = person.id;
+                const initials = person.name.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join("");
+                const avatar = element("span", "org-chart-avatar", initials);
+                avatar.setAttribute("aria-hidden", "true");
+                const details = element("div", "org-chart-person-details");
+                details.append(element("strong", "org-chart-person-name", person.name));
+                if (person.role)
+                    details.append(element("span", "org-chart-person-role", person.role));
+                card.append(avatar, details);
+                if (this.options.connectable !== false)
+                    card.append(this.connectionPort(person.name));
+                panel.append(card);
+                this.people.set(person.id, card);
+            }
+            if (!members.length)
+                panel.append(element("p", "org-chart-empty", "Ready for your people"));
+            this.panels.set(team.id, panel);
+            this.stage.append(panel);
+            this.observer.observe(panel);
+        }
+        if (!this.data.teams.length)
+            this.stage.append(element("p", "org-chart-empty", "Add a team to start your org chart."));
+        // Relationships remain available as plain text to assistive technology.
+        this.summary.replaceChildren();
+        const list = document.createElement("ul");
+        for (const link of this.data.links) {
+            const from = (link.fromType === "team" ? this.data.teams : this.data.people).find(item => item.id === link.from);
+            const to = (link.toType === "team" ? this.data.teams : this.data.people).find(item => item.id === link.to);
+            list.append(element("li", "", `${from.name} → ${to.name}: ${link.label || "Connected to"}`));
+        }
+        this.summary.append(element("h2", "", "Relationships"), list);
+        this.removeCardHandles = enableCardHandles(this.el, {
+            cardSelector: '.org-chart-person', dropSelector: '.org-chart-team',
+            enabled: () => this.options.draggable !== false,
+            onMove: (card, _from, to) => {
+                const person = this.data.people.find(person => person.id === card.dataset.orgPerson);
+                person.teamId = to.dataset.orgTeam;
+                const order = Array.from(this.stage.querySelectorAll('.org-chart-person')).map(card => card.dataset.orgPerson);
+                this.data.people.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+                this.render();
+                this.people.get(person.id)?.querySelector('.card-drag-handle')?.focus({ preventScroll: true });
+                this.options.onChange?.(this.getData());
+            },
+        });
+        this.draw();
+    }
+    scheduleDraw() {
+        cancelAnimationFrame(this.frame);
+        this.frame = requestAnimationFrame(() => this.draw());
+    }
+    connectionPort(name) {
+        const port = element('button', 'org-chart-connect-port');
+        const icon = element('i', 'material-icons', 'add');
+        icon.setAttribute('aria-hidden', 'true');
+        port.append(icon);
+        port.type = 'button';
+        port.title = `Drag to connect ${name} to a card or group`;
+        port.setAttribute('aria-label', port.title);
+        return port;
+    }
+    draw() {
+        const vertical = this.options.orientation === "vertical";
+        const width = Math.max(vertical ? 0 : 900, ...this.data.teams.map(team => team.x + this.panels.get(team.id).offsetWidth + 80));
+        const height = Math.max(560, ...this.data.teams.map(team => team.y + this.panels.get(team.id).offsetHeight + 80));
+        this.stage.style.width = `${width}px`;
+        this.stage.style.height = `${height}px`;
+        this.svg.setAttribute("width", String(width));
+        this.svg.setAttribute("height", String(height));
+        this.svg.replaceChildren();
+        const origin = this.stage.getBoundingClientRect();
+        for (const link of this.data.links) {
+            // Project vertical layouts onto the same routing axes, then rotate back.
+            const project = (box) => {
+                // DOM bounds are screen pixels; SVG paths use unzoomed canvas units.
+                const rect = new DOMRect((box.x - origin.x) / this.zoom, (box.y - origin.y) / this.zoom, box.width / this.zoom, box.height / this.zoom);
+                return vertical
+                    ? { left: rect.top, right: rect.bottom, top: rect.left, height: rect.width }
+                    : rect;
+            };
+            const from = project((link.fromType === "team" ? this.panels : this.people).get(link.from).getBoundingClientRect());
+            const to = project((link.toType === "team" ? this.panels : this.people).get(link.to).getBoundingClientRect());
+            const originX = 0;
+            const originY = 0;
+            const point = (x, y) => vertical ? [y, x] : [x, y];
+            // Overlapping endpoints route around the outer edge of their panels.
+            const sameSide = from.left < to.right && to.left < from.right;
+            const direction = to.left >= from.left ? 1 : -1;
+            const x1 = (sameSide || direction > 0 ? from.right : from.left) - originX;
+            const x2 = (sameSide || direction < 0 ? to.right : to.left) - originX;
+            const y1 = from.top + (link.fromType === "team" && !vertical ? 28 : from.height / 2) - originY;
+            const y2 = to.top + (link.toType === "team" && !vertical ? 28 : to.height / 2) - originY;
+            const bend = sameSide ? 72 : Math.max(48, Math.abs(x2 - x1) * 0.5);
+            const c1 = sameSide ? Math.max(x1, x2) + bend : x1 + bend * direction;
+            const c2 = sameSide ? Math.max(x1, x2) + bend : x2 - bend * direction;
+            const group = document.createElementNS(svgNS, "g");
+            group.classList.add("org-chart-link");
+            this.svg.append(group);
+            const path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", `M ${point(x1, y1).join(" ")} C ${point(c1, y1).join(" ")}, ${point(c2, y2).join(" ")}, ${point(x2, y2).join(" ")}`);
+            group.append(path);
+            if (this.options.editable === true) {
+                const hit = path.cloneNode();
+                hit.classList.add('org-chart-link-hit');
+                group.append(hit);
+            }
+            for (const [x, y] of [point(x1, y1), point(x2, y2)]) {
+                const dot = document.createElementNS(svgNS, "circle");
+                dot.setAttribute("cx", String(x));
+                dot.setAttribute("cy", String(y));
+                dot.setAttribute("r", "3");
+                group.append(dot);
+            }
+            if (link.label || this.options.editable === true) {
+                const text = document.createElementNS(svgNS, "text");
+                text.textContent = link.label || "Add label";
+                if (!link.label)
+                    text.classList.add("org-chart-link-label-empty");
+                const [labelX, labelY] = point((x1 + 3 * c1 + 3 * c2 + x2) / 8, (y1 + y2) / 2);
+                text.setAttribute("x", String(labelX));
+                text.setAttribute("y", String(labelY - 9));
+                if (this.options.editable === true) {
+                    const index = this.data.links.indexOf(link);
+                    text.classList.add('org-chart-link-label');
+                    text.dataset.linkIndex = String(index);
+                    text.setAttribute('tabindex', '0');
+                    text.setAttribute('role', 'button');
+                    text.setAttribute('aria-label', link.label ? `Edit relationship name: ${link.label}` : 'Add relationship name');
+                    text.addEventListener('click', () => this.editLabel(index, labelX, labelY));
+                    text.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            this.editLabel(index, labelX, labelY);
+                        }
+                    });
+                    if (this.labelEditor?.index === index)
+                        this.positionLabelEditor(labelX, labelY);
+                }
+                group.append(text);
+                if (this.options.editable === true) {
+                    const remove = document.createElementNS(svgNS, 'g');
+                    remove.classList.add('org-chart-link-remove');
+                    const removePoint = path.getPointAtLength(path.getTotalLength() * 0.72);
+                    const restingTransform = `translate(${removePoint.x}, ${removePoint.y})`;
+                    remove.dataset.restingTransform = restingTransform;
+                    remove.setAttribute('transform', this.labelEditor?.index === this.data.links.indexOf(link)
+                        ? `translate(${parseFloat(this.labelEditor.input.style.left) + 240}, ${parseFloat(this.labelEditor.input.style.top) + 18})`
+                        : restingTransform);
+                    remove.setAttribute('tabindex', '0');
+                    remove.setAttribute('role', 'button');
+                    remove.setAttribute('aria-label', `Remove relationship: ${link.label || 'Unnamed link'}`);
+                    const hitArea = document.createElementNS(svgNS, 'rect');
+                    hitArea.setAttribute('x', '-16');
+                    hitArea.setAttribute('y', '-16');
+                    hitArea.setAttribute('width', '32');
+                    hitArea.setAttribute('height', '32');
+                    hitArea.setAttribute('rx', '16');
+                    const icon = document.createElementNS(svgNS, 'text');
+                    icon.textContent = '×';
+                    icon.setAttribute('y', '5');
+                    icon.setAttribute('aria-hidden', 'true');
+                    remove.append(hitArea, icon);
+                    const deleteLink = () => {
+                        const index = this.data.links.indexOf(link);
+                        if (index < 0)
+                            return;
+                        this.finishLabelEdit(false);
+                        const data = this.getData();
+                        data.links.splice(index, 1);
+                        this.setData(data);
+                        const next = this.svg.querySelector(`[data-link-index="${Math.min(index, data.links.length - 1)}"]`);
+                        (next || this.el).focus({ preventScroll: true });
+                    };
+                    // Keep a label editor's blur handler from replacing this control mid-click.
+                    remove.addEventListener('pointerdown', event => event.preventDefault());
+                    remove.addEventListener('click', deleteLink);
+                    remove.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            deleteLink();
+                        }
+                    });
+                    group.append(remove);
+                }
+            }
+        }
+    }
+    positionLabelEditor(x, y) {
+        const input = this.labelEditor.input;
+        input.style.left = `${Math.max(0, x - 110)}px`;
+        input.style.top = `${Math.max(0, y - 28)}px`;
+    }
+    editLabel(index, x, y) {
+        if (this.options.editable !== true)
+            return;
+        this.finishLabelEdit(true);
+        const input = element('input', 'org-chart-link-editor');
+        input.type = 'text';
+        input.value = this.data.links[index].label || '';
+        input.maxLength = 80;
+        input.setAttribute('aria-label', 'Relationship name');
+        this.labelEditor = { index, input };
+        this.positionLabelEditor(x, y);
+        input.addEventListener('keydown', event => {
+            event.stopPropagation();
+            if (event.isComposing)
+                return;
+            if (event.key === 'Enter' || event.key === 'Escape') {
+                event.preventDefault();
+                this.finishLabelEdit(event.key === 'Enter');
+                this.svg.querySelector(`[data-link-index="${index}"]`)?.focus();
+            }
+        });
+        input.addEventListener('blur', () => this.finishLabelEdit(true));
+        this.stage.append(input);
+        input.focus({ preventScroll: true });
+        input.select();
+        this.draw();
+    }
+    finishLabelEdit(save) {
+        if (!this.labelEditor)
+            return;
+        const { index, input } = this.labelEditor;
+        this.labelEditor = undefined;
+        const value = input.value.trim();
+        input.remove();
+        this.svg.querySelectorAll('.org-chart-link-remove').forEach(control => control.setAttribute('transform', control.dataset.restingTransform));
+        if (save && this.data.links[index].label !== value) {
+            this.data.links[index].label = value;
+            this.render();
+            this.options.onChange?.(this.getData());
+        }
+    }
+    startDrag = (event) => {
+        if (this.options.draggable === false || event.button !== 0 || this.drag)
+            return;
+        const handle = event.target.closest("[data-team]");
+        if (!handle)
+            return;
+        const team = this.data.teams.find(team => team.id === handle.dataset.team);
+        this.drag = { id: team.id, pointer: event.pointerId, x: event.clientX, y: event.clientY, left: team.x, top: team.y, handle };
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("is-dragging");
+    };
+    moveDrag = (event) => {
+        if (!this.drag || event.pointerId !== this.drag.pointer)
+            return;
+        this.move(this.drag.id, this.drag.left + (event.clientX - this.drag.x) / this.zoom, this.drag.top + (event.clientY - this.drag.y) / this.zoom);
+    };
+    endDrag = () => {
+        if (!this.drag)
+            return;
+        const { handle, pointer } = this.drag;
+        this.drag = undefined;
+        handle.classList.remove("is-dragging");
+        if (handle.hasPointerCapture(pointer))
+            handle.releasePointerCapture(pointer);
+        this.options.onChange?.(this.getData());
+    };
+    moveWithKeyboard = (event) => {
+        if (this.options.draggable === false)
+            return;
+        const handle = event.target.closest("[data-team]");
+        const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+        if (!handle || !directions[event.key])
+            return;
+        event.preventDefault();
+        const team = this.data.teams.find(team => team.id === handle.dataset.team);
+        const [dx, dy] = directions[event.key];
+        const step = event.shiftKey ? 40 : 10;
+        this.move(team.id, team.x + dx * step, team.y + dy * step);
+        this.options.onChange?.(this.getData());
+    };
+    move(id, x, y) {
+        const team = this.data.teams.find(team => team.id === id);
+        team.x = Math.max(24, Math.round(x));
+        team.y = Math.max(24, Math.round(y));
+        const panel = this.panels.get(id);
+        panel.style.left = `${team.x}px`;
+        panel.style.top = `${team.y}px`;
+        this.scheduleDraw();
+    }
+}
+
+/**
+ * Front
+ *
+ * Front TS scripts for your Crazy App.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+/**
+ * Kmcomponent
+ *
+ * Reactive web components using compiled Handlebars templates and SCSS styles.
+ * Supports light DOM projection or native slots inside an open shadow root.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+class Kmcomponent extends (typeof HTMLElement === "undefined" ? class {
+} : HTMLElement) {
+    /** Static Parameters
+     ******************************************************
+     */
+    /** @var properties Property schema, available before custom element registration */
+    static properties = {};
+    /** @var template Compiled HBS function, HTML string, or module export */
+    static template = "";
+    /** @var styles Compiled CSS, context function, or css-loader export */
+    static styles = "";
+    /** @var options Default rendering mode for instances of the component */
+    static options = { shadow: false };
+    /** Parameters
+     ******************************************************
+     */
+    /** @var renderRoot Query this element or shadow root in component hooks */
+    renderRoot;
+    /** @var updateComplete Resolves true after rendering, false if disconnected before the update */
+    updateComplete = Promise.resolve(false);
+    /** Private Parameters
+     ******************************************************
+     */
+    /** @var _values Current typed values, independent from the static schema */
+    _values = Object.create(null);
+    /** @var _initialized Whether defaults have been validated and copied */
+    _initialized = false;
+    /** @var _pending Whether a render microtask is already queued */
+    _pending = false;
+    /** @var _reflecting Prevent attribute reflection from feeding back into property updates */
+    _reflecting = false;
+    /** @var _template Optional template override for this instance */
+    _template;
+    /** @var _styles Optional stylesheet override for this instance */
+    _styles;
+    /** @var _cleanups Resources to release before rerendering or disconnecting */
+    _cleanups = [];
+    /** @var _observer Observer for light DOM child changes */
+    _observer = null;
+    /** @var _children Supplied child nodes in their projection order */
+    _children = [];
+    /** @var _ownedRoots Template roots, excluded when collecting supplied children */
+    _ownedRoots = new Set();
+    /** @var _slots Light DOM insertion points and their original fallback content */
+    _slots = [];
+    /** @var _parking Retained children without a matching light DOM slot */
+    _parking;
+    /**
+     * Constructor
+     *
+     * Choose the rendering root without reading attributes or supplied children.
+     * Subclass fields are initialized after this constructor returns.
+     *
+     * @param options Rendering options overriding the static defaults
+     */
+    constructor(options = {}) {
+        // Construct the native element before accessing the subclass configuration.
+        super();
+        // Constructor options take precedence over the component's static defaults.
+        const configuration = { ...this.component.options, ...options };
+        this.renderRoot = configuration.shadow ? this.attachShadow({ mode: "open" }) : this;
+        // Keep unmatched light DOM children alive without displaying them.
+        this._parking = this.ownerDocument.createDocumentFragment();
+    }
+    /** Methods | Events
+     ******************************************************
+     */
+    /**
+     * Post Render
+     *
+     * Called after the generated markup and projected children have been mounted.
+     * Override to install event handlers or widgets, paired with onCleanup().
+     *
+     * @return void
+     */
+    postRender() {
+        // Component subclasses can attach their behavior after rendering.
+    }
+    /**
+     * On Cleanup
+     *
+     * Register a resource disposer for the current rendered content.
+     *
+     * @param cleanup Callback executed before rerendering or disconnecting
+     * @return void
+     */
+    onCleanup(cleanup) {
+        this._cleanups.push(cleanup);
+    }
+    /** Public Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Property
+     *
+     * Read a typed value, initializing per-instance defaults when necessary.
+     *
+     * @param name Declared property name
+     * @return Current property value
+     * @throws TypeError When the property is not declared
+     */
+    getProperty(name) {
+        this.definition(name);
+        this.initialize();
+        return this._values[name];
+    }
+    /**
+     * Set Property
+     *
+     * Update a typed value and optionally reflect it to the mapped HTML attribute.
+     * Programmatic values must already match the declared type.
+     *
+     * @param name Declared property name
+     * @param value New typed value
+     * @return void
+     * @throws TypeError When the value is invalid or cannot be serialized
+     */
+    setProperty(name, value) {
+        const property = this.definition(name);
+        this.initialize();
+        if (!this.valid(value, property))
+            throw new TypeError(`Invalid component property: ${name}`);
+        const attribute = this.component.attributeName(name, property);
+        // Serialize before changing state: circular JSON must not partially update it.
+        const serialized = property.reflect && attribute !== null
+            ? property.type === "array" || property.type === "object" ? JSON.stringify(value)
+                : String(value)
+            : null;
+        const changed = !Object.is(this._values[name], value);
+        this._values[name] = value;
+        // Reflected writes must not trigger a second conversion or render request.
+        if (serialized !== null && attribute !== null) {
+            this._reflecting = true;
+            try {
+                if (this.getAttribute(attribute) !== serialized)
+                    this.setAttribute(attribute, serialized);
+            }
+            finally {
+                this._reflecting = false;
+            }
+        }
+        if (changed)
+            this.requestUpdate();
+    }
+    /** Public Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Set Html And Css
+     *
+     * Override the static assets for one instance, including constructor-based setup.
+     *
+     * @param html HTML string, compiled template, or module export
+     * @param css CSS string, context function, or css-loader export
+     * @return void
+     */
+    setHtmlAndCss(html, css) {
+        this._template = html;
+        this._styles = css;
+        this.requestUpdate();
+    }
+    /**
+     * Render
+     *
+     * Evaluate the template without mounting it or changing supplied children.
+     * Styles are mounted separately during the scheduled update.
+     *
+     * @return Rendered HTML
+     */
+    render() {
+        let template = this._template ?? this.component.template;
+        while (typeof template === "object")
+            template = template.default;
+        return typeof template === "function" ? template(this.prepareContext()) : template;
+    }
+    /**
+     * Request Update
+     *
+     * Batch synchronous changes into one render microtask.
+     * Changes made while disconnected are rendered on the next connection.
+     *
+     * @return Promise resolving whether the queued update rendered
+     */
+    requestUpdate() {
+        // Reuse the pending update so synchronous property changes render together.
+        if (this._pending)
+            return this.updateComplete;
+        this._pending = true;
+        this.updateComplete = Promise.resolve().then(() => {
+            // Release the queue before rendering so hooks can request a later update.
+            this._pending = false;
+            if (!this.isConnected)
+                return false;
+            this.update();
+            return true;
+        });
+        return this.updateComplete;
+    }
+    /** Protected Methods
+     ******************************************************
+     */
+    /**
+     * Prepare Context
+     *
+     * Build the template data using the existing attributes/name convention.
+     * Override to add component-specific context.
+     *
+     * @return Template context
+     */
+    prepareContext() {
+        this.initialize();
+        return { attributes: { ...this._values }, name: this.localName };
+    }
+    /** Private Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Component
+     *
+     * Access declarations on the concrete subclass rather than instance fields.
+     *
+     * @return Component constructor
+     */
+    get component() {
+        return this.constructor;
+    }
+    /**
+     * Get Definition
+     *
+     * Resolve an own schema entry, rejecting undeclared property names.
+     *
+     * @param name Property name
+     * @return Property definition
+     */
+    definition(name) {
+        if (!Object.prototype.hasOwnProperty.call(this.component.properties, name)) {
+            throw new TypeError(`Unknown component property: ${name}`);
+        }
+        return this.component.properties[name];
+    }
+    /**
+     * Clone Default
+     *
+     * Copy JSON-compatible defaults recursively so instances do not share objects.
+     *
+     * @param value Default value to copy
+     * @return Independent copy of the value
+     */
+    clone(value) {
+        if (Array.isArray(value))
+            return value.map(item => this.clone(item));
+        if (value !== null && typeof value === "object") {
+            const result = {};
+            for (const key of Object.keys(value)) {
+                Object.defineProperty(result, key, {
+                    value: this.clone(value[key]),
+                    enumerable: true, configurable: true, writable: true,
+                });
+            }
+            return result;
+        }
+        return value;
+    }
+    /**
+     * Get Default Value
+     *
+     * Use the declared default or the empty value for the declared type.
+     *
+     * @param property Property definition
+     * @return Fresh default value
+     */
+    defaultValue(property) {
+        if (property.default !== undefined)
+            return this.clone(property.default);
+        switch (property.type) {
+            case "string": return "";
+            case "number": return 0;
+            case "boolean": return false;
+            case "array": return [];
+            case "object": return {};
+        }
+    }
+    /**
+     * Validate Value
+     *
+     * Check the runtime type and any allowed scalar values.
+     *
+     * @param value Value to validate
+     * @param property Property definition
+     * @return Whether the value matches the schema
+     */
+    valid(value, property) {
+        let matches;
+        switch (property.type) {
+            case "number":
+                matches = typeof value === "number" && Number.isFinite(value);
+                break;
+            case "array":
+                matches = Array.isArray(value);
+                break;
+            case "object":
+                matches = Object.prototype.toString.call(value) === "[object Object]";
+                break;
+            default: matches = typeof value === property.type;
+        }
+        return matches && (!property.select || property.select.includes(value));
+    }
+    /**
+     * Initialize Properties
+     *
+     * Validate the schema and create each instance's initial values once.
+     *
+     * @return void
+     * @throws TypeError When defaults or reflection options are inconsistent
+     */
+    initialize() {
+        if (this._initialized)
+            return;
+        for (const name of Object.keys(this.component.properties)) {
+            const property = this.definition(name);
+            const value = this.defaultValue(property);
+            if (!this.valid(value, property)) {
+                throw new TypeError(`Invalid default for component property: ${name}`);
+            }
+            if (property.reflect && property.attribute === false) {
+                throw new TypeError(`Reflected property must have an attribute: ${name}`);
+            }
+            this._values[name] = value;
+        }
+        this._initialized = true;
+    }
+    /**
+     * Convert Attribute
+     *
+     * Convert HTML strings to typed values. Invalid or removed attributes restore
+     * the declared default, including explicit false and zero values.
+     *
+     * @param value HTML attribute value, or null when removed
+     * @param property Property definition
+     * @return Converted value or default
+     */
+    fromAttribute(value, property) {
+        if (value === null)
+            return this.defaultValue(property);
+        let parsed = value;
+        switch (property.type) {
+            case "number":
+                parsed = value.trim() === "" ? NaN : Number(value);
+                break;
+            case "boolean": {
+                const normalized = value.trim().toLowerCase();
+                parsed = ["", "true", "1"].includes(normalized) ? true
+                    : ["false", "0"].includes(normalized) ? false : undefined;
+                break;
+            }
+            case "array":
+            case "object":
+                try {
+                    parsed = JSON.parse(value);
+                }
+                catch {
+                    parsed = undefined;
+                }
+                break;
+        }
+        return this.valid(parsed, property) ? parsed : this.defaultValue(property);
+    }
+    /** Private Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Get Style Text
+     *
+     * Normalize styles while retaining css-loader's CSS-aware serialization.
+     *
+     * @return CSS text
+     */
+    styleText() {
+        let styles = this._styles ?? this.component.styles;
+        while (typeof styles === "object" && "default" in styles)
+            styles = styles.default;
+        if (typeof styles === "function")
+            return styles(this.prepareContext());
+        if (typeof styles === "string")
+            return styles;
+        // css-loader exports a list with its own CSS-aware toString().
+        if (styles.toString !== Object.prototype.toString && styles.toString !== Array.prototype.toString) {
+            return styles.toString();
+        }
+        throw new TypeError("Component styles must be CSS text or a css-loader export.");
+    }
+    /**
+     * Update
+     *
+     * Prepare the new markup before replacing the current render.
+     * Retain supplied light DOM nodes and mount them into the new insertion points.
+     *
+     * @return void
+     */
+    update() {
+        this.initialize();
+        // Evaluate both assets before disturbing the currently mounted content.
+        const template = this.ownerDocument.createElement("template");
+        template.innerHTML = this.render();
+        const css = this.styleText();
+        if (css) {
+            const style = this.ownerDocument.createElement("style");
+            style.textContent = css;
+            template.content.prepend(style);
+        }
+        // Internal node moves must not be interpreted as new supplied children.
+        this._observer?.disconnect();
+        try {
+            this.cleanup();
+            if (this.renderRoot === this) {
+                // Save original nodes rather than cloning their markup and losing state.
+                this.collectChildren();
+                for (const node of this._children)
+                    this._parking.appendChild(node);
+                // A nested custom element owns its own slots.
+                this._slots = Array.from(template.content.querySelectorAll("slot"))
+                    .filter(slot => {
+                    for (let parent = slot.parentElement; parent; parent = parent.parentElement) {
+                        if (parent.localName.includes("-"))
+                            return false;
+                    }
+                    return true;
+                })
+                    .map(element => ({ element, fallback: Array.from(element.childNodes) }));
+                this._ownedRoots = new Set(template.content.childNodes);
+            }
+            // Native shadow slots project automatically; light DOM requires explicit moves.
+            this.renderRoot.replaceChildren(template.content);
+            if (this.renderRoot === this)
+                this.projectChildren();
+        }
+        finally {
+            this.observeChildren();
+        }
+        // Hooks see the complete render, including any supplied content.
+        this.postRender();
+    }
+    /**
+     * Cleanup
+     *
+     * Release resources in reverse registration order.
+     * Run every disposer even if one fails, then propagate the last error.
+     *
+     * @return void
+     */
+    cleanup() {
+        const callbacks = this._cleanups.splice(0).reverse();
+        let failure;
+        let failed = false;
+        for (const callback of callbacks) {
+            try {
+                callback();
+            }
+            catch (error) {
+                failed = true;
+                failure = error;
+            }
+        }
+        if (failed)
+            throw failure;
+    }
+    /** Private Methods | Children
+     ******************************************************
+     */
+    /**
+     * Collect Children
+     *
+     * Retain supplied nodes still owned by this component and discover newly
+     * appended host children. Removed nodes must not return on the next render.
+     *
+     * @return void
+     */
+    collectChildren() {
+        // Drop nodes removed or transferred out of this component by application code.
+        this._children = this._children.filter(node => this.contains(node) || node.parentNode === this._parking);
+        const added = Array.from(this.childNodes).filter(node => !this._ownedRoots.has(node));
+        // Re-appending a supplied node moves it to the end, as appendChild does.
+        this._children = this._children.filter(node => !added.includes(node));
+        this._children.push(...added);
+    }
+    /**
+     * Project Children
+     *
+     * Assign supplied nodes to the first matching light DOM slot.
+     * Restore fallback content for empty slots and retain unmatched nodes.
+     *
+     * @return void
+     */
+    projectChildren() {
+        // Group nodes by the first matching named or default slot.
+        const groups = new Map();
+        for (const node of this._children) {
+            const name = node.nodeType === 1 ? node.getAttribute("slot") ?? "" : "";
+            const slot = this._slots.find(slot => slot.element.name === name);
+            if (slot) {
+                const group = groups.get(slot.element) ?? [];
+                group.push(node);
+                groups.set(slot.element, group);
+            }
+            else if (node.parentNode !== this._parking) {
+                this._parking.appendChild(node);
+            }
+        }
+        // Avoid unnecessary moves, which would reconnect nested custom elements.
+        for (const slot of this._slots) {
+            const children = groups.get(slot.element) ?? slot.fallback;
+            if (children.length !== slot.element.childNodes.length
+                || children.some((node, index) => node !== slot.element.childNodes[index])) {
+                slot.element.replaceChildren(...children);
+            }
+        }
+    }
+    /**
+     * Observe Children
+     *
+     * Watch supplied child changes only in light DOM. Native shadow slots are
+     * managed by the browser. Pause observation while performing internal moves.
+     *
+     * @return void
+     */
+    observeChildren() {
+        if (this.renderRoot !== this || !this.isConnected)
+            return;
+        if (!this._observer) {
+            const Observer = this.ownerDocument.defaultView.MutationObserver;
+            this._observer = new Observer(() => {
+                this._observer.disconnect();
+                try {
+                    this.collectChildren();
+                    this.projectChildren();
+                }
+                finally {
+                    this.observeChildren();
+                }
+            });
+        }
+        // Also watch retained nodes: a changed slot name can make them visible again.
+        this._observer.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
+        this._observer.observe(this._parking, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
+    }
+    /** Methods | Callbacks
+     ******************************************************
+     */
+    /**
+     * Connected Callback
+     *
+     * Initialize values, resume child observation, and schedule rendering.
+     *
+     * @return void
+     */
+    connectedCallback() {
+        this.initialize();
+        this.observeChildren();
+        this.requestUpdate();
+    }
+    /**
+     * Disconnected Callback
+     *
+     * Stop child observation and release resources for the current render.
+     *
+     * @return void
+     */
+    disconnectedCallback() {
+        this._observer?.disconnect();
+        this.cleanup();
+    }
+    /**
+     * Attribute Changed Callback
+     *
+     * Keep typed values current even while detached, without reflection loops.
+     *
+     * @param name Changed HTML attribute name
+     * @param oldValue Previous attribute value
+     * @param newValue New attribute value, or null when removed
+     * @return void
+     */
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (this._reflecting || oldValue === newValue)
+            return;
+        this.initialize();
+        const key = Object.keys(this.component.properties).find(key => this.component.attributeName(key, this.definition(key)) === name);
+        if (key === undefined)
+            return;
+        const value = this.fromAttribute(newValue, this.definition(key));
+        if (!Object.is(this._values[key], value)) {
+            this._values[key] = value;
+            this.requestUpdate();
+        }
+    }
+    /** Static Methods
+     ******************************************************
+     */
+    /**
+     * Observed Attributes
+     *
+     * Derive observed attributes from the static schema at registration time.
+     * Duplicate mappings would make property updates ambiguous.
+     *
+     * @return Mapped HTML attribute names
+     */
+    static get observedAttributes() {
+        const names = Object.keys(this.properties)
+            .map(name => this.attributeName(name, this.properties[name]))
+            .filter((name) => name !== null);
+        if (new Set(names).size !== names.length) {
+            throw new TypeError("Component properties must use distinct attribute names.");
+        }
+        return names;
+    }
+    /**
+     * Get Attribute Name
+     *
+     * Resolve and validate an optional lowercase HTML attribute mapping.
+     *
+     * @param name Property name
+     * @param property Property definition
+     * @return Mapped name, or null for a property without an attribute
+     */
+    static attributeName(name, property) {
+        if (property.attribute === false)
+            return null;
+        const attribute = typeof property.attribute === "string" ? property.attribute : name.toLowerCase();
+        if (!attribute || /[\s\u0000"'>/=]/.test(attribute) || attribute !== attribute.toLowerCase()) {
+            throw new TypeError(`Invalid component attribute name: ${attribute}`);
+        }
+        return attribute;
+    }
+}
+
+/** Shared tooltip configuration for direct imports and lazy component tooltips. */
+function createTooltipWith(factory, fill, target, style, options = {}) {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const instance = factory(target, {
+        animateFill: !reducedMotion && !!fill,
+        arrow: false,
+        plugins: fill ? [fill] : [],
+        placement: "auto",
+        theme: style === "material" ? "materialize" : "",
+        allowHTML: false,
+        ...options,
+        ...(reducedMotion
+            ? { animateFill: false, animation: false, duration: 0 }
+            : {}),
+    });
+    // Escape dismisses a focused tooltip without moving keyboard focus.
+    const escape = (event) => {
+        if (event.key === "Escape")
+            instance.hide();
+    };
+    document.addEventListener("keydown", escape);
+    const destroy = instance.destroy.bind(instance);
+    instance.destroy = () => {
+        document.removeEventListener("keydown", escape);
+        destroy();
+    };
+    return instance;
+}
+
+let pending;
+/** Keep the optional tooltip peer out of the core bundle until a trigger needs it. */
+function loadTooltipPeer() {
+    if (!pending) {
+        pending = loadPeer({
+            specifier: 'tippy.js', globalName: 'tippy', feature: 'Classic tooltips',
+            cdnHint: '<script src="path/to/tippy-bundle.umd.min.js"></script>',
+        }, async () => {
+            const module = await import('tippy.js');
+            return { create: module.default, fill: module.animateFill };
+        }).then(peer => typeof peer === 'function'
+            ? { create: peer, fill: peer.animateFill }
+            : peer).catch(error => { pending = undefined; throw error; });
+    }
+    return pending;
+}
+
+const string$1 = (value = '', select) => ({ type: 'string', default: value, select });
+const boolean = () => ({ type: 'boolean', default: false, reflect: true });
+const escape$1 = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const sizes = { small: 'xs', normal: 'sm', large: 'md', 'extra-large': 'lg' };
+/** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
+class CrazyButton extends Kmcomponent {
+    static properties = {
+        type: string$1('floating', ['floating', 'extended', 'icon', 'fab', 'extended-fab', 'rail']),
+        depth: string$1('flat', ['flat', 'outlined', '1', '2', '3', '4', '5']),
+        shape: string$1('round', ['round', 'box', 'square']),
+        size: string$1('large', ['small', 'normal', 'large', 'extra-large', 'xs', 'sm', 'md', 'lg', 'xl']),
+        wave: string$1('light', ['light', 'dark', 'false']),
+        'tooltip-style': string$1('classic', ['classic', 'material']),
+        'tooltip-position': string$1('top', ['top', 'right', 'bottom', 'left']),
+        label: string$1(), 'icon-class': string$1('material-icons'), 'icon-text': string$1(),
+        'icon-image': string$1(), 'icon-image-style': string$1(),
+        'icon-position': string$1('right', ['left', 'right']),
+        'color-primary': string$1(), 'color-secondary': string$1(),
+        'data-view': string$1(), 'aria-current': string$1(),
+        href: string$1(), target: string$1('_self', ['_self', '_blank']),
+        variant: string$1('', ['', 'filled', 'tonal', 'outlined', 'elevated', 'text', 'standard']),
+        disabled: boolean(), toggle: boolean(), pressed: boolean(),
+        'icon-width': string$1('normal', ['normal', 'narrow', 'wide']),
+        'fab-color': string$1('primary', ['primary', 'secondary', 'tertiary']),
+        'fab-size': string$1('normal', ['small', 'normal', 'large']),
+        'menu-target': string$1(), split: boolean(), 'menu-label': string$1('More options'),
+        'aria-label': string$1(), 'button-type': string$1('button', ['button', 'submit', 'reset']),
+        name: string$1(), value: string$1(), form: string$1(), action: string$1(),
+    };
+    /** Resolves when the current render’s optional tooltip has initialized. */
+    tooltipReady = Promise.resolve();
+    getCurrentAttribute(name) { return this.getProperty(name); }
+    hasCurrentAttribute(name) { return Boolean(this.getProperty(name)); }
+    render() {
+        const a = this.prepareContext().attributes;
+        const rail = a.type === 'rail';
+        const iconOnly = ['floating', 'icon', 'fab'].includes(String(a.type));
+        const fab = ['fab', 'extended-fab'].includes(String(a.type));
+        const variant = a.variant || (a.depth === 'flat' ? 'text' : a.depth === 'outlined' ? 'outlined' : 'elevated');
+        const classes = rail ? 'btn btn-rail' : ['btn', 'btn-expressive', variant === 'standard' ? 'btn-icon-standard' : variant,
+            `btn-${sizes[String(a.size)] || a.size}`, a.shape !== 'round' ? 'btn-square' : '',
+            iconOnly ? 'btn-icon' : '', a.toggle ? 'btn-toggle' : '',
+            a['icon-width'] !== 'normal' ? `btn-icon-${a['icon-width']}` : '',
+            fab ? `btn-fab fab-${a['fab-color']} fab-${a['fab-size']}` : '',
+            a.type === 'extended-fab' ? 'btn-fab-extended' : '',
+            a.wave !== 'false' ? `waves-effect ${a.wave === 'light' ? 'waves-light' : ''}` : '',
+            /^[1-5]$/.test(String(a.depth)) ? `z-depth-${a.depth}` : '',
+        ].filter(Boolean).join(' ');
+        const icon = a['icon-image']
+            ? `<img src="${escape$1(a['icon-image'])}" alt="" style="${escape$1(a['icon-image-style'])}">`
+            : a['icon-text'] ? `<i class="${escape$1(a['icon-class'])}" aria-hidden="true">${escape$1(a['icon-text'])}</i>` : '';
+        const label = iconOnly ? '' : `<slot>${escape$1(a.label)}</slot>`;
+        const content = rail
+            ? `<span class="m3-rail-icon">${icon}</span><span>${label}</span>`
+            : a['icon-position'] === 'left' ? icon + label : label + icon;
+        const menu = a['menu-target'] && !a.split;
+        // A disabled link becomes a native disabled button, including keyboard behavior.
+        const link = a.href && !a.disabled;
+        const tag = link ? 'a' : 'button';
+        const attributes = link
+            ? `href="${escape$1(a.href)}" target="${escape$1(a.target)}"${a.target === '_blank' ? ' rel="noopener noreferrer"' : ''}`
+            : `type="${escape$1(a['button-type'])}" ${a.disabled ? 'disabled' : ''} name="${escape$1(a.name)}" value="${escape$1(a.value)}"${a.form ? ` form="${escape$1(a.form)}"` : ''}`;
+        const menuAttrs = `data-target="${escape$1(a['menu-target'])}" aria-haspopup="true" aria-expanded="false" aria-controls="${escape$1(a['menu-target'])}"`;
+        const button = `<${tag} part="button" class="${escape$1(classes)}${menu ? ' dropdown-trigger no-autoinit btn-menu-trigger' : ''}" ${attributes}
+      ${a['aria-label'] || iconOnly ? `aria-label="${escape$1(a['aria-label'] || a.label || a['icon-text'] || 'Button')}"` : ''}
+      ${a['data-view'] ? `data-view="${escape$1(a['data-view'])}"` : ''}
+      ${a['aria-current'] ? `aria-current="${escape$1(a['aria-current'])}"` : ''}
+      ${a.toggle ? `aria-pressed="${a.pressed}"` : ''} ${menu ? menuAttrs : ''}>${content}</${tag}>`;
+        return a.split && a['menu-target']
+            ? `<span class="btn-split">${button}<button type="button" class="${escape$1(classes)} btn-icon btn-menu-trigger dropdown-trigger no-autoinit" ${menuAttrs} aria-label="${escape$1(a['menu-label'])}" ${a.disabled ? 'disabled' : ''}><i class="material-icons" aria-hidden="true">arrow_drop_down</i></button></span>`
+            : button;
+    }
+    postRender() {
+        const a = this.prepareContext().attributes;
+        const button = this.querySelector('[part="button"]');
+        for (const el of this.querySelectorAll('.btn')) {
+            this.applyColor(el, String(a['color-primary']), false);
+            this.applyColor(el, String(a['color-secondary']), true);
+        }
+        // Focus can flush styles: apply custom colors first so a rebuilt button
+        // does not transition from its default background when focus is restored.
+        if (this.restoreFocus) {
+            button.focus();
+            this.restoreFocus = false;
+        }
+        if (['floating', 'icon', 'fab'].includes(String(a.type)) && a.label) {
+            let tooltip;
+            let cancelled = false;
+            this.onCleanup(() => { cancelled = true; tooltip?.destroy(); });
+            this.tooltipReady = loadTooltipPeer().then(peer => {
+                if (cancelled)
+                    return;
+                tooltip = createTooltipWith(peer.create, peer.fill, button, a['tooltip-style'], {
+                    content: String(a.label), placement: a['tooltip-position'],
+                });
+            });
+        }
+        const click = () => {
+            if (this.getProperty('disabled'))
+                return;
+            if (this.getProperty('toggle')) {
+                const group = this.closest('[data-selection]');
+                if (group?.getAttribute('data-selection') === 'single') {
+                    group.querySelectorAll('crazy-button, regular-btn').forEach(peer => {
+                        if (peer.closest('[data-selection]') === group && peer.getProperty('toggle'))
+                            peer.setProperty('pressed', peer === this);
+                    });
+                }
+                else
+                    this.setProperty('pressed', !this.getProperty('pressed'));
+            }
+            this.dispatchEvent(new CustomEvent('buttonaction', { bubbles: true, composed: true, detail: {
+                    action: this.getProperty('action') || this.getProperty('label'),
+                    pressed: this.getProperty('toggle') ? String(this.getProperty('pressed')) : null,
+                } }));
+        };
+        button.addEventListener('click', click);
+        this.onCleanup(() => {
+            this.restoreFocus = document.activeElement === button;
+            button.removeEventListener('click', click);
+        });
+        const trigger = this.querySelector('.dropdown-trigger');
+        const menu = document.getElementById(String(a['menu-target']));
+        if (trigger && menu && !a.disabled) {
+            const parent = menu.parentNode;
+            const next = menu.nextSibling;
+            const dropdown = Dropdown.init(trigger, {
+                alignment: 'right', constrainWidth: false, coverTrigger: false, closeOnClick: true,
+                onOpenStart: () => trigger.setAttribute('aria-expanded', 'true'),
+                onCloseEnd: () => trigger.setAttribute('aria-expanded', 'false'),
+            });
+            const keydown = (event) => { if (event.key === 'Enter')
+                event.preventDefault(); };
+            menu.addEventListener('keydown', keydown, true);
+            this.onCleanup(() => {
+                dropdown.destroy();
+                menu.removeEventListener('keydown', keydown, true);
+                // Dropdown may relocate external menu nodes; retain them across rerenders.
+                if (parent)
+                    parent.insertBefore(menu, next?.parentNode === parent ? next : null);
+            });
+        }
+    }
+    restoreFocus = false;
+    applyColor(element, color, foreground) {
+        if (!color.trim() || this.getProperty('disabled'))
+            return;
+        if (CSS.supports('color', color)) {
+            element.style.setProperty(foreground ? 'color' : 'background-color', color);
+            if (foreground)
+                element.style.borderColor = color;
+        }
+        else {
+            // Rodeo accepts Materialize palette classes, e.g. "blue lighten-5".
+            element.classList.add(...color.trim().split(/\s+/).map((token, index) => foreground ? index === 0 ? `${token}-text` : `text-${token}` : token));
+            if (foreground)
+                element.style.borderColor = 'currentColor';
+        }
+    }
+}
+if (typeof customElements !== 'undefined' && !customElements.get('crazy-button'))
+    customElements.define('crazy-button', CrazyButton);
+// Native customElements requires a separate constructor for an alias.
+if (typeof customElements !== 'undefined' && !customElements.get('regular-btn'))
+    customElements.define('regular-btn', class RegularBtn extends CrazyButton {
+    });
+
+const string = (value = '', select) => ({ type: 'string', default: value, select });
+const escape = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+/** Reactive Loading wrapper. Styles and behavior belong to the existing Loading component. */
+class CrazyLoading extends Kmcomponent {
+    static properties = {
+        active: { type: 'boolean', default: true, reflect: true },
+        size: { ...string('normal', ['small', 'normal', 'large']), reflect: true },
+        label: string('Loading…'),
+        'complete-label': string('Ready'),
+        'aria-label': string(),
+        image: string(),
+        'icon-text': string(),
+        'icon-class': string('material-icons'),
+    };
+    get isActive() { return this.getProperty('active'); }
+    /** Show the ring. Await updateComplete when reading the rendered status. */
+    start(label) {
+        if (label !== undefined)
+            this.setProperty('label', label);
+        this.setProperty('active', true);
+    }
+    /** Hide the ring while retaining the logo or projected content. */
+    stop(label) {
+        if (label !== undefined)
+            this.setProperty('complete-label', label);
+        this.setProperty('active', false);
+    }
+    render() {
+        const a = this.prepareContext().attributes;
+        const content = a.image
+            ? `<img class="loading-screen-btn-logo" src="${escape(a.image)}" alt="">`
+            : a['icon-text'] ? `<i class="${escape(a['icon-class'])}" aria-hidden="true">${escape(a['icon-text'])}</i>` : '';
+        return `<div part="indicator" class="loading no-autoinit loading-screen-btn-container">
+      <span part="content" class="loading-content loading-screen-btn-logo-container" aria-hidden="true"><slot>${content}</slot></span>
+    </div>`;
+    }
+    postRender() {
+        const a = this.prepareContext().attributes;
+        const indicator = this.querySelector('[part="indicator"]');
+        const loading = Loading.init(indicator, {
+            active: this.isActive,
+            label: String(a['aria-label'] || a.label),
+            completeLabel: String(a['complete-label']),
+        });
+        indicator.querySelector('.preloader-wrapper').classList.add('loading-screen-btn-preloader');
+        this.onCleanup(() => loading.destroy());
+    }
+}
+/** Original no-attribute markup retains its 10rem size and application favicon. */
+class LoadingScreenBtn extends CrazyLoading {
+    static properties = {
+        ...CrazyLoading.properties,
+        size: { ...string('large', ['small', 'normal', 'large']), reflect: true },
+        image: string('/asset/favicon/android-chrome-192x192.png'),
+    };
+}
+if (typeof customElements !== 'undefined') {
+    if (!customElements.get('crazy-loading'))
+        customElements.define('crazy-loading', CrazyLoading);
+    if (!customElements.get('loading-screen-btn'))
+        customElements.define('loading-screen-btn', LoadingScreenBtn);
+}
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const version = '2.3.3';
 /**
@@ -9729,4 +11770,4 @@ Waves.Init();
 Range.Init();
 Cards.Init();
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Loading, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, printChart, toast, version };

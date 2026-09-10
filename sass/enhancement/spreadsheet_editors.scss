@@ -1,0 +1,99 @@
+// Shared editor fixes for both vendor-color and Material-color worksheets.
+// Cell text follows the worksheet palette, not Materialize's page-level input color.
+.jss_worksheet td.editor {
+  z-index: 30 !important;
+  &:not(.jss_freezed) { position: relative; }
+  > input,
+  > textarea,
+  .jdropdown-header {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor;
+    opacity: 1;
+    background-color: inherit;
+  }
+}
+
+// Match Materialize's dropdown surface, spacing, typography, and hover treatment.
+// Keep jSuites positioning and selection behavior intact.
+.jss_spreadsheet .jss_worksheet .jdropdown-container {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px rgba(0, 0, 0, .2);
+
+  .jdropdown-content {
+    border: 0;
+    background: var(--md-sys-color-surface);
+  }
+  .jdropdown-item {
+    position: relative;
+    min-height: 50px;
+    padding: 14px 40px 14px 16px;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 22px;
+    color: var(--md-sys-color-on-surface);
+    background-color: transparent;
+    background-image: none;
+    &:hover, &.jdropdown-cursor {
+      color: var(--md-sys-color-on-surface);
+      background-color: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-on-surface) 8%);
+    }
+    &.jdropdown-selected::after {
+      content: 'check';
+      position: absolute;
+      inset-inline-end: 12px;
+      font-family: 'Material Icons';
+      font-size: 20px;
+      color: currentColor;
+    }
+  }
+  .jdropdown-description { line-height: 22px; }
+}
+
+// The right-click menu shares the dropdown palette in both spreadsheet variants.
+// Do not clip overflow: nested context menus need to extend beyond this surface.
+.jss_spreadsheet .jcontextmenu {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  padding-block: 4px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: inherit;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px rgba(0, 0, 0, .2);
+
+  > div:not(.header) {
+    // Inset every row, including the first visible row after a hidden header.
+    // Rounding rows preserves submenu overflow without clipping the parent menu.
+    margin-inline: 4px;
+    border-radius: 8px;
+    min-height: 50px;
+    padding: 12px 16px 12px 40px;
+    gap: 16px;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 22px;
+    cursor: pointer;
+    > a { color: var(--md-sys-color-on-surface) !important; }
+    > span { color: var(--md-sys-color-on-surface-variant); font-size: 12px; margin: 0; white-space: nowrap; }
+    &::before { color: var(--md-sys-color-on-surface); font-size: 20px; }
+    &:hover, &:focus-visible {
+      background: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-on-surface) 8%);
+      > a { color: var(--md-sys-color-on-surface) !important; }
+      &::before { color: var(--md-sys-color-on-surface); }
+    }
+    &:first-child { border-start-start-radius: 8px; border-start-end-radius: 8px; }
+    &:last-child { border-end-start-radius: 8px; border-end-end-radius: 8px; }
+    &.jcontextmenu-disabled {
+      cursor: default;
+      > a, > span, &::before { color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent) !important; }
+      &:hover { background: transparent; }
+    }
+  }
+  > hr { border: 0; border-top: 1px solid var(--md-sys-color-outline-variant); margin: 4px 0; }
+}

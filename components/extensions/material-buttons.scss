@@ -1,0 +1,232 @@
+// Add after Materialize. Opt-in classes preserve existing .btn styling elsewhere.
+.btn.btn-expressive {
+  --button-height: 40px;
+  --button-padding: 24px;
+  --button-icon: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--button-height);
+  min-height: var(--button-height);
+  padding: 0 var(--button-padding);
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1.2;
+  text-transform: none;
+  white-space: nowrap;
+  transition:
+    border-radius 180ms ease,
+    background-color 180ms ease,
+    flex-grow 180ms ease;
+  > .material-icons {
+    position: static;
+    transform: none;
+    font-size: var(--button-icon);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  &:focus-visible {
+    outline: 3px solid var(--md-sys-color-on-surface);
+    outline-offset: 3px;
+  }
+  &:active:not(:disabled) {
+    border-radius: 12px;
+  }
+  &.btn-xs {
+    --button-height: 32px;
+    --button-padding: 12px;
+  }
+  &.btn-sm {
+    --button-height: 40px;
+  }
+  &.btn-md {
+    --button-height: 56px;
+    --button-icon: 24px;
+    font-size: 16px;
+  }
+  &.btn-lg {
+    --button-height: 96px;
+    --button-padding: 40px;
+    --button-icon: 32px;
+    font-size: 24px;
+  }
+  &.btn-xl {
+    --button-height: 136px;
+    --button-padding: 48px;
+    --button-icon: 40px;
+    font-size: 32px;
+  }
+  &.btn-square {
+    border-radius: calc(var(--button-height) * 0.28);
+  }
+}
+
+// Toggle state belongs in aria-pressed, so visual and accessible states agree.
+.btn.btn-toggle[aria-pressed="true"] {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: transparent;
+  border-radius: 16px;
+}
+.btn.btn-icon {
+  width: var(--button-height);
+  min-width: var(--button-height);
+  padding: 0;
+}
+.btn.btn-icon-standard {
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  box-shadow: none;
+}
+.btn.btn-icon-standard:hover:not(:disabled) {
+  background: var(--md-sys-color-surface-variant);
+}
+.btn.btn-icon.btn-toggle[aria-pressed="true"] {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.btn.btn-icon.btn-icon-narrow {
+  width: calc(var(--button-height) * 0.8);
+  min-width: calc(var(--button-height) * 0.8);
+}
+.btn.btn-icon.btn-icon-wide {
+  width: calc(var(--button-height) * 1.5);
+}
+
+// Standard groups keep gaps; connected groups share the outer silhouette.
+.btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.btn-group > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.btn-group-standard {
+  width: 100%;
+  max-width: 480px;
+}
+.btn-group-standard > .btn:hover:not(:disabled) {
+  flex-grow: 1.2;
+}
+.btn-group-connected {
+  gap: 2px;
+}
+.btn-group-connected > .btn.btn-expressive {
+  border-radius: 4px;
+}
+.btn-group-connected > .btn.btn-expressive:first-child {
+  border-start-start-radius: 999px;
+  border-end-start-radius: 999px;
+}
+.btn-group-connected > .btn.btn-expressive:last-child {
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+}
+// Keep the connected silhouette unchanged during selection and pointer presses.
+.btn-group-connected > .btn.btn-expressive:active:not(:disabled) {
+  border-radius: 4px;
+  &:first-child {
+    border-start-start-radius: 999px;
+    border-end-start-radius: 999px;
+  }
+  &:last-child {
+    border-start-end-radius: 999px;
+    border-end-end-radius: 999px;
+  }
+}
+
+// Split controls expose a separate primary action and menu action.
+.btn-split {
+  display: inline-flex;
+  gap: 2px;
+  position: relative;
+  vertical-align: middle;
+}
+.btn-split > .btn:first-child {
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+}
+.btn-split > .btn-menu-trigger {
+  border-start-start-radius: 4px;
+  border-end-start-radius: 4px;
+}
+.btn-menu-trigger > .material-icons {
+  transition: transform 180ms ease;
+}
+.btn-menu-trigger[aria-expanded="true"] > .material-icons {
+  transform: rotate(180deg);
+}
+// FABs use container colors and elevation; extended FABs also carry a label.
+.btn.btn-fab {
+  --button-height: 56px;
+  --button-icon: 24px;
+  width: var(--button-height);
+  padding: 0;
+  border-radius: 16px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: 0 3px 8px
+    color-mix(in srgb, var(--md-sys-color-shadow) 20%, transparent);
+  &.fab-secondary {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  &.fab-tertiary {
+    background: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+  }
+  &.fab-small {
+    --button-height: 40px;
+    border-radius: 12px;
+  }
+  &.fab-large {
+    --button-height: 96px;
+    --button-icon: 36px;
+    border-radius: 28px;
+  }
+  &.btn-fab-extended {
+    width: auto;
+    padding: 0 20px;
+  }
+}
+.btn-fab-menu {
+  position: relative;
+  display: inline-flex;
+}
+.btn-fab-menu .btn-menu-trigger[aria-expanded="true"] > .material-icons {
+  transform: rotate(45deg);
+}
+
+// Explicitly retain native disabled behavior across all custom variants.
+.btn.btn-expressive:disabled,
+.btn.btn-expressive.btn-toggle:disabled {
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) 12%,
+    transparent
+  );
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  box-shadow: none;
+  cursor: default;
+}
+@media (pointer: coarse) {
+  .btn.btn-expressive::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+    min-height: 48px;
+  }
+  .btn-group {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.btn-expressive,
+  .btn-menu-trigger > .material-icons {
+    transition: none;
+  }
+}

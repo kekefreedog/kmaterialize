@@ -1,0 +1,413 @@
+/// /// ///
+/// Enhancement - Crazy Content
+///
+/// jSuites ft. Materialize
+///
+/// Reconciles the floating widgets shipped by jSuites (https://github.com/jsuites/jsuites)
+/// with the Materialize look & feel (https://github.com/materializecss/materialize) so the
+/// dropdowns, calendars, context menus and color pickers rendered by kSpreadsheet
+/// (https://github.com/kekefreedog/kspreadsheet) read like native Materialize surfaces.
+///
+/// Two hard conflicts are resolved here:
+///   1. Materialize styles every raw `<select>` (width:100%, height:3rem, border) which breaks
+///      the inline month / year selectors of the jSuites calendar.
+///   2. Materialize colors every `<a>` with its link blue which bleeds into context-menu items.
+///
+/// Everything below only re-themes colors, typography, radius and elevation. The structural
+/// properties kSpreadsheet relies on (position, transform, z-index, dimensions) are left
+/// untouched, and the in-cell editors under `.jss_worksheet` keep the overrides already forced
+/// by jspreadsheet.css — so kSpreadsheet is never compromised.
+///
+/// @package    kzarshenas/crazyphp
+/// @author     kekefreedog <kevin.zarshenas@gmail.com>
+/// @copyright  2022-2025 Kévin Zarshenas
+/// /// ///
+
+/// Parameters
+///////////////////////////////////////////////////////
+///
+
+/* Variable for repeated values */
+$jsuites-font-family:   'Roboto', sans-serif;
+$jsuites-font-size:     14px;
+$jsuites-radius:        4px;
+$jsuites-elevation:     0 2px 2px rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px rgba(0, 0, 0, .2);
+
+/// Styles
+///////////////////////////////////////////////////////
+///
+
+/**
+ * Shared accent
+ *
+ * jSuites exposes its accent through CSS variables — remap them onto the Materialize palette so
+ * the "done" / "close" / "reset" affordances match the rest of the UI.
+ */
+.jdropdown,
+.jcalendar,
+.jcontextmenu,
+.jcolor,
+.jslider,
+.jpicker {
+
+    // Accent
+    --jactive-color: var(--md-sys-color-primary);
+    --jbutton-color: var(--md-sys-color-primary);
+
+    // Font
+    font-family: $jsuites-font-family;
+
+}
+
+/**
+ * Dropdown
+ *
+ * The `.jdropdown-container` popup is appended to the body, outside `.jss_worksheet`, which is
+ * why it escapes the kSpreadsheet overrides and needs its own Materialize skin here.
+ */
+.jdropdown-container {
+
+    // Surface
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+
+    // Border
+    border: none;
+    border-radius: $jsuites-radius;
+
+    // Elevation
+    box-shadow: $jsuites-elevation;
+
+    // Overflow
+    overflow: hidden;
+
+    // Content
+    .jdropdown-content {
+
+        // Surface
+        background-color: var(--md-sys-color-surface);
+
+    }
+
+    // Item
+    .jdropdown-item {
+
+        // Font
+        font-family: $jsuites-font-family;
+        font-size: $jsuites-font-size;
+
+        // Color
+        color: var(--md-sys-color-on-surface);
+
+        // Dimension
+        padding: 10px 16px;
+
+        // Title
+        .jdropdown-title {
+
+            // Color
+            color: var(--md-sys-color-on-surface-variant);
+
+        }
+
+    }
+
+    // Group name
+    .jdropdown-group-name {
+
+        // Font
+        font-family: $jsuites-font-family;
+        font-size: 12px;
+        font-weight: 500;
+
+        // Color
+        color: var(--md-sys-color-primary);
+
+    }
+
+    // Search bar
+    .jdropdown-container-header input {
+
+        // Font
+        font-family: $jsuites-font-family;
+        font-size: $jsuites-font-size;
+
+        // Surface
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+
+        // Border
+        border: none;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 0;
+
+    }
+
+    // Close
+    .jdropdown-close {
+
+        // Color
+        color: var(--md-sys-color-primary);
+
+    }
+
+}
+
+/**
+ * Dropdown - states
+ *
+ * Replace the hard-coded jSuites blue (#1f93ff) hover / selection with the Materialize
+ * secondary-container / primary tokens.
+ */
+.jdropdown-default,
+.jdropdown-picker,
+.jdropdown-searchbar,
+.jdropdown-list {
+
+    // Hover
+    .jdropdown-item:hover {
+
+        // Surface
+        background-color: color-mix(in srgb, transparent, var(--md-sys-color-primary) 8%);
+        color: var(--md-sys-color-on-surface);
+
+    }
+
+    // Keyboard cursor
+    .jdropdown-cursor {
+
+        // Surface
+        background-color: color-mix(in srgb, transparent, var(--md-sys-color-primary) 12%);
+
+    }
+
+    // Selected
+    .jdropdown-selected {
+
+        // Surface
+        background-color: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-on-surface));
+
+    }
+
+}
+
+/**
+ * Calendar
+ */
+.jcalendar {
+
+    // Content surface
+    .jcalendar-content {
+
+        // Surface
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+
+        // Border
+        border-radius: $jsuites-radius;
+
+        // Elevation
+        box-shadow: $jsuites-elevation;
+
+    }
+
+    // Header
+    .jcalendar-header {
+
+        // Color
+        color: var(--md-sys-color-on-surface);
+
+    }
+
+    // Weekday
+    .jcalendar-weekday {
+
+        // Surface
+        background-color: transparent;
+
+        // Color
+        color: var(--md-sys-color-on-surface-variant);
+
+        // Font
+        font-family: $jsuites-font-family;
+        font-weight: 500;
+
+    }
+
+    // Table cells
+    .jcalendar-table td {
+
+        // Font
+        font-family: $jsuites-font-family;
+
+    }
+
+    // Selected day
+    .jcalendar-selected {
+
+        // Surface
+        background-color: var(--md-sys-color-primary)!important;
+        color: var(--md-sys-color-on-primary)!important;
+
+        // Border
+        border-radius: 50%;
+
+    }
+
+    // Confirm / reset controls
+    .jcalendar-confirm,
+    .jcalendar-reset {
+
+        // Color
+        color: var(--md-sys-color-primary);
+
+    }
+
+    /**
+     * Conflict fix - the inline month / year `<select>` gets crushed by Materialize's global
+     * `select { width:100%; height:3rem; border; }`. Restore the compact jSuites layout.
+     */
+    .jcalendar-container select {
+
+        // Reset the Materialize global select
+        width: auto!important;
+        height: auto!important;
+        padding: 4px!important;
+        border: 0!important;
+        border-radius: 0!important;
+
+        // Surface
+        background-color: transparent!important;
+        color: var(--md-sys-color-on-surface)!important;
+
+        // Font
+        font-family: $jsuites-font-family;
+        display: inline-block!important;
+
+    }
+
+}
+
+/**
+ * Context menu
+ */
+.jcontextmenu {
+
+    // Surface
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+
+    // Border
+    border: none;
+    border-radius: $jsuites-radius;
+
+    // Elevation
+    box-shadow: $jsuites-elevation;
+
+    // Font
+    font-family: $jsuites-font-family;
+
+    // Item
+    > div {
+
+        // Font
+        font-size: 13px;
+        font-family: $jsuites-font-family;
+
+        // Icon
+        &::before {
+
+            // Color
+            color: var(--md-sys-color-on-surface-variant);
+
+        }
+
+        // Hover / highlight
+        &:hover {
+
+            // Surface - a distinct Material container so the row clearly reads as highlighted,
+            // paired below with its guaranteed-contrast on-* text token.
+            background-color: var(--md-sys-color-secondary-container);
+
+            // Label + icon stay readable on the highlight (contrast-safe pair)
+            a {
+
+                // Color
+                color: var(--md-sys-color-on-secondary-container)!important;
+
+            }
+
+            &::before {
+
+                // Color
+                color: var(--md-sys-color-on-secondary-container);
+
+            }
+
+        }
+
+        /**
+         * Conflict fix - Materialize colors every `<a>` with its link blue, which on the pale
+         * highlight left the label almost invisible. Force the menu label onto the surface text
+         * token so it is dark and readable in every theme (the hover state above swaps in the
+         * matching on-secondary-container pair).
+         */
+        a {
+
+            // Color
+            color: var(--md-sys-color-on-surface)!important;
+
+        }
+
+    }
+
+    // Disabled
+    .jcontextmenu-disabled a,
+    .jcontextmenu-disabled::before {
+
+        // Color
+        color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%)!important;
+
+    }
+
+    // Divisor
+    hr {
+
+        // Color
+        border-color: var(--md-sys-color-outline-variant);
+
+    }
+
+}
+
+/**
+ * Color picker
+ */
+.jcolor {
+
+    // Content surface
+    .jcolor-content {
+
+        // Surface
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+
+        // Border
+        border-radius: $jsuites-radius;
+
+        // Elevation
+        box-shadow: $jsuites-elevation;
+
+    }
+
+    // Reset / close controls
+    .jcolor-reset,
+    .jcolor-close {
+
+        // Color
+        color: var(--md-sys-color-primary);
+
+    }
+
+}

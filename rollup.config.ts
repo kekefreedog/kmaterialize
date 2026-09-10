@@ -41,7 +41,8 @@ const peerDeps = [
   'filepond-plugin-image-preview',
   'filepond-plugin-file-validate-type',
   'filepond-plugin-image-exif-orientation',
-  'imask'
+  'imask',
+  'tippy.js'
 ];
 
 const version = packageJson.version;
@@ -83,6 +84,22 @@ const colorsCssOptions: SassPluginOptions = {
 };
 
 const config: RollupOptions[] = [
+  // Optional Tippy entry point keeps this peer out of the main library bundle.
+  {
+    input: 'components/extensions/tippy.ts',
+    external: peerDeps,
+    plugins: [typescriptPlugin()],
+    output: [
+      { file: 'dist/js/tippy.mjs', format: 'esm' },
+      { file: 'dist/js/tippy.cjs.js', format: 'cjs' }
+    ]
+  },
+  {
+    input: 'components/extensions/tippy.ts',
+    external: peerDeps,
+    plugins: [typescriptPlugin(), dtsPlugin()],
+    output: [{ file: 'dist/js/tippy.d.ts', format: 'esm' }]
+  },
   //--- Replace version in index.ts
   {
     input: 'empty',

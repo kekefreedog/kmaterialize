@@ -2286,6 +2286,12 @@ interface NumberInputOptions extends BaseOptions$1 {
     min?: number;
     max?: number;
     scale?: number;
+    /** Opt in to left/right fine and coarse increment controls. */
+    controls?: boolean;
+    /** Fine increment; otherwise read step, falling back to 1. */
+    step?: number;
+    /** Coarse increment; otherwise data-number-large-step or ten fine increments. */
+    largeStep?: number;
 }
 declare class NumberInput extends Component<NumberInputOptions> {
     el: HTMLInputElement;
@@ -2297,6 +2303,22 @@ declare class NumberInput extends Component<NumberInputOptions> {
     static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<NumberInputOptions>): NumberInput[];
     static getInstance(el: HTMLInputElement): NumberInput;
     destroy(): void;
+    private _destroyed;
+    private _controls;
+    private _events;
+    private _observer;
+    private _originalAttributes;
+    private get stepSize();
+    private get largeStepSize();
+    private bound;
+    private decimalPlaces;
+    /** Increase by the fine step, or the coarse step when large is true. */
+    increment(large?: boolean): void;
+    /** Decrease by the fine step, or the coarse step when large is true. */
+    decrement(large?: boolean): void;
+    private adjust;
+    private setupControls;
+    private syncControls;
     _setup(): Promise<void>;
 }
 
@@ -2866,6 +2888,558 @@ class Waves {
   }
 }
 
+/** Initialize Materialize dropdowns and the additional button selection states. */
+declare function initMaterialButtons(root: HTMLElement): () => void;
+
+/** Enhance a submission-style checklist. Ordinary lists need no initialization. */
+declare function initListChecklist(root: HTMLElement): () => void;
+
+interface ChartPrintOptions {
+    /** PDF-only theme. Does not change the application theme. Defaults to light. */
+    theme?: 'light' | 'dark';
+}
+/** Print a full-size snapshot, without changing the live chart or its zoom. */
+declare function printChart(stage: HTMLElement, title: string, options?: ChartPrintOptions): Promise<void>;
+
+interface OrgChartAppearance {
+    color?: string;
+    textColor?: string;
+    borderColor?: string;
+    accent?: string;
+    accentPosition?: "top" | "right" | "bottom" | "left";
+}
+interface OrgChartTeam extends OrgChartAppearance {
+    id: string;
+    name: string;
+    x: number;
+    y: number;
+}
+interface OrgChartPerson extends OrgChartAppearance {
+    id: string;
+    teamId: string;
+    name: string;
+    role?: string;
+}
+interface OrgChartLink {
+    from: string;
+    to: string;
+    fromType?: "person" | "team";
+    toType?: "person" | "team";
+    label?: string;
+}
+interface OrgChartData {
+    teams: OrgChartTeam[];
+    people: OrgChartPerson[];
+    links: OrgChartLink[];
+}
+interface OrgChartOptions {
+    data: OrgChartData;
+    draggable?: boolean;
+    /** Enable mouse/touch connection ports on cards and groups. Defaults to true. */
+    connectable?: boolean;
+    /** Allow inline link-label editing. Defaults to false. */
+    editable?: boolean;
+    orientation?: "horizontal" | "vertical";
+    onChange?: (data: OrgChartData) => void;
+    zoom?: number;
+    minZoom?: number;
+    maxZoom?: number;
+    onZoomChange?: (zoom: number) => void;
+}
+/** Materialize organization chart; no graph dependency. */
+declare class OrgChart {
+    private el;
+    private options;
+    private zoom;
+    private labelEditor?;
+    private static instances;
+    private data;
+    private stage;
+    private svg;
+    private summary;
+    private people;
+    private panels;
+    private events;
+    private observer;
+    private drag?;
+    private frame;
+    private removeCardHandles?;
+    private originalNodes;
+    private hadClass;
+    private removeGestures;
+    private connections?;
+    static init(el: HTMLElement, options: OrgChartOptions): OrgChart;
+    static getInstance(el: HTMLElement): OrgChart | undefined;
+    constructor(el: HTMLElement, options: OrgChartOptions);
+    getData(): OrgChartData;
+    /** Set the canvas scale, clamped to the configured limits. */
+    setZoom(value: number): void;
+    /** Return the current canvas scale multiplier. */
+    getZoom(): number;
+    /** Restore the canvas to 100% scale. */
+    resetZoom(): void;
+    /** Open a full-chart print preview; select Save as PDF in the browser. */
+    exportPdf(title?: string, options?: ChartPrintOptions): Promise<void>;
+    private clampZoom;
+    setData(data: OrgChartData): void;
+    destroy(): void;
+    private validate;
+    private applyAppearance;
+    private render;
+    private scheduleDraw;
+    private connectionPort;
+    private draw;
+    private positionLabelEditor;
+    private editLabel;
+    private finishLabelEdit;
+    private startDrag;
+    private moveDrag;
+    private endDrag;
+    private moveWithKeyboard;
+    private move;
+}
+
+interface CardHandleOptions {
+    cardSelector: string;
+    dropSelector: string;
+    enabled: (card: HTMLElement) => boolean;
+    onMove: (card: HTMLElement, from: HTMLElement, to: HTMLElement) => void;
+}
+/** Pointer-based handles keep ordinary swipes available for page scrolling. */
+declare function enableCardHandles(root: HTMLElement, options: CardHandleOptions): () => void;
+
+interface ChartEndpoint {
+    id: string;
+    type: 'person' | 'team';
+}
+/** Drag a connection port without moving the underlying card or team. */
+declare function enableChartConnections(root: HTMLElement, stage: HTMLElement, getZoom: () => number, canConnect: (from: ChartEndpoint, to: ChartEndpoint) => boolean, connect: (from: ChartEndpoint, to: ChartEndpoint) => void): {
+    cancel: () => void;
+    destroy: () => void;
+};
+
+/** Two-finger pinch and Ctrl/trackpad wheel zoom; ordinary wheel keeps scrolling. */
+declare function enableChartGestures(root: HTMLElement, getZoom: () => number, setZoom: (zoom: number) => void, cancelDrag: () => void): () => void;
+
+/**
+ * Front
+ *
+ * Front TS scripts for your Crazy App.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+declare const Kmcomponent_base: {
+    new (): HTMLElement;
+    prototype: HTMLElement;
+};
+/**
+ * Kmcomponent
+ *
+ * Reactive web components using compiled Handlebars templates and SCSS styles.
+ * Supports light DOM projection or native slots inside an open shadow root.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+declare abstract class Kmcomponent<T extends object = Record<string, unknown>> extends Kmcomponent_base {
+    /** Static Parameters
+     ******************************************************
+     */
+    /** @var properties Property schema, available before custom element registration */
+    static properties: KmcomponentProperties;
+    /** @var template Compiled HBS function, HTML string, or module export */
+    static template: KmcomponentTemplate;
+    /** @var styles Compiled CSS, context function, or css-loader export */
+    static styles: KmcomponentStyles;
+    /** @var options Default rendering mode for instances of the component */
+    static options: KmcomponentOptions;
+    /** Parameters
+     ******************************************************
+     */
+    /** @var renderRoot Query this element or shadow root in component hooks */
+    readonly renderRoot: HTMLElement | ShadowRoot;
+    /** @var updateComplete Resolves true after rendering, false if disconnected before the update */
+    updateComplete: Promise<boolean>;
+    /** Private Parameters
+     ******************************************************
+     */
+    /** @var _values Current typed values, independent from the static schema */
+    private _values;
+    /** @var _initialized Whether defaults have been validated and copied */
+    private _initialized;
+    /** @var _pending Whether a render microtask is already queued */
+    private _pending;
+    /** @var _reflecting Prevent attribute reflection from feeding back into property updates */
+    private _reflecting;
+    /** @var _template Optional template override for this instance */
+    private _template?;
+    /** @var _styles Optional stylesheet override for this instance */
+    private _styles?;
+    /** @var _cleanups Resources to release before rerendering or disconnecting */
+    private _cleanups;
+    /** @var _observer Observer for light DOM child changes */
+    private _observer;
+    /** @var _children Supplied child nodes in their projection order */
+    private _children;
+    /** @var _ownedRoots Template roots, excluded when collecting supplied children */
+    private _ownedRoots;
+    /** @var _slots Light DOM insertion points and their original fallback content */
+    private _slots;
+    /** @var _parking Retained children without a matching light DOM slot */
+    private _parking;
+    /**
+     * Constructor
+     *
+     * Choose the rendering root without reading attributes or supplied children.
+     * Subclass fields are initialized after this constructor returns.
+     *
+     * @param options Rendering options overriding the static defaults
+     */
+    constructor(options?: KmcomponentOptions);
+    /** Methods | Events
+     ******************************************************
+     */
+    /**
+     * Post Render
+     *
+     * Called after the generated markup and projected children have been mounted.
+     * Override to install event handlers or widgets, paired with onCleanup().
+     *
+     * @return void
+     */
+    postRender(): void;
+    /**
+     * On Cleanup
+     *
+     * Register a resource disposer for the current rendered content.
+     *
+     * @param cleanup Callback executed before rerendering or disconnecting
+     * @return void
+     */
+    onCleanup(cleanup: () => void): void;
+    /** Public Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Property
+     *
+     * Read a typed value, initializing per-instance defaults when necessary.
+     *
+     * @param name Declared property name
+     * @return Current property value
+     * @throws TypeError When the property is not declared
+     */
+    getProperty<K extends keyof T & string>(name: K): T[K];
+    /**
+     * Set Property
+     *
+     * Update a typed value and optionally reflect it to the mapped HTML attribute.
+     * Programmatic values must already match the declared type.
+     *
+     * @param name Declared property name
+     * @param value New typed value
+     * @return void
+     * @throws TypeError When the value is invalid or cannot be serialized
+     */
+    setProperty<K extends keyof T & string>(name: K, value: T[K]): void;
+    /** Public Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Set Html And Css
+     *
+     * Override the static assets for one instance, including constructor-based setup.
+     *
+     * @param html HTML string, compiled template, or module export
+     * @param css CSS string, context function, or css-loader export
+     * @return void
+     */
+    setHtmlAndCss(html: KmcomponentTemplate, css: KmcomponentStyles): void;
+    /**
+     * Render
+     *
+     * Evaluate the template without mounting it or changing supplied children.
+     * Styles are mounted separately during the scheduled update.
+     *
+     * @return Rendered HTML
+     */
+    render(): string;
+    /**
+     * Request Update
+     *
+     * Batch synchronous changes into one render microtask.
+     * Changes made while disconnected are rendered on the next connection.
+     *
+     * @return Promise resolving whether the queued update rendered
+     */
+    requestUpdate(): Promise<boolean>;
+    /** Protected Methods
+     ******************************************************
+     */
+    /**
+     * Prepare Context
+     *
+     * Build the template data using the existing attributes/name convention.
+     * Override to add component-specific context.
+     *
+     * @return Template context
+     */
+    protected prepareContext(): KmcomponentContext;
+    /** Private Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Component
+     *
+     * Access declarations on the concrete subclass rather than instance fields.
+     *
+     * @return Component constructor
+     */
+    private get component();
+    /**
+     * Get Definition
+     *
+     * Resolve an own schema entry, rejecting undeclared property names.
+     *
+     * @param name Property name
+     * @return Property definition
+     */
+    private definition;
+    /**
+     * Clone Default
+     *
+     * Copy JSON-compatible defaults recursively so instances do not share objects.
+     *
+     * @param value Default value to copy
+     * @return Independent copy of the value
+     */
+    private clone;
+    /**
+     * Get Default Value
+     *
+     * Use the declared default or the empty value for the declared type.
+     *
+     * @param property Property definition
+     * @return Fresh default value
+     */
+    private defaultValue;
+    /**
+     * Validate Value
+     *
+     * Check the runtime type and any allowed scalar values.
+     *
+     * @param value Value to validate
+     * @param property Property definition
+     * @return Whether the value matches the schema
+     */
+    private valid;
+    /**
+     * Initialize Properties
+     *
+     * Validate the schema and create each instance's initial values once.
+     *
+     * @return void
+     * @throws TypeError When defaults or reflection options are inconsistent
+     */
+    private initialize;
+    /**
+     * Convert Attribute
+     *
+     * Convert HTML strings to typed values. Invalid or removed attributes restore
+     * the declared default, including explicit false and zero values.
+     *
+     * @param value HTML attribute value, or null when removed
+     * @param property Property definition
+     * @return Converted value or default
+     */
+    private fromAttribute;
+    /** Private Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Get Style Text
+     *
+     * Normalize styles while retaining css-loader's CSS-aware serialization.
+     *
+     * @return CSS text
+     */
+    private styleText;
+    /**
+     * Update
+     *
+     * Prepare the new markup before replacing the current render.
+     * Retain supplied light DOM nodes and mount them into the new insertion points.
+     *
+     * @return void
+     */
+    private update;
+    /**
+     * Cleanup
+     *
+     * Release resources in reverse registration order.
+     * Run every disposer even if one fails, then propagate the last error.
+     *
+     * @return void
+     */
+    private cleanup;
+    /** Private Methods | Children
+     ******************************************************
+     */
+    /**
+     * Collect Children
+     *
+     * Retain supplied nodes still owned by this component and discover newly
+     * appended host children. Removed nodes must not return on the next render.
+     *
+     * @return void
+     */
+    private collectChildren;
+    /**
+     * Project Children
+     *
+     * Assign supplied nodes to the first matching light DOM slot.
+     * Restore fallback content for empty slots and retain unmatched nodes.
+     *
+     * @return void
+     */
+    private projectChildren;
+    /**
+     * Observe Children
+     *
+     * Watch supplied child changes only in light DOM. Native shadow slots are
+     * managed by the browser. Pause observation while performing internal moves.
+     *
+     * @return void
+     */
+    private observeChildren;
+    /** Methods | Callbacks
+     ******************************************************
+     */
+    /**
+     * Connected Callback
+     *
+     * Initialize values, resume child observation, and schedule rendering.
+     *
+     * @return void
+     */
+    connectedCallback(): void;
+    /**
+     * Disconnected Callback
+     *
+     * Stop child observation and release resources for the current render.
+     *
+     * @return void
+     */
+    disconnectedCallback(): void;
+    /**
+     * Attribute Changed Callback
+     *
+     * Keep typed values current even while detached, without reflection loops.
+     *
+     * @param name Changed HTML attribute name
+     * @param oldValue Previous attribute value
+     * @param newValue New attribute value, or null when removed
+     * @return void
+     */
+    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void;
+    /** Static Methods
+     ******************************************************
+     */
+    /**
+     * Observed Attributes
+     *
+     * Derive observed attributes from the static schema at registration time.
+     * Duplicate mappings would make property updates ambiguous.
+     *
+     * @return Mapped HTML attribute names
+     */
+    static get observedAttributes(): string[];
+    /**
+     * Get Attribute Name
+     *
+     * Resolve and validate an optional lowercase HTML attribute mapping.
+     *
+     * @param name Property name
+     * @param property Property definition
+     * @return Mapped name, or null for a property without an attribute
+     */
+    private static attributeName;
+}
+/** Interface
+ ******************************************************
+ */
+/** Shared property metadata, with allowed values restricted to scalar types. */
+type PropertyOptions<T, Name extends string> = {
+    /** Declared runtime value type. */
+    type: Name;
+    /** Initial value and fallback for removed or invalid attributes. */
+    default?: T;
+    /** Observed HTML attribute; defaults to the lowercase property name. */
+    attribute?: boolean | string;
+    /** Also write programmatic changes to the HTML attribute. Default: false. */
+    reflect?: boolean;
+    /** Allowed scalar values; the default must belong to this collection. */
+    select?: [T] extends [string | number | boolean] ? readonly T[] : never;
+};
+/** Supported property definitions and their corresponding default types. */
+type KmcomponentProperty = PropertyOptions<string, "string"> | PropertyOptions<number, "number"> | PropertyOptions<boolean, "boolean"> | PropertyOptions<unknown[], "array"> | PropertyOptions<Record<string, unknown>, "object">;
+/** Static property schema for one component class. */
+type KmcomponentProperties = Record<string, KmcomponentProperty>;
+/** Rendering configuration, fixed when an instance is constructed. */
+interface KmcomponentOptions {
+    /** false: light DOM (default); true: an open shadow root. Fixed at construction. */
+    shadow?: boolean;
+}
+/** Template data compatible with existing CrazyPHP Handlebars expressions. */
+interface KmcomponentContext<T extends object = Record<string, unknown>> {
+    /** Current typed property values. */
+    attributes: T;
+    /** Registered custom element tag name. */
+    name: string;
+}
+/** Compiled Handlebars function, literal HTML, or a default module wrapper. */
+type KmcomponentTemplate = string | ((context: KmcomponentContext) => string) | {
+    default: KmcomponentTemplate;
+};
+/** Compiled CSS or loader output; style functions receive the template context. */
+type KmcomponentStyles = string | ((context: KmcomponentContext) => string) | {
+    default: KmcomponentStyles;
+} | {
+    toString(): string;
+};
+
+/** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
+declare class CrazyButton extends Kmcomponent {
+    static properties: KmcomponentProperties;
+    /** Resolves when the current render’s optional tooltip has initialized. */
+    tooltipReady: Promise<void>;
+    getCurrentAttribute(name: string): unknown;
+    hasCurrentAttribute(name: string): boolean;
+    render(): string;
+    postRender(): void;
+    private restoreFocus;
+    private applyColor;
+}
+
+/** Reactive Loading wrapper. Styles and behavior belong to the existing Loading component. */
+declare class CrazyLoading extends Kmcomponent {
+    static properties: KmcomponentProperties;
+    get isActive(): boolean;
+    /** Show the ring. Await updateComplete when reading the rendered status. */
+    start(label?: string): void;
+    /** Hide the ring while retaining the logo or projected content. */
+    stop(label?: string): void;
+    render(): string;
+    postRender(): void;
+}
+/** Original no-attribute markup retains its 10rem size and application favicon. */
+declare class LoadingScreenBtn extends CrazyLoading {
+    static properties: KmcomponentProperties;
+}
+
 declare const version = "2.3.3";
 /**
  * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
@@ -2910,5 +3484,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Loading, Materialbox, Modal, NumberInput, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, toast, version };
-export type { AutoInitOptions, PopupOptions, PopupResult };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult };

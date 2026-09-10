@@ -1,0 +1,241 @@
+.org-chart {
+  position: relative;
+  overflow: auto;
+  height: 560px;
+  max-height: 680px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 24px;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  background-image: radial-gradient(var(--md-sys-color-outline-variant) 1px, transparent 1px);
+  background-size: 24px 24px;
+  isolation: isolate;
+  overscroll-behavior: contain;
+}
+
+.org-chart-stage { position: relative; transform-origin: 0 0; }
+// Dedicated connection handles are separate from the card movement handles.
+.org-chart-connect-port {
+  position: absolute;
+  right: -10px;
+  top: 18px;
+  z-index: 3;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-primary);
+  cursor: crosshair;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  > .material-icons { display: block; width: 16px; height: 16px; font-size: 16px; line-height: 1; margin: 0; }
+  &:focus-visible { outline: 2px solid var(--md-sys-color-on-surface); outline-offset: 3px; }
+}
+.org-chart-person > .org-chart-connect-port { top: 50%; transform: translateY(-50%); }
+.org-chart-connection-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+  path { fill: none; stroke: var(--md-sys-color-primary); stroke-width: 2; stroke-dasharray: 6 4; }
+}
+.org-chart-team {
+  position: absolute;
+  width: 248px;
+  padding: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 20px;
+  background: var(--org-item-color, var(--md-sys-color-surface-variant));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--md-sys-color-shadow) 8%, transparent);
+}
+.org-chart-team-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 8px 16px;
+  gap: 12px;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  color: var(--org-item-text, var(--md-sys-color-on-surface-variant));
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  &:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+  &.is-dragging { cursor: grabbing; }
+  &:disabled { cursor: default; opacity: 1; }
+}
+.org-chart-team-name { font-weight: 700; overflow-wrap: anywhere; }
+.org-chart-count {
+  flex: none;
+  border-radius: 20px;
+  padding: 3px 9px;
+  font-size: 12px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.org-chart-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  margin-bottom: 8px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: var(--org-item-color, var(--md-sys-color-surface));
+  &:last-child { margin-bottom: 0; }
+}
+.org-chart-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--org-item-color, var(--md-sys-color-primary-container));
+  color: var(--org-item-text, var(--md-sys-color-on-primary-container));
+  font-size: 12px;
+  font-weight: 700;
+}
+.org-chart-person-details { min-width: 0; }
+.org-chart-person-name, .org-chart-person-role { display: block; overflow-wrap: anywhere; }
+.org-chart-person-name { font-size: 14px; line-height: 1.4; }
+.org-chart-person-role { margin-top: 4px; font-size: 12px; color: var(--org-item-text, var(--md-sys-color-on-surface-variant)); }
+.org-chart-empty { padding: 16px; font-size: 14px; color: var(--md-sys-color-on-surface-variant); }
+.org-chart-links {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+  path { fill: none; stroke: var(--md-sys-color-primary); stroke-width: 1.75; opacity: .65; }
+  circle { fill: var(--md-sys-color-primary); }
+  text {
+    fill: var(--md-sys-color-on-surface-variant);
+    stroke: var(--md-sys-color-surface);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    font-family: inherit;
+    font-size: 11px;
+    text-anchor: middle;
+  }
+}
+.org-chart-summary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Documentation controls; kept local to this page's stylesheet.
+.org-chart-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0 16px; }
+.org-chart-toolbar-title { margin-right: auto; font-size: 18px; font-weight: 700; }
+.org-chart-form { display: grid; gap: 16px; }
+.org-chart-field {
+  display: grid;
+  gap: 8px;
+  label { position: static; color: var(--md-sys-color-on-surface); font-size: 14px; }
+  select { display: block; width: 100%; color: var(--md-sys-color-on-surface); background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline); border-radius: 8px; padding: 10px; }
+}
+.org-chart-form-error { color: var(--md-sys-color-error); margin: 0; }
+
+.org-chart-drag-icon { flex: none; font-size: 24px; }
+.org-chart-team-name { flex: 1; }
+.org-chart-team-handle { min-height: 48px; gap: 8px; }
+.org-chart-person, .org-chart-team {
+  position: relative;
+  &.org-chart-tinted { background: color-mix(in srgb, var(--org-item-color) 18%, var(--md-sys-color-surface)); }
+  // Draw the accent on the card border itself, including rounded corners.
+  &[data-accent]::after { content: ""; position: absolute; pointer-events: none; inset: -1px; border: 3px solid transparent; border-radius: inherit; }
+  &[data-accent="top"]::after { border-top-color: var(--org-item-accent); }
+  &[data-accent="bottom"]::after { border-bottom-color: var(--org-item-accent); }
+  &[data-accent="left"]::after { border-left-color: var(--org-item-accent); }
+  &[data-accent="right"]::after { border-right-color: var(--org-item-accent); }
+}
+.org-chart-team { position: absolute; }
+
+.org-chart-person { gap: 8px; padding: 12px 6px; }
+.org-chart-person > .card-drag-handle { flex-basis: 44px; order: 3; margin-left: auto; }
+.org-chart-person > .org-chart-avatar { flex-basis: 30px; height: 30px; }
+
+// Hover-capable pointers can reveal ports on demand. Touch users retain
+// visible connection controls; opacity keeps keyboard focus available.
+@media (hover: hover) and (pointer: fine) {
+  .org-chart-connect-port { opacity: 0; pointer-events: none; }
+  .org-chart-person:hover > .org-chart-connect-port,
+  .org-chart-team:hover > .org-chart-connect-port,
+  .org-chart-connect-port:focus-visible,
+  .org-chart:has(.org-chart-team-handle.is-dragging, .card-handle-dragging, .org-chart-connection-preview) .org-chart-connect-port,
+  .card-drag-ghost > .org-chart-connect-port {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.org-chart-links text.org-chart-link-label {
+  pointer-events: auto;
+  cursor: text;
+  &:hover { fill: var(--md-sys-color-primary); }
+  &:focus-visible { outline: 1px solid var(--md-sys-color-on-surface); outline-offset: 4px; }
+}
+.org-chart-stage > input.org-chart-link-editor {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  width: 220px;
+  height: 36px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 8px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-size: 13px;
+  box-shadow: none;
+}
+
+.org-chart-links .org-chart-link-remove {
+  pointer-events: auto;
+  cursor: pointer;
+  rect { fill: transparent; }
+  text { font-size: 18px; fill: var(--md-sys-color-on-surface-variant); }
+  &:hover rect, &:focus-visible rect { fill: var(--md-sys-color-surface-variant); }
+  &:hover text { fill: var(--md-sys-color-error); }
+  &:focus-visible { outline: 1px solid var(--md-sys-color-on-surface); border-radius: 50%; }
+}
+
+.org-chart-links .org-chart-link-hit {
+  stroke: transparent;
+  stroke-width: 16px;
+  pointer-events: stroke;
+}
+.org-chart-links .org-chart-link-remove rect { fill: var(--md-sys-color-surface); }
+@media (hover: hover) and (pointer: fine) {
+  .org-chart-links .org-chart-link-remove { opacity: 0; pointer-events: none; }
+  .org-chart-links .org-chart-link:hover .org-chart-link-remove,
+  .org-chart-links .org-chart-link:focus-within .org-chart-link-remove {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+// Empty relationships keep their line free of text until editing is requested.
+.org-chart-links .org-chart-link-label-empty { opacity: 0; }
+.org-chart-links .org-chart-link:hover .org-chart-link-label-empty,
+.org-chart-links .org-chart-link:focus-within .org-chart-link-label-empty { opacity: 1; }

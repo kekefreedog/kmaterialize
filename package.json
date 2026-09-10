@@ -18,7 +18,12 @@
     },
     "./dist/css/*": "./dist/css/*",
     "./sass/*": "./sass/*",
-    "./components/*": "./components/*"
+    "./components/*": "./components/*",
+    "./tippy": {
+      "types": "./dist/js/tippy.d.ts",
+      "import": "./dist/js/tippy.mjs",
+      "require": "./dist/js/tippy.cjs.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -65,18 +70,40 @@
     "filepond-plugin-image-preview": "^4.6.0",
     "imask": "^7.6.0",
     "sweetalert2": "^11.26.25",
-    "tom-select": "^2.3.0"
+    "tom-select": "^2.3.0",
+    "tippy.js": "^6.3.7"
   },
   "peerDependenciesMeta": {
-    "@simonwep/pickr": { "optional": true },
-    "air-datepicker": { "optional": true },
-    "filepond": { "optional": true },
-    "filepond-plugin-file-validate-type": { "optional": true },
-    "filepond-plugin-image-exif-orientation": { "optional": true },
-    "filepond-plugin-image-preview": { "optional": true },
-    "imask": { "optional": true },
-    "sweetalert2": { "optional": true },
-    "tom-select": { "optional": true }
+    "@simonwep/pickr": {
+      "optional": true
+    },
+    "air-datepicker": {
+      "optional": true
+    },
+    "filepond": {
+      "optional": true
+    },
+    "filepond-plugin-file-validate-type": {
+      "optional": true
+    },
+    "filepond-plugin-image-exif-orientation": {
+      "optional": true
+    },
+    "filepond-plugin-image-preview": {
+      "optional": true
+    },
+    "imask": {
+      "optional": true
+    },
+    "sweetalert2": {
+      "optional": true
+    },
+    "tom-select": {
+      "optional": true
+    },
+    "tippy.js": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@fontsource/material-icons": "^5.2.5",
@@ -113,7 +140,8 @@
     "tslib": "^2.6.3",
     "typescript": "^5.4.3",
     "typescript-eslint": "^8.6.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "tippy.js": "^6.3.7"
   },
   "files": [
     "dist/css",

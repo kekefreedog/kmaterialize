@@ -1,0 +1,44 @@
+.card-drag-handle {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  &:focus-visible { outline: 2px solid var(--md-sys-color-primary); }
+  &:active { cursor: grabbing; }
+}
+.card-handle-dragging { position: absolute !important; opacity: 0; pointer-events: none; }
+.card-drag-ghost { position: fixed !important; z-index: 10000; pointer-events: none; opacity: .85; margin: 0; max-height: 180px; overflow: hidden; background: var(--md-sys-color-surface); box-shadow: 0 8px 24px color-mix(in srgb, var(--md-sys-color-shadow) 20%, transparent); }
+.card-drag-placeholder { border: 2px dashed var(--md-sys-color-primary); border-radius: 14px; background: var(--md-sys-color-primary-container); margin-bottom: 8px; }
+
+.kanban-card:has(> .card-drag-handle) {
+  position: relative;
+  > .card-drag-handle {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    float: none;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 65%, transparent);
+    background: transparent;
+    border-radius: 50%;
+    // Suppress the browser's dotted outline when focusing a handle to drag it.
+    outline: none;
+    > .material-icons { font-size: 20px; }
+    &:focus-visible { outline: 2px solid var(--md-sys-color-primary); }
+    &:hover, &:focus-visible, &:active {
+      color: var(--md-sys-color-on-surface);
+      background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+    }
+  }
+  > .kanban-card-label, > .kanban-card-title { max-width: calc(100% - 36px); }
+}

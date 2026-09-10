@@ -1,0 +1,329 @@
+// Optional Material variant. Wrap the spreadsheet host with this class.
+// Unwrapped worksheets retain the vendor's colors, including in dark mode.
+.spreadsheet-material {
+  // Inherit the page palette so the grid matches surrounding navigation surfaces.
+
+/// /// ///
+/// Enhancement - Crazy Content
+///
+/// Jspreadsheet ft. Materialize
+///
+/// @package    kzarshenas/crazyphp
+/// @author     kekefreedog <kevin.zarshenas@gmail.com>
+/// @copyright  2022-2023 Kévin Zarshenas
+/// /// ///
+
+/// Parameters
+///////////////////////////////////////////////////////
+///
+// Vendor theme CSS is imported by the TypeScript entry before this enhancement.
+
+/* jSuites ft. Materialize - reconcile the floating jSuites widgets (dropdown, calendar,
+   contextmenu, color picker) used by kSpreadsheet with the Materialize look & feel */
+@import "./jsuites_materializecss.scss";
+
+/* Variable for repeated values */
+$font-size-default: 13px;
+$font-color-default: #444;
+$border-radius-default: 6px;
+$shadow-default: 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12), 0 2px 4px -1px rgba(0, 0, 0, .3);
+
+/// Styles
+///////////////////////////////////////////////////////
+///
+
+// Assign @material/material-color-utilities color
+.jss_worksheet {
+
+    // Explicit token mapping for the standalone documentation integration.
+    --jss_border_color: color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, var(--md-sys-color-surface));
+    --jss_border_color_highlighted: var(--md-sys-color-primary);
+
+    --jss_header_background: var(--md-sys-color-surface-variant);
+    --jss_header_color: var(--md-sys-color-on-surface-variant);
+    --jss_header_background_highlighted: color-mix(in srgb, var(--md-sys-color-surface) 88%, var(--md-sys-color-primary));
+    --jss_header_color_highlighted: var(--md-sys-color-on-surface);
+
+    --jss_content_background: var(--md-sys-color-background);
+    --jss_content_color: var(--md-sys-color-on-background);
+    --jss_content_background_highlighted: var(--md-sys-color-surface-variant);
+    --jss_content_color_highlighted: var(--md-sys-color-on-surface-variant);
+
+    --jss_selection: color-mix(in srgb, var(--md-sys-color-surface) 90%, var(--md-sys-color-primary));
+    --jss_cursor: color-mix(in srgb, var(--md-sys-color-surface) 84%, var(--md-sys-color-primary));
+
+    --jss_menu_background: var(--md-sys-color-surface);
+    --jss_menu_color: var(--md-sys-color-on-surface);
+    --jss_menu_box_shadow: 0 2px 6px rgba(0, 0, 0, 0.15); // fallback shadow
+    --jss_menu_background_highlighted: var(--md-sys-color-surface-variant);
+    --jss_menu_color_highlighted: var(--md-sys-color-on-surface-variant);
+
+    // Font text
+
+    --jss_editor_font_size: 13px;
+    --jss_editor_icon_size: 24px;
+    --jss_font_size: 13px;
+    --jss_contextmenu_font_size: 13px;
+    --jss_about_font_size: 13px;
+
+    // Body
+    > tbody {
+
+        // row
+        > tr {
+
+            // Data
+            > td {
+
+                // Drop down
+                &.jss_dropdown {
+
+                    // Set background position
+                    background-position: bottom right 5px;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    // Editor
+    .editor {
+
+        // Rich text
+        .jss_richtext {
+
+            // Break line
+            white-space: break-spaces;
+
+        }
+
+    }
+
+}
+
+/**
+ * Nested Align
+ */
+.jss_content {
+
+    // T head
+    thead {
+
+        // Nested list
+        tr.jss_nested {
+
+            // Item
+            td {
+
+                // Left case
+                &[align="left"] {
+
+                    text-align: left;
+
+                }
+
+                // Left right
+                &[align="right"] {
+
+                    text-align: right;
+
+                }
+
+                // Left center
+                &[align="center"] {
+
+                    text-align: center;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    /* TD */
+    td {
+
+        /**
+         * Inline editor input - conflict fix
+         *
+         * Materialize's global `input { font-family: Roboto; font-size: 100% }` (and the lack of
+         * any font/colour on the vendor's editor input) made a cell's text jump size and colour
+         * the moment it entered edit mode. Inherit the cell's own metrics and colour instead of
+         * hard-coding them, so what you type looks identical to what the cell renders - in every
+         * theme, whatever the column's font size.
+         */
+        input,
+        textarea {
+
+            /* Font - match the cell exactly (no forced 13px) */
+            font-family: inherit!important;
+            font-size: inherit!important;
+            line-height: inherit!important;
+
+            /* Colour - follow the cell / theme (no forced black) */
+            color: inherit!important;
+
+        }
+
+    }
+
+}
+
+/**
+ * Dropdown vs frozen column - stacking fix
+ *
+ * A frozen column is `position: sticky` with its own stacking context, so it paints over the
+ * `.jdropdown-container` popup that jSuites renders inside the cell being edited (the popup sits
+ * at the grid's base level and gets covered). Lift the edited cell above every frozen cell so its
+ * dropdown is never hidden: non-frozen cells get a fresh stacking context via `position:relative`,
+ * while frozen cells keep their `position:sticky` and just take the raised z-index.
+ */
+.jss_worksheet td.editor {
+
+    /* Above frozen cells (which top out around z-index 4) */
+    z-index: 30!important;
+
+}
+
+.jss_worksheet td.editor:not(.jss_freezed) {
+
+    /* Establish a stacking context so the absolute dropdown popup rises above frozen columns */
+    position: relative;
+
+}
+
+/**
+ * In-cell dropdown popup - rounding
+ *
+ * kSpreadsheet renders the dropdown list inside the worksheet, where jspreadsheet.css only sets
+ * `margin-top` (square corners). Round it to 4px like the standalone jSuites dropdown, and clip
+ * the content so the hovered/selected item highlight follows the rounded corners.
+ */
+.jss_worksheet .jdropdown-container {
+
+    /* Round */
+    border-radius: 4px;
+
+    /* Clip the item highlight to the rounded corners */
+    overflow: hidden;
+
+}
+
+/* Tabs  */
+.jtabs {
+
+    /* Container */
+    .jtabs-headers-container {
+
+        /* Header */
+        .jtabs-headers {
+
+            // Dimension
+            overflow-x: auto;
+
+            // Selected
+            .jtabs-selected {
+
+                // Color
+                background-color: color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
+                color: var(--md-sys-color-primary);
+
+            }
+
+            // Not selected
+            div:not(.jtabs-selected) {
+
+                // Color
+                background-color: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-tint) 17%);
+                color: var(--md-sys-color-on-background);
+
+
+            }
+
+            /* Div */
+            div:not(.jtabs-border) {
+
+                /* Dimension */
+                height: 48px;
+
+                /* Color */
+                color: var(--md-sys-color-on-surface-variant);
+
+                /* Position */
+                padding: 12px 20px 12px 20px !important;
+
+            }
+
+            // Border
+            .jtabs-border {
+
+                // Color
+                background-color: var(--md-sys-color-primary)!important;
+
+                // Dimension
+                height: 3px;
+                border-radius: 3px 3px 0 0;
+
+            }
+
+        }
+
+    }
+
+}
+
+// The vendor frozen-cell rule is more specific than its theme stylesheet.
+// Keep sticky data cells opaque, but use the current Material surface in dark mode.
+.jss_worksheet > tbody > tr > td.jss_freezed:not(:first-child),
+.jss_worksheet > tbody > tr > td.jss_row_freezed:not(:first-child) {
+    background-color: var(--jss_content_background);
+    color: var(--jss_content_color);
+    &.highlight {
+        background-color: var(--jss_content_background_highlighted);
+        color: var(--jss_content_color_highlighted);
+    }
+}
+
+  .jss_worksheet input[type="checkbox"] {
+    accent-color: var(--md-sys-color-primary);
+  }
+  // Quiet headers and tabs; reserve the primary color for active states.
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  padding: 8px;
+  background: var(--md-sys-color-surface);
+  .jss_worksheet > thead > tr > td { font-weight: 500; height: 36px; }
+  .jss_worksheet > tbody > tr > td { height: 34px; }
+  .jtabs .jtabs-headers-container .jtabs-headers {
+    div:not(.jtabs-selected):not(.jtabs-border) {
+      background: transparent;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .jtabs-selected {
+      background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface));
+      color: var(--md-sys-color-primary);
+      border-radius: 8px 8px 0 0;
+    }
+  }
+  // Paint selection on cells with an opaque, softly tinted surface.
+  // The overlay draws only the outline, so it never washes out the text.
+  .jss_worksheet > tbody > tr > td.highlight:not(:first-child) {
+    background-color: var(--jss_selection);
+    color: var(--md-sys-color-on-surface);
+  }
+  .jss_worksheet > tbody > tr > td.highlight-selected:not(:first-child) {
+    background-color: var(--jss_cursor);
+    color: var(--md-sys-color-on-surface);
+  }
+  .jss_border_main {
+    background: transparent;
+    border-color: var(--md-sys-color-primary);
+    opacity: 1;
+  }
+}
+
