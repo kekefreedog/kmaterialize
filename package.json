@@ -69,9 +69,12 @@
     "filepond-plugin-image-exif-orientation": "^1.0.0",
     "filepond-plugin-image-preview": "^4.6.0",
     "imask": "^7.6.0",
+    "quill": "^2.0.3",
     "sweetalert2": "^11.26.25",
+    "tippy.js": "^6.3.7",
     "tom-select": "^2.3.0",
-    "tippy.js": "^6.3.7"
+    "@maskito/core": "^5.4.0",
+    "@maskito/kit": "^5.4.0"
   },
   "peerDependenciesMeta": {
     "@simonwep/pickr": {
@@ -103,45 +106,57 @@
     },
     "tippy.js": {
       "optional": true
+    },
+    "quill": {
+      "optional": true
+    },
+    "@maskito/core": {
+      "optional": true
+    },
+    "@maskito/kit": {
+      "optional": true
     }
   },
   "devDependencies": {
     "@fontsource/material-icons": "^5.2.5",
-    "@simonwep/pickr": "^1.9.0",
-    "air-datepicker": "^3.5.0",
-    "filepond": "^4.30.0",
-    "filepond-plugin-file-validate-type": "^1.2.0",
-    "filepond-plugin-image-exif-orientation": "^1.0.0",
-    "filepond-plugin-image-preview": "^4.6.0",
-    "imask": "^7.6.0",
-    "sweetalert2": "^11.26.25",
-    "tom-select": "^2.3.0",
+    "@maskito/core": "5.4.0",
+    "@maskito/kit": "5.4.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@simonwep/pickr": "^1.9.0",
     "@storybook/addon-docs": "^9.0.12",
     "@storybook/addon-themes": "^9.0.12",
     "@storybook/html": "^9.0.12",
     "@storybook/html-vite": "^9.0.12",
     "@types/node": "^20.5.2",
+    "air-datepicker": "^3.5.0",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.10.0",
     "eslint-plugin-storybook": "^9.0.12",
+    "filepond": "^4.30.0",
+    "filepond-plugin-file-validate-type": "^1.2.0",
+    "filepond-plugin-image-exif-orientation": "^1.0.0",
+    "filepond-plugin-image-preview": "^4.6.0",
+    "imask": "^7.6.0",
     "jasmine": "^5.1.0",
     "jasmine-browser-runner": "^2.5.0",
     "jasmine-core": "^5.2.0",
     "postcss": "^8.4.49",
+    "quill": "2.0.3",
     "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-scss": "^4.0.0",
     "sass": "^1.77.8",
     "storybook": "^9.0.12",
+    "sweetalert2": "^11.26.25",
+    "tippy.js": "^6.3.7",
+    "tom-select": "^2.3.0",
     "tslib": "^2.6.3",
     "typescript": "^5.4.3",
     "typescript-eslint": "^8.6.0",
-    "vitest": "^4.0.18",
-    "tippy.js": "^6.3.7"
+    "vitest": "^4.0.18"
   },
   "files": [
     "dist/css",

@@ -1,0 +1,101 @@
+/* Crowded navigation options. Scroll keeps one compact row; wrap grows the
+   bar vertically and preserves every item without clipping. */
+.navbar.appbar-bordered.navbar-scroll > .nav-wrapper {
+  position: relative;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.navbar.appbar-bordered.navbar-scroll > .nav-wrapper > ul:not(.dropdown-content) {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+}
+
+.navbar.appbar-bordered.navbar-scroll {
+  position: relative;
+  isolation: isolate;
+}
+
+.navbar.appbar-bordered.navbar-scroll > .nav-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+.navbar.appbar-bordered.navbar-scroll::after {
+  content: '';
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  top: 0;
+  width: 15px;
+  height: 100%;
+  pointer-events: none;
+  opacity: var(--scroll-right-fade, 1) !important;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--md-sys-color-surface-variant)
+  );
+  transition: opacity 160ms ease;
+}
+
+.navbar.appbar-bordered.navbar-scroll::before {
+  content: '';
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: 0;
+  width: 15px;
+  height: 100%;
+  pointer-events: none;
+  opacity: var(--scroll-left-fade, 1) !important;
+  background: linear-gradient(
+    to left,
+    transparent,
+    var(--md-sys-color-surface-variant)
+  );
+  transition: opacity 160ms ease;
+}
+
+.navbar.appbar-bordered.navbar-scroll:not(.is-scroll-end)::after {
+  opacity: var(--scroll-right-fade, 0) !important;
+}
+
+.navbar.appbar-bordered.navbar-scroll.is-scroll-start::before {
+  opacity: 0;
+}
+
+.navbar.appbar-bordered.navbar-scroll:not(.is-scroll-start)::before {
+  opacity: var(--scroll-left-fade, 0) !important;
+}
+
+/* Fixed edge masks. These are real children of the navbar (not descendants
+   of the scrolling row), so they cannot move with the links. */
+.navbar.appbar-bordered.navbar-scroll > .navbar-scroll-fade {
+  display: block;
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  width: 28px;
+  height: 100%;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 160ms ease;
+}
+
+.navbar.appbar-bordered.navbar-scroll > .navbar-scroll-fade-left {
+  left: 0;
+  background: linear-gradient(to left, transparent, var(--md-sys-color-surface-variant));
+}
+
+.navbar.appbar-bordered.navbar-scroll > .navbar-scroll-fade-right {
+  right: 0;
+  background: linear-gradient(to right, transparent, var(--md-sys-color-surface-variant));
+}
+
+.navbar.appbar-bordered.navbar-scroll > .navbar-scroll-fade.is-hidden {
+  opacity: 0;
+}

@@ -4,6 +4,745 @@
 * MIT License (https://raw.githubusercontent.com/materializecss/materialize/master/LICENSE)
 */
 /**
+ * Base class implementation for Materialize components.
+ */
+class Component {
+    /**
+     * The DOM element the plugin was initialized with.
+     */
+    el;
+    /**
+     * The options the instance was initialized with.
+     */
+    options;
+    /**
+     * Constructs component instance and set everything up.
+     */
+    constructor(el, options, classDef) {
+        // Display error if el is not a valid HTML Element
+        if (!(el instanceof HTMLElement)) {
+            console.error(Error(el + ' is not an HTML Element'));
+        }
+        // If exists, destroy and reinitialize in child
+        const ins = classDef.getInstance(el);
+        if (!!ins) {
+            ins.destroy();
+        }
+        this.el = el;
+    }
+    /**
+     * Initializes component instances.
+     * @param els HTML elements.
+     * @param options Component options.
+     * @param classDef Class definition.
+     */
+    static init(els, options, classDef) {
+        let instances = null;
+        if (els instanceof Element) {
+            instances = new classDef(els, options);
+        }
+        else if (!!els && els.length) {
+            instances = [];
+            for (let i = 0; i < els.length; i++) {
+                instances.push(new classDef(els[i], options));
+            }
+        }
+        return instances;
+    }
+    /**
+     * @returns default options for component instance.
+     */
+    static get defaults() {
+        return {};
+    }
+    /**
+     * Retrieves component instance for the given element.
+     * @param el Associated HTML Element.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    static getInstance(el) {
+        throw new Error('This method must be implemented.');
+    }
+    /**
+     * Destroy plugin instance and teardown.
+     */
+    destroy() {
+        throw new Error('This method must be implemented.');
+    }
+}
+
+const _cache = new Map();
+async function loadPeer(spec, importer) {
+    if (_cache.has(spec.specifier))
+        return _cache.get(spec.specifier);
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mod = await importer();
+        const resolved = mod?.default ?? mod;
+        _cache.set(spec.specifier, resolved);
+        return resolved;
+    }
+    catch {
+        // fall through to the global-scope lookup below
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globalScope = typeof window !== 'undefined' ? window : undefined;
+    if (globalScope && globalScope[spec.globalName]) {
+        const resolved = globalScope[spec.globalName];
+        _cache.set(spec.specifier, resolved);
+        return resolved;
+    }
+    throw new Error(`kmaterialize's ${spec.feature} requires "${spec.specifier}", which isn't installed/loaded.\n` +
+        `- If you're using a bundler: npm/pnpm/yarn install "${spec.specifier}".\n` +
+        `- If you're using the plain <script> (no-bundler) build: add\n` +
+        `    ${spec.cdnHint}\n` +
+        `  before initializing this component, so window.${spec.globalName} is defined.`);
+}
+
+const _defaults$y = {
+    thousandsSeparator: ' ',
+    radix: '.',
+    mapToRadix: [',']
+};
+// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Number.ts
+// Masked/formatted numeric input via IMask (thousands separator, decimal
+// scale, min/max) - deliberately opts in on `type="text" data-type="number"`
+// rather than `type="number"`, so IMask can format the display value
+// (thousands separators etc.) that a native number input wouldn't allow.
+//
+// IMask is an optional peerDependency, loaded on demand via peer-loader -
+// see that file for the bundler/no-bundler resolution strategy.
+class NumberInput extends Component {
+    mask;
+    ready;
+    constructor(el, options) {
+        super(el, options, NumberInput);
+        this.el.M_NumberInput = this;
+        this.options = {
+            ...NumberInput.defaults,
+            ...options
+        };
+        this.ready = this._setup();
+    }
+    static get defaults() {
+        return _defaults$y;
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, NumberInput);
+    }
+    static getInstance(el) {
+        return el.M_NumberInput;
+    }
+    destroy() {
+        this._destroyed = true;
+        this._events?.abort();
+        this._observer?.disconnect();
+        this.mask?.off('accept', this.syncControls);
+        this.mask?.destroy();
+        if (this._controls) {
+            this._controls.replaceWith(this.el);
+            this._controls = undefined;
+        }
+        for (const [name, value] of this._originalAttributes) {
+            if (value === null)
+                this.el.removeAttribute(name);
+            else
+                this.el.setAttribute(name, value);
+        }
+        this.el.M_NumberInput = undefined;
+    }
+    _destroyed = false;
+    _controls;
+    _events;
+    _observer;
+    _originalAttributes = new Map();
+    get stepSize() {
+        const value = this.options.step ?? Number(this.el.getAttribute('step') || 1);
+        return Number.isFinite(value) && value > 0 ? value : 1;
+    }
+    get largeStepSize() {
+        const value = this.options.largeStep ?? Number(this.el.dataset.numberLargeStep || this.stepSize * 10);
+        return Number.isFinite(value) && value > 0 ? value : this.stepSize * 10;
+    }
+    bound(name) {
+        const value = this.options[name] ?? (this.el.hasAttribute(name) ? Number(this.el.getAttribute(name)) : undefined);
+        return Number.isFinite(value) ? value : undefined;
+    }
+    decimalPlaces(value) {
+        const [coefficient, exponent = '0'] = String(value).split('e');
+        return Math.max(0, (coefficient.split('.')[1]?.length || 0) - Number(exponent));
+    }
+    /** Increase by the fine step, or the coarse step when large is true. */
+    increment(large = false) { this.adjust(large ? this.largeStepSize : this.stepSize); }
+    /** Decrease by the fine step, or the coarse step when large is true. */
+    decrement(large = false) { this.adjust(-(large ? this.largeStepSize : this.stepSize)); }
+    adjust(delta) {
+        if (!this.mask || this._destroyed || this.el.matches(':disabled') || this.el.readOnly)
+            return;
+        const current = Number(this.mask.typedValue) || 0;
+        // Round decimal steps before formatting: 0.2 + 0.1 must display 0.3.
+        const precision = Math.min(15, Math.max(this.decimalPlaces(current), this.decimalPlaces(delta)));
+        let next = Number((current + delta).toFixed(precision));
+        next = Math.max(this.bound('min') ?? -Infinity, Math.min(this.bound('max') ?? Infinity, next));
+        if (!Number.isFinite(next))
+            return;
+        if (next === current && this.el.value !== '')
+            return;
+        this.mask.typedValue = next;
+        this.syncControls();
+        this.el.dispatchEvent(new Event('input', { bubbles: true }));
+        this.el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    setupControls() {
+        this._events = new AbortController();
+        const signal = this._events.signal;
+        for (const name of ['role', 'inputmode', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow']) {
+            this._originalAttributes.set(name, this.el.getAttribute(name));
+        }
+        this.el.setAttribute('role', 'spinbutton');
+        this.el.setAttribute('inputmode', 'decimal');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'number-input-stepper';
+        this.el.before(wrapper);
+        wrapper.append(this.el);
+        this._controls = wrapper;
+        const makeButton = (direction, large) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.direction = String(direction);
+            button.dataset.large = String(large);
+            button.innerHTML = `<span aria-hidden="true">${direction < 0 ? large ? '«' : '‹' : large ? '»' : '›'}</span><small aria-hidden="true"></small>`;
+            button.addEventListener('click', () => {
+                this.adjust(direction * (large ? this.largeStepSize : this.stepSize));
+            }, { signal });
+            return button;
+        };
+        wrapper.prepend(makeButton(-1, true), makeButton(-1, false));
+        wrapper.append(makeButton(1, false), makeButton(1, true));
+        this.el.addEventListener('keydown', event => {
+            if (event.altKey || event.ctrlKey || event.metaKey)
+                return;
+            if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(event.key))
+                return;
+            event.preventDefault();
+            const large = event.shiftKey || event.key.startsWith('Page');
+            if (event.key === 'ArrowUp' || event.key === 'PageUp')
+                this.increment(large);
+            else
+                this.decrement(large);
+        }, { signal });
+        this.el.addEventListener('change', () => { this.mask?.updateValue(); this.syncControls(); }, { signal });
+        this.mask.on('accept', this.syncControls);
+        this._observer = new MutationObserver(() => {
+            this.mask?.updateOptions({ min: this.bound('min'), max: this.bound('max') });
+            this.syncControls();
+        });
+        this._observer.observe(this.el, { attributes: true, attributeFilter: ['disabled', 'readonly', 'min', 'max', 'step', 'data-number-large-step'] });
+        for (let parent = this.el.parentElement; parent; parent = parent.parentElement) {
+            if (parent instanceof HTMLFieldSetElement)
+                this._observer.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
+        }
+        this.el.form?.addEventListener('reset', () => {
+            queueMicrotask(() => { if (!this._destroyed) {
+                this.mask?.updateValue();
+                this.syncControls();
+            } });
+        }, { signal });
+        this.syncControls();
+    }
+    syncControls = () => {
+        if (!this._controls || !this.mask)
+            return;
+        const value = Number(this.mask.typedValue) || 0;
+        const min = this.bound('min');
+        const max = this.bound('max');
+        for (const [name, bound] of [['aria-valuemin', min], ['aria-valuemax', max]]) {
+            if (bound === undefined)
+                this.el.removeAttribute(name);
+            else
+                this.el.setAttribute(name, String(bound));
+        }
+        if (this.el.value === '')
+            this.el.removeAttribute('aria-valuenow');
+        else
+            this.el.setAttribute('aria-valuenow', String(value));
+        this._controls.querySelectorAll('button').forEach(button => {
+            const direction = Number(button.dataset.direction);
+            const step = button.dataset.large === 'true' ? this.largeStepSize : this.stepSize;
+            button.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} by ${step}`);
+            button.title = button.getAttribute('aria-label');
+            button.querySelector('small').textContent = String(step);
+            button.disabled = this.el.matches(':disabled') || this.el.readOnly ||
+                (this.el.value !== '' && (direction < 0 ? min !== undefined && value <= min : max !== undefined && value >= max));
+        });
+    };
+    async _setup() {
+        const IMask = await loadPeer({
+            specifier: 'imask',
+            globalName: 'IMask',
+            feature: 'Number input (IMask) enhancement',
+            cdnHint: '<script src="path/to/imask.min.js"></script> (self-hosted - copy from node_modules/imask/dist/imask.min.js, or a CDN of your choice)'
+        }, () => import('imask'));
+        if (this._destroyed)
+            return;
+        const maskOptions = {
+            mask: Number,
+            skipInvalid: true,
+            thousandsSeparator: this.options.thousandsSeparator,
+            radix: this.options.radix,
+            mapToRadix: this.options.mapToRadix,
+            autofix: true
+        };
+        const max = this.options.max ?? (this.el.hasAttribute('max') ? Number(this.el.getAttribute('max')) : undefined);
+        if (max !== undefined && !Number.isNaN(max))
+            maskOptions.max = max;
+        const min = this.options.min ?? (this.el.hasAttribute('min') ? Number(this.el.getAttribute('min')) : undefined);
+        if (min !== undefined && !Number.isNaN(min))
+            maskOptions.min = min;
+        const step = this.el.getAttribute('step');
+        const controls = this.options.controls ?? (this.el.hasAttribute('data-number-controls') && this.el.dataset.numberControls !== 'false');
+        const scale = this.options.scale ?? (controls ? Math.max(this.decimalPlaces(this.stepSize), this.decimalPlaces(this.largeStepSize)) : step?.includes('.') ? step.split('.').at(-1)?.length : undefined);
+        if (scale !== undefined)
+            maskOptions.scale = scale;
+        this.mask = IMask(this.el, maskOptions);
+        if (controls)
+            this.setupControls();
+    }
+}
+
+/** Optional Maskito enhancement for native text inputs. */
+class MaskitoInput extends Component {
+    mask;
+    ready;
+    _core;
+    _maskOptions;
+    _destroyed = false;
+    _form;
+    _resetTimer;
+    constructor(el, options) {
+        if (!['text', 'tel', 'search', 'url', 'password'].includes(el.type)) {
+            throw new TypeError('MaskitoInput requires a text, tel, search, url, or password input. Use inputmode for a numeric keyboard.');
+        }
+        const markup = MaskitoInput._readMarkup(el);
+        super(el, options, MaskitoInput);
+        this.el['M_MaskitoInput'] = this;
+        this.options = { ...MaskitoInput.defaults, ...markup, ...options };
+        this._form = el.form;
+        this.ready = this._setup().catch(error => { this.destroy(); throw error; });
+    }
+    static get defaults() { return { preset: 'pattern' }; }
+    static init(els, options = {}) {
+        return super.init(els, options, MaskitoInput);
+    }
+    static getInstance(el) { return el['M_MaskitoInput']; }
+    static _readMarkup(el) {
+        let json = {};
+        if (el.dataset.maskitoOptions) {
+            const value = JSON.parse(el.dataset.maskitoOptions);
+            if (!value || typeof value !== 'object' || Array.isArray(value))
+                throw new TypeError('data-maskito-options must be a JSON object.');
+            json = value;
+        }
+        return {
+            preset: (el.dataset.maskito || 'pattern'),
+            pattern: el.dataset.maskitoPattern,
+            ...json
+        };
+    }
+    async _options() {
+        const custom = this.options.maskOptions;
+        let base;
+        if (custom?.mask !== undefined) {
+            base = { mask: custom.mask };
+        }
+        else if (this.options.preset === 'pattern') {
+            if (!this.options.pattern)
+                throw new TypeError('Provide a pattern or maskOptions.mask for MaskitoInput.');
+            const tokens = { '#': /\d/, A: /[a-zA-Z]/, '*': /[a-zA-Z0-9]/ };
+            const expression = [];
+            let escaped = false;
+            for (const character of this.options.pattern) {
+                if (escaped) {
+                    expression.push(character);
+                    escaped = false;
+                }
+                else if (character === '\\')
+                    escaped = true;
+                else
+                    expression.push(tokens[character] || character);
+            }
+            if (escaped)
+                throw new TypeError('A Maskito pattern cannot end with an unpaired backslash.');
+            base = { mask: expression };
+        }
+        else {
+            if (!['number', 'date', 'time'].includes(this.options.preset || ''))
+                throw new TypeError(`Unknown MaskitoInput preset: ${this.options.preset}`);
+            const kit = await loadPeer({
+                specifier: '@maskito/kit', globalName: 'MaskitoKit', feature: 'MaskitoInput number/date/time presets',
+                cdnHint: 'Bundle @maskito/kit with your application, or expose its exports as window.MaskitoKit.'
+            }, () => import('@maskito/kit'));
+            if (this.options.preset === 'number')
+                base = kit.maskitoNumber(this.options.number ?? {});
+            else if (this.options.preset === 'date')
+                base = kit.maskitoDate(this.options.date ?? { mode: 'dd/mm/yyyy', separator: '/' });
+            else
+                base = kit.maskitoTime(this.options.time ?? { mode: 'HH:MM' });
+        }
+        return {
+            ...base, ...custom,
+            preprocessors: [...(custom?.preprocessors || []), ...(base.preprocessors || [])],
+            postprocessors: [...(base.postprocessors || []), ...(custom?.postprocessors || [])],
+            plugins: [...(base.plugins || []), ...(custom?.plugins || [])]
+        };
+    }
+    async _setup() {
+        const core = await loadPeer({
+            specifier: '@maskito/core', globalName: 'MaskitoCore', feature: 'MaskitoInput',
+            cdnHint: 'Bundle @maskito/core with your application, or expose its exports as window.MaskitoCore.'
+        }, () => import('@maskito/core'));
+        if (this._destroyed)
+            return;
+        const options = await this._options();
+        if (this._destroyed)
+            return;
+        // An explicitly selected Maskito input must have only one masking engine.
+        NumberInput.getInstance(this.el)?.destroy();
+        this._core = core;
+        this._maskOptions = options;
+        this.el.value = core.maskitoTransform(this.el.value, options);
+        this.mask = new core.Maskito(this.el, options);
+        this._form?.addEventListener('reset', this._onReset);
+    }
+    /** Set and format a value, emitting a normal input event by default. */
+    async setValue(value, emit = true) {
+        await this.ready;
+        if (this._destroyed)
+            return;
+        const formatted = this._core.maskitoTransform(value, this._maskOptions);
+        if (emit)
+            this._core.maskitoUpdateElement(this.el, formatted);
+        else
+            this.el.value = formatted;
+    }
+    /** Normalize a value assigned through input.value without emitting input. */
+    async refresh() { await this.setValue(this.el.value, false); }
+    /** The native, formatted string. Use Maskito kit parsers for typed values. */
+    getValue() { return this.el.value; }
+    _onReset = () => {
+        clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(() => {
+            if (!this._destroyed)
+                this.el.value = this._core.maskitoTransform(this.el.value, this._maskOptions);
+        }, 0);
+    };
+    destroy() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
+        clearTimeout(this._resetTimer);
+        this._form?.removeEventListener('reset', this._onReset);
+        this.mask?.destroy();
+        this.mask = undefined;
+        if (MaskitoInput.getInstance(this.el) === this)
+            this.el['M_MaskitoInput'] = undefined;
+    }
+}
+
+let sequence = 0;
+function uniqueId() {
+    let id;
+    do {
+        id = `m-rich-textarea-${++sequence}`;
+    } while (document.getElementById(id));
+    return id;
+}
+/** Quill enhancement of a native textarea, including form value synchronization. */
+class RichTextarea extends Component {
+    quill;
+    ready;
+    _wrapper;
+    _error;
+    _observer;
+    _form;
+    _labels = [];
+    _labelIds = [];
+    _hidden;
+    _ariaHidden;
+    _destroyed = false;
+    _updating = false;
+    _dirty = false;
+    _invalid = false;
+    _lastValue = '';
+    _resetTimer;
+    _blurTimer;
+    constructor(el, options) {
+        super(el, options, RichTextarea);
+        this.el['M_RichTextarea'] = this;
+        this.options = {
+            ...RichTextarea.defaults,
+            valueFormat: el.dataset.valueFormat === 'text' ? 'text' : 'html',
+            ...options
+        };
+        this._form = el.form;
+        this._hidden = el.getAttribute('hidden');
+        this._ariaHidden = el.getAttribute('aria-hidden');
+        this.ready = this._setup().catch(error => { this.destroy(); throw error; });
+    }
+    static get defaults() {
+        return {
+            valueFormat: 'html',
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['blockquote', 'link', 'clean']
+            ],
+            formats: ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'blockquote', 'link']
+        };
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, RichTextarea);
+    }
+    static getInstance(el) { return el['M_RichTextarea']; }
+    async _setup() {
+        const QuillCtor = await loadPeer({
+            specifier: 'quill', globalName: 'Quill', feature: 'RichTextarea',
+            cdnHint: '<link rel="stylesheet" href="path/to/quill.snow.css"> (before materialize.css)\n<script src="path/to/quill.js"></script>'
+        }, () => import('quill'));
+        if (this._destroyed)
+            return;
+        const wrapper = document.createElement('div');
+        this._wrapper = wrapper;
+        wrapper.className = 'rich-textarea';
+        const editor = document.createElement('div');
+        const error = document.createElement('div');
+        this._error = error;
+        error.className = 'rich-textarea-error';
+        error.id = uniqueId();
+        error.hidden = true;
+        error.setAttribute('role', 'alert');
+        wrapper.append(editor, error);
+        this.el.after(wrapper);
+        this.quill = new QuillCtor(editor, {
+            theme: 'snow', bounds: wrapper,
+            placeholder: this.options.placeholder ?? this.el.placeholder,
+            formats: this.options.formats,
+            modules: { toolbar: this.options.toolbar, history: { userOnly: true } }
+        });
+        this._labels = Array.from(this.el.labels || []);
+        this._labels.forEach(label => {
+            if (!label.id) {
+                label.id = uniqueId();
+                this._labelIds.push({ label, id: label.id });
+            }
+            label.addEventListener('click', this._onLabelClick);
+        });
+        this._labelToolbar();
+        this.quill.root.setAttribute('role', 'textbox');
+        this.quill.root.setAttribute('aria-multiline', 'true');
+        this.quill.on('text-change', this._onTextChange);
+        wrapper.addEventListener('focusout', this._onBlur);
+        this.el.addEventListener('input', this._onNativeInput);
+        this.el.addEventListener('change', this._onNativeInput);
+        this.el.addEventListener('invalid', this._onInvalid);
+        this._form?.addEventListener('reset', this._onReset);
+        this._observer = new MutationObserver(() => this.refresh());
+        this._observer.observe(this.el, { attributes: true, attributeFilter: [
+                'disabled', 'readonly', 'required', 'placeholder', 'aria-label', 'aria-labelledby', 'aria-describedby', 'aria-invalid'
+            ] });
+        let ancestor = this.el.parentElement;
+        while (ancestor) {
+            if (ancestor instanceof HTMLFieldSetElement)
+                this._observer.observe(ancestor, { attributes: true, attributeFilter: ['disabled'] });
+            ancestor = ancestor.parentElement;
+        }
+        this.setValue(this.el.value, false);
+        this.quill.history.clear();
+        this.el.hidden = true;
+        this.el.setAttribute('aria-hidden', 'true');
+        this.refresh();
+    }
+    _labelToolbar() {
+        const toolbar = this._wrapper?.querySelector('.ql-toolbar');
+        if (!toolbar)
+            return;
+        toolbar.querySelectorAll('select').forEach(select => select.classList.add('no-autoinit'));
+        toolbar.setAttribute('role', 'group');
+        toolbar.setAttribute('aria-label', 'Text formatting');
+        const names = { header: 'Heading', bold: 'Bold', italic: 'Italic', underline: 'Underline', strike: 'Strikethrough', list: 'List', blockquote: 'Block quote', link: 'Insert link', clean: 'Clear formatting' };
+        toolbar.querySelectorAll('button').forEach(button => {
+            const format = Array.from(button.classList).find(name => name.startsWith('ql-'))?.slice(3) || 'format';
+            const label = `${names[format] || format}${button.value ? `: ${button.value}` : ''}`;
+            button.type = 'button';
+            button.setAttribute('aria-label', label);
+            button.title = label;
+        });
+        toolbar.querySelectorAll('.ql-picker').forEach(picker => {
+            const format = Array.from(picker.classList).find(name => name !== 'ql-picker' && name.startsWith('ql-'))?.slice(3) || 'format';
+            picker.querySelector('.ql-picker-label')?.setAttribute('aria-label', names[format] || format);
+            picker.querySelectorAll('.ql-picker-item').forEach(item => {
+                item.setAttribute('aria-label', item.dataset.label || (item.dataset.value ? `${names[format] || format} ${item.dataset.value}` : 'Normal text'));
+            });
+        });
+    }
+    /** Refresh native value, state and accessible labels after programmatic changes. */
+    refresh() {
+        if (!this.quill || this._destroyed)
+            return;
+        if (this.el.value !== this._lastValue)
+            this.setValue(this.el.value, false);
+        const disabled = this.el.matches(':disabled');
+        const readOnly = this.el.readOnly;
+        this.quill.enable(!disabled && !readOnly);
+        this._wrapper.classList.toggle('is-disabled', disabled);
+        this._wrapper.classList.toggle('is-readonly', readOnly);
+        const toolbar = this._wrapper.querySelector('.ql-toolbar');
+        if (toolbar) {
+            toolbar.inert = disabled || readOnly;
+            toolbar.setAttribute('aria-disabled', String(disabled || readOnly));
+        }
+        const root = this.quill.root;
+        root.setAttribute('aria-disabled', String(disabled));
+        root.setAttribute('aria-readonly', String(readOnly));
+        root.setAttribute('aria-required', String(this.el.required));
+        root.setAttribute('tabindex', disabled ? '-1' : '0');
+        const labelledBy = this.el.getAttribute('aria-labelledby') || (!this.options.label && !this.el.hasAttribute('aria-label') ? this._labels.map(label => label.id).join(' ') : '');
+        if (labelledBy) {
+            root.setAttribute('aria-labelledby', labelledBy);
+            root.removeAttribute('aria-label');
+        }
+        else {
+            root.removeAttribute('aria-labelledby');
+            root.setAttribute('aria-label', this.options.label || this.el.getAttribute('aria-label') || 'Rich text editor');
+        }
+        root.setAttribute('aria-describedby', [this.el.getAttribute('aria-describedby'), this._error.id].filter(Boolean).join(' '));
+        root.dataset.placeholder = this.options.placeholder ?? this.el.placeholder;
+        this._updateValidity();
+    }
+    /** Set serialized content. Call after ready to update both editor and textarea. */
+    setValue(value, emit = true) {
+        this.el.value = value;
+        if (!this.quill || this._destroyed)
+            return;
+        if (this.options.valueFormat === 'text')
+            this.quill.setText(value, 'silent');
+        else
+            this.quill.setContents(this.quill.clipboard.convert({ html: value }), 'silent');
+        this._sync(emit);
+    }
+    getValue() { return this.el.value; }
+    getHTML() { return this.quill ? this._isEmpty() ? '' : this.quill.getSemanticHTML() : ''; }
+    getText() { return this.quill?.getText().replace(/\n$/, '') || ''; }
+    focus() { if (!this.el.matches(':disabled'))
+        this.quill?.focus(); }
+    _isEmpty() {
+        return !this.quill.getText().trim() && !this.quill.getContents().ops.some(op => typeof op.insert === 'object');
+    }
+    _sync(emit) {
+        if (!this.quill || this._destroyed)
+            return;
+        this.el.value = this._isEmpty() ? '' : this.options.valueFormat === 'text' ? this.getText() : this.quill.getSemanticHTML();
+        this._lastValue = this.el.value;
+        this._updateValidity();
+        if (emit) {
+            this._dirty = true;
+            this._updating = true;
+            try {
+                this.el.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            finally {
+                this._updating = false;
+            }
+        }
+    }
+    _updateValidity() {
+        if (!this.quill || !this._error)
+            return;
+        if (this.el.validity.valid)
+            this._invalid = false;
+        const invalid = this._invalid || this.el.getAttribute('aria-invalid') === 'true';
+        this.quill.root.setAttribute('aria-invalid', String(invalid));
+        this._wrapper.classList.toggle('is-invalid', invalid);
+        this._error.textContent = this._invalid ? this.el.validationMessage : '';
+        this._error.hidden = !this._error.textContent;
+    }
+    _onTextChange = () => this._sync(true);
+    _onNativeInput = () => { if (!this._updating)
+        this.setValue(this.el.value, false); };
+    _onLabelClick = (event) => {
+        if (event.target instanceof Node && this._wrapper?.contains(event.target))
+            return;
+        event.preventDefault();
+        this.focus();
+    };
+    _onInvalid = (event) => {
+        event.preventDefault();
+        this._invalid = true;
+        this._updateValidity();
+        this.focus();
+    };
+    _onBlur = () => {
+        clearTimeout(this._blurTimer);
+        this._blurTimer = setTimeout(() => {
+            if (!this._dirty || this._wrapper?.contains(document.activeElement))
+                return;
+            this._dirty = false;
+            this._updating = true;
+            try {
+                this.el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            finally {
+                this._updating = false;
+            }
+        }, 0);
+    };
+    _onReset = () => {
+        clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(() => {
+            if (this._destroyed)
+                return;
+            this._invalid = false;
+            this._dirty = false;
+            this.setValue(this.el.value, false);
+            this.quill?.history.clear();
+        }, 0);
+    };
+    destroy() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
+        clearTimeout(this._resetTimer);
+        clearTimeout(this._blurTimer);
+        this._observer?.disconnect();
+        this.quill?.off('text-change', this._onTextChange);
+        this.quill?.disable();
+        // Quill has no destroy API. Detach Parchment's observer and remove owned DOM.
+        this.quill?.scroll.detach();
+        this._wrapper?.removeEventListener('focusout', this._onBlur);
+        this._wrapper?.remove();
+        this.el.removeEventListener('input', this._onNativeInput);
+        this.el.removeEventListener('change', this._onNativeInput);
+        this.el.removeEventListener('invalid', this._onInvalid);
+        this._form?.removeEventListener('reset', this._onReset);
+        this._labels.forEach(label => label.removeEventListener('click', this._onLabelClick));
+        this._labelIds.forEach(({ label, id }) => { if (label.id === id)
+            label.removeAttribute('id'); });
+        if (this._hidden === null)
+            this.el.removeAttribute('hidden');
+        else
+            this.el.setAttribute('hidden', this._hidden);
+        if (this._ariaHidden === null)
+            this.el.removeAttribute('aria-hidden');
+        else
+            this.el.setAttribute('aria-hidden', this._ariaHidden);
+        if (RichTextarea.getInstance(this.el) === this)
+            this.el['M_RichTextarea'] = undefined;
+        this.quill = undefined;
+    }
+}
+
+/**
  * Class with utilitary functions for global usage.
  */
 class Utils {
@@ -329,75 +1068,7 @@ class Utils {
     }
 }
 
-/**
- * Base class implementation for Materialize components.
- */
-class Component {
-    /**
-     * The DOM element the plugin was initialized with.
-     */
-    el;
-    /**
-     * The options the instance was initialized with.
-     */
-    options;
-    /**
-     * Constructs component instance and set everything up.
-     */
-    constructor(el, options, classDef) {
-        // Display error if el is not a valid HTML Element
-        if (!(el instanceof HTMLElement)) {
-            console.error(Error(el + ' is not an HTML Element'));
-        }
-        // If exists, destroy and reinitialize in child
-        const ins = classDef.getInstance(el);
-        if (!!ins) {
-            ins.destroy();
-        }
-        this.el = el;
-    }
-    /**
-     * Initializes component instances.
-     * @param els HTML elements.
-     * @param options Component options.
-     * @param classDef Class definition.
-     */
-    static init(els, options, classDef) {
-        let instances = null;
-        if (els instanceof Element) {
-            instances = new classDef(els, options);
-        }
-        else if (!!els && els.length) {
-            instances = [];
-            for (let i = 0; i < els.length; i++) {
-                instances.push(new classDef(els[i], options));
-            }
-        }
-        return instances;
-    }
-    /**
-     * @returns default options for component instance.
-     */
-    static get defaults() {
-        return {};
-    }
-    /**
-     * Retrieves component instance for the given element.
-     * @param el Associated HTML Element.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    static getInstance(el) {
-        throw new Error('This method must be implemented.');
-    }
-    /**
-     * Destroy plugin instance and teardown.
-     */
-    destroy() {
-        throw new Error('This method must be implemented.');
-    }
-}
-
-const _defaults$y = {
+const _defaults$x = {
     alignment: 'left',
     autoFocus: true,
     constrainWidth: true,
@@ -450,7 +1121,7 @@ class Dropdown extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$y;
+        return _defaults$x;
     }
     /**
      * Initializes instances of Dropdown.
@@ -901,7 +1572,7 @@ class Dropdown extends Component {
     };
 }
 
-const _defaults$x = {
+const _defaults$w = {
     data: [], // Autocomplete data set
     onAutocomplete: null, // Callback for when autocompleted
     dropdownOptions: {
@@ -961,7 +1632,7 @@ class Autocomplete extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$x;
+        return _defaults$w;
     }
     /**
      * Initializes instances of Autocomplete.
@@ -1369,32 +2040,145 @@ class Autocomplete extends Component {
     }
 }
 
-const _cache = new Map();
-async function loadPeer(spec, importer) {
-    if (_cache.has(spec.specifier))
-        return _cache.get(spec.specifier);
+/** Internal runner; Popup.steps supplies the themed dialog and optional peer. */
+async function runPopupSteps(swal, options, fire) {
+    if (!options.steps?.length || options.steps.some(step => typeof step.run !== 'function')) {
+        throw new TypeError('Popup.steps requires at least one step with a run function.');
+    }
+    const steps = options.steps.map(step => ({ ...step }));
+    const controller = new AbortController();
+    const results = [];
+    const root = document.createElement('div');
+    root.className = 'popup-stepper';
+    if (options.description) {
+        const description = document.createElement('p');
+        description.textContent = options.description;
+        root.append(description);
+    }
+    const progress = document.createElement('progress');
+    progress.className = 'popup-stepper-progress';
+    progress.max = steps.length;
+    progress.value = 0;
+    progress.setAttribute('aria-label', 'Completed steps');
+    const list = document.createElement('ol');
+    list.className = 'popup-stepper-list';
+    const rows = steps.map((step, index) => {
+        const row = document.createElement('li');
+        row.className = 'popup-stepper-step';
+        row.dataset.state = 'pending';
+        const marker = document.createElement('span');
+        marker.className = 'popup-stepper-marker';
+        marker.textContent = String(index + 1);
+        marker.setAttribute('aria-hidden', 'true');
+        const body = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = step.title;
+        const state = document.createElement('span');
+        state.className = 'popup-stepper-state';
+        state.textContent = 'Waiting';
+        const message = document.createElement('p');
+        message.textContent = step.description || '';
+        body.append(title, state, message);
+        row.append(marker, body);
+        list.append(row);
+        return { row, marker, state, message };
+    });
+    const status = document.createElement('p');
+    status.className = 'popup-stepper-status';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    status.setAttribute('aria-atomic', 'true');
+    root.append(progress, list, status);
+    let popup;
+    let running = false;
+    let complete = false;
+    const alive = () => !controller.signal.aborted && popup === swal.getPopup();
+    const run = async () => {
+        if (running || complete || !alive())
+            return;
+        running = true;
+        swal.update({ showConfirmButton: false });
+        list.setAttribute('aria-busy', 'true');
+        try {
+            while (results.length < steps.length && alive()) {
+                const index = results.length;
+                const step = steps[index];
+                const view = rows[index];
+                view.row.dataset.state = 'active';
+                view.row.setAttribute('aria-current', 'step');
+                view.marker.textContent = String(index + 1);
+                view.state.textContent = 'In progress';
+                view.message.textContent = step.description || '';
+                status.textContent = `Step ${index + 1} of ${steps.length}: ${step.title}`;
+                const value = await step.run({
+                    signal: controller.signal,
+                    results: Object.freeze([...results]),
+                    setMessage(message) {
+                        if (alive() && running && results.length === index)
+                            view.message.textContent = message;
+                    }
+                });
+                if (!alive())
+                    return;
+                results.push(value);
+                progress.value = results.length;
+                view.row.dataset.state = 'complete';
+                view.row.removeAttribute('aria-current');
+                view.marker.textContent = '✓';
+                view.state.textContent = 'Complete';
+            }
+            if (!alive())
+                return;
+            complete = true;
+            status.textContent = 'All steps completed.';
+            swal.update({ showConfirmButton: true, showCancelButton: false,
+                confirmButtonText: options.doneButtonText || 'Done' });
+            swal.getConfirmButton()?.focus();
+        }
+        catch (error) {
+            if (!alive())
+                return;
+            const view = rows[results.length];
+            view.row.dataset.state = 'error';
+            view.row.removeAttribute('aria-current');
+            view.marker.textContent = '!';
+            view.state.textContent = 'Failed';
+            view.message.textContent = error instanceof Error ? error.message : String(error);
+            status.textContent = `${steps[results.length].title} failed. Retry this step or close the popup.`;
+            // Even a non-cancellable run can be dismissed after a failure.
+            swal.update({ showConfirmButton: true, showCancelButton: true,
+                confirmButtonText: options.retryButtonText || 'Retry step' });
+            swal.getConfirmButton()?.focus();
+        }
+        finally {
+            running = false;
+            list.removeAttribute('aria-busy');
+        }
+    };
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mod = await importer();
-        const resolved = mod?.default ?? mod;
-        _cache.set(spec.specifier, resolved);
-        return resolved;
+        return await fire({
+            titleText: options.title,
+            html: root,
+            customClass: { popup: 'popup-stepper-dialog' },
+            showConfirmButton: false,
+            showCancelButton: options.cancellable !== false,
+            cancelButtonText: options.cancelButtonText || 'Cancel',
+            allowOutsideClick: false,
+            allowEscapeKey: () => options.cancellable !== false || (!running && !complete),
+            didOpen(element) { popup = element; void run(); },
+            willClose() { controller.abort(); },
+            didDestroy() { controller.abort(); },
+            preConfirm() {
+                if (complete)
+                    return [...results];
+                void run();
+                return false;
+            }
+        });
     }
-    catch {
-        // fall through to the global-scope lookup below
+    finally {
+        controller.abort();
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const globalScope = typeof window !== 'undefined' ? window : undefined;
-    if (globalScope && globalScope[spec.globalName]) {
-        const resolved = globalScope[spec.globalName];
-        _cache.set(spec.specifier, resolved);
-        return resolved;
-    }
-    throw new Error(`kmaterialize's ${spec.feature} requires "${spec.specifier}", which isn't installed/loaded.\n` +
-        `- If you're using a bundler: npm/pnpm/yarn install "${spec.specifier}".\n` +
-        `- If you're using the plain <script> (no-bundler) build: add\n` +
-        `    ${spec.cdnHint}\n` +
-        `  before initializing this component, so window.${spec.globalName} is defined.`);
 }
 
 function withClass(required, custom) {
@@ -1464,6 +2248,11 @@ class Popup {
          */
         return result;
     }
+    /** Run async steps in order, with progress, cancellation and failed-step retry. */
+    static async steps(options) {
+        const swal = await Popup._load();
+        return runPopupSteps(swal, options, dialog => Popup.fire(dialog));
+    }
     /** Confirm the current dialog, including its validation and preConfirm flow. */
     static async clickConfirm() {
         const swal = await Popup._load();
@@ -1476,7 +2265,7 @@ class Popup {
     }
 }
 
-const _defaults$w = {
+const _defaults$v = {
     active: true,
     label: 'Loading…',
     completeLabel: 'Ready'
@@ -1523,7 +2312,7 @@ class Loading extends Component {
             this.stop();
     }
     static get defaults() {
-        return _defaults$w;
+        return _defaults$v;
     }
     static init(els, options = {}) {
         return super.init(els, options, Loading);
@@ -1562,7 +2351,7 @@ class Loading extends Component {
     }
 }
 
-const _defaults$v = {
+const _defaults$u = {
     dismissible: true
 };
 /** A persistent, contextual feedback banner. */
@@ -1576,7 +2365,7 @@ class Alert extends Component {
         this._bindCloseButton();
     }
     static get defaults() {
-        return _defaults$v;
+        return _defaults$u;
     }
     static init(els, options = {}) {
         return super.init(els, options, Alert);
@@ -1616,7 +2405,7 @@ class Alert extends Component {
     }
 }
 
-const _defaults$u = {
+const _defaults$t = {
     draggable: true
 };
 /** A lightweight, dependency-free board for columns of draggable cards. */
@@ -1699,7 +2488,7 @@ class Kanban extends Component {
             this._bindEvents();
     }
     static get defaults() {
-        return { ..._defaults$u, zoom: 1, minZoom: 0.5, maxZoom: 2 };
+        return { ..._defaults$t, zoom: 1, minZoom: 0.5, maxZoom: 2 };
     }
     /** Set the board scale, clamped to the configured limits. */
     setZoom(value) {
@@ -1830,7 +2619,7 @@ class Kanban extends Component {
     }
 }
 
-const _defaults$t = {
+const _defaults$s = {
     direction: 'top',
     hoverEnabled: true,
     toolbarEnabled: false
@@ -1877,7 +2666,7 @@ class FloatingActionButton extends Component {
         this.#setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$t;
+        return _defaults$s;
     }
     /**
      * Initializes instances of FloatingActionButton.
@@ -2048,7 +2837,7 @@ class FloatingActionButton extends Component {
     }
 }
 
-const _defaults$s = {
+const _defaults$r = {
     onOpen: null,
     onClose: null,
     inDuration: 225,
@@ -2084,7 +2873,7 @@ class Cards extends Component {
         }
     }
     static get defaults() {
-        return _defaults$s;
+        return _defaults$r;
     }
     /**
      * Initializes instances of Cards.
@@ -2195,7 +2984,7 @@ class Cards extends Component {
     }
 }
 
-const _defaults$r = {
+const _defaults$q = {
     duration: 200, // ms
     dist: -100, // zoom scale TODO: make this more intuitive as an option
     shift: 0, // spacing for center image
@@ -2297,7 +3086,7 @@ class Carousel extends Component {
         this._scroll(this.offset);
     }
     static get defaults() {
-        return _defaults$r;
+        return _defaults$q;
     }
     /**
      * Initializes instances of Carousel.
@@ -2769,7 +3558,7 @@ class Carousel extends Component {
 }
 
 var _a;
-const _defaults$q = {
+const _defaults$p = {
     data: [],
     placeholder: '',
     secondaryPlaceholder: '',
@@ -2823,7 +3612,7 @@ class Chips extends Component {
         }
     }
     static get defaults() {
-        return _defaults$q;
+        return _defaults$p;
     }
     /**
      * Initializes instances of Chips.
@@ -3106,7 +3895,7 @@ class Chips extends Component {
 }
 _a = Chips;
 
-const _defaults$p = {
+const _defaults$o = {
     accordion: true,
     onOpenStart: null,
     onOpenEnd: null,
@@ -3142,7 +3931,7 @@ class Collapsible extends Component {
         }
     }
     static get defaults() {
-        return _defaults$p;
+        return _defaults$o;
     }
     /**
      * Initializes instances of Collapsible.
@@ -3261,7 +4050,7 @@ class Collapsible extends Component {
     };
 }
 
-const _defaults$o = {
+const _defaults$n = {
     classes: '',
     dropdownOptions: {}
 };
@@ -3301,7 +4090,7 @@ class FormSelect extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$o;
+        return _defaults$n;
     }
     /**
      * Initializes instances of FormSelect.
@@ -3644,7 +4433,7 @@ class FormSelect extends Component {
     }
 }
 
-const _defaults$n = {
+const _defaults$m = {
     margin: 5,
     transition: 10,
     duration: 250,
@@ -3661,7 +4450,7 @@ class DockedDisplayPlugin {
     constructor(el, container, options) {
         this.el = el;
         this.options = {
-            ..._defaults$n,
+            ..._defaults$m,
             ...options
         };
         this.container = document.createElement('div');
@@ -3723,7 +4512,7 @@ class DockedDisplayPlugin {
     };
 }
 
-const _defaults$m = {
+const _defaults$l = {
     classList: ['modal'],
     title: null,
     onOpen: null,
@@ -3738,7 +4527,7 @@ class ModalDisplayPlugin {
     constructor(el, container, options) {
         this.el = el;
         this.options = {
-            ..._defaults$m,
+            ..._defaults$l,
             ...options,
         };
         this.container = document.createElement('dialog');
@@ -3796,7 +4585,7 @@ class ModalDisplayPlugin {
     };
 }
 
-const _defaults$l = {
+const _defaults$k = {
     // the default output format for the input field value
     format: 'mmm dd, yyyy',
     // Used to create date object from current input string
@@ -3946,7 +4735,7 @@ class Datepicker extends Component {
         this._pickerSetup();
     }
     static get defaults() {
-        return _defaults$l;
+        return _defaults$k;
     }
     /**
      * Initializes instances of Datepicker.
@@ -4999,7 +5788,7 @@ class Forms {
     }
 }
 
-const _defaults$k = {
+const _defaults$j = {
     inDuration: 275,
     outDuration: 200,
     onOpenStart: null,
@@ -5051,7 +5840,7 @@ class Materialbox extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$k;
+        return _defaults$j;
     }
     /**
      * Initializes instances of MaterialBox.
@@ -5375,7 +6164,7 @@ class Materialbox extends Component {
     };
 }
 
-const _defaults$j = {
+const _defaults$i = {
     opacity: 0.5,
     inDuration: 250,
     outDuration: 250,
@@ -5400,7 +6189,7 @@ class Modal extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$j;
+        return _defaults$i;
     }
     static init(els, options = {}) {
         return super.init(els, options, Modal);
@@ -5443,7 +6232,7 @@ class Modal extends Component {
     static { }
 }
 
-const _defaults$i = {
+const _defaults$h = {
     edge: 'left',
     draggable: true,
     dragTargetWidth: '10px',
@@ -5499,7 +6288,7 @@ class Sidenav extends Component {
         Sidenav._sidenavs.push(this);
     }
     static get defaults() {
-        return _defaults$i;
+        return _defaults$h;
     }
     /**
      * Initializes instances of Sidenav.
@@ -5896,7 +6685,7 @@ class Sidenav extends Component {
     }
 }
 
-const _defaults$h = {
+const _defaults$g = {
     indicators: true,
     height: 400,
     duration: 500,
@@ -5988,7 +6777,7 @@ class Slider extends Component {
         this.start();
     }
     static get defaults() {
-        return _defaults$h;
+        return _defaults$g;
     }
     /**
      * Initializes instances of Slider.
@@ -6235,7 +7024,7 @@ class Slider extends Component {
     };
 }
 
-const _defaults$g = {
+const _defaults$f = {
     duration: 300,
     onShow: null,
     swipeable: false,
@@ -6272,7 +7061,7 @@ class Tabs extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$g;
+        return _defaults$f;
     }
     /**
      * Initializes instances of Tabs.
@@ -6523,7 +7312,7 @@ class Tabs extends Component {
     }
 }
 
-const _defaults$f = {
+const _defaults$e = {
     dialRadius: 135,
     outerRadius: 105,
     innerRadius: 70,
@@ -6610,7 +7399,7 @@ class Timepicker extends Component {
         this._pickerSetup();
     }
     static get defaults() {
-        return _defaults$f;
+        return _defaults$e;
     }
     /**
      * Initializes instances of Timepicker.
@@ -7216,7 +8005,7 @@ class Timepicker extends Component {
     }
 }
 
-const _defaults$e = {
+const _defaults$d = {
     text: '',
     displayLength: 4000,
     inDuration: 300,
@@ -7269,7 +8058,7 @@ class Toast {
         this._setTimer();
     }
     static get defaults() {
-        return _defaults$e;
+        return _defaults$d;
     }
     static getInstance(el) {
         return el['M_Toast'];
@@ -7461,7 +8250,7 @@ class Toast {
     }
 }
 
-const _defaults$d = {
+const _defaults$c = {
     exitDelay: 200,
     enterDelay: 0,
     text: '',
@@ -7505,7 +8294,7 @@ class Tooltip extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$d;
+        return _defaults$c;
     }
     /**
      * Initializes instances of Tooltip.
@@ -7730,176 +8519,204 @@ class Tooltip extends Component {
     }
 }
 
-const _defaults$c = {};
-// TODO: !!!!!
+const _defaults$b = { showValue: true, showTicks: false };
+/** Material-styled native range input. */
 class Range extends Component {
-    _mousedown;
     value;
     thumb;
+    _ticks;
+    _tickValues = [];
+    _pointerDown = false;
+    _disposed = false;
+    _resize;
+    _attributes;
+    _form;
+    _resetTimer;
+    _originalProgress;
+    _originalPriority;
+    _originalValueText;
     constructor(el, options) {
         super(el, options, Range);
         this.el['M_Range'] = this;
-        this.options = {
-            ...Range.defaults,
-            ...options
-        };
-        this._mousedown = false;
-        this._setupThumb();
-        this._setupEventHandlers();
+        this.options = { ...Range.defaults, ...options };
+        this._originalProgress = el.style.getPropertyValue('--range-progress');
+        this._originalPriority = el.style.getPropertyPriority('--range-progress');
+        this._originalValueText = el.getAttribute('aria-valuetext');
+        this.thumb = document.createElement('span');
+        this.thumb.className = 'thumb';
+        this.thumb.setAttribute('aria-hidden', 'true');
+        this.value = document.createElement('span');
+        this.value.className = 'value';
+        this.thumb.append(this.value);
+        this._ticks = document.createElement('span');
+        this._ticks.className = 'range-ticks';
+        this._ticks.setAttribute('aria-hidden', 'true');
+        el.after(this.thumb, this._ticks);
+        el.addEventListener('input', this._handleInput);
+        el.addEventListener('change', this._handleInput);
+        el.addEventListener('pointerdown', this._handleDown);
+        el.addEventListener('focus', this._handleFocus);
+        el.addEventListener('blur', this._handleBlur);
+        document.addEventListener('pointerup', this._handleUp);
+        document.addEventListener('pointercancel', this._handleUp);
+        window.addEventListener('blur', this._handleBlur);
+        window.addEventListener('resize', this.update);
+        this._form = el.form;
+        this._form?.addEventListener('reset', this._handleReset);
+        this._attributes = new MutationObserver(() => { this._buildTicks(); this.update(); });
+        this._attributes.observe(el, {
+            attributes: true, attributeFilter: ['min', 'max', 'step', 'value', 'disabled', 'dir', 'data-ticks', 'data-value-label']
+        });
+        if (typeof ResizeObserver !== 'undefined') {
+            this._resize = new ResizeObserver(this.update);
+            this._resize.observe(el);
+            if (el.parentElement)
+                this._resize.observe(el.parentElement);
+        }
+        this._buildTicks();
+        this.update();
     }
-    static get defaults() {
-        return _defaults$c;
-    }
-    /**
-     * Initializes instances of Range.
-     * @param els HTML elements.
-     * @param options Component options.
-     */
+    static get defaults() { return { ..._defaults$b }; }
     static init(els, options = {}) {
         return super.init(els, options, Range);
     }
-    static getInstance(el) {
-        return el['M_Range'];
+    static getInstance(el) { return el['M_Range']; }
+    _bounds() {
+        const number = (text, fallback) => text !== null && text.trim() !== '' && Number.isFinite(Number(text)) ? Number(text) : fallback;
+        const min = number(this.el.getAttribute('min'), 0);
+        return { min, max: Math.max(min, number(this.el.getAttribute('max'), 100)) };
     }
+    _buildTicks() {
+        this._ticks.replaceChildren();
+        this._tickValues = [];
+        if (!(this.options.showTicks || this.el.hasAttribute('data-ticks')) || this.el.step === 'any')
+            return;
+        const { min, max } = this._bounds();
+        const step = Number(this.el.step) > 0 ? Number(this.el.step) : 1;
+        const count = Math.floor((max - min) / step + 1e-8);
+        if (!Number.isFinite(count) || count < 1)
+            return;
+        const stride = Math.max(1, Math.ceil(count / 100));
+        for (let i = 0; i < count; i += stride)
+            this._tickValues.push(min + i * step);
+        this._tickValues.push(min + count * step);
+        this._ticks.append(...this._tickValues.map(() => document.createElement('span')));
+    }
+    /** Refresh after assigning input.value programmatically or changing layout/direction. */
+    update = () => {
+        if (this._disposed)
+            return;
+        const { min, max } = this._bounds();
+        const ratio = max > min ? Math.min(1, Math.max(0, (this.el.valueAsNumber - min) / (max - min))) : 0;
+        const rect = this.el.getBoundingClientRect();
+        const styles = getComputedStyle(this.el);
+        const handle = parseFloat(styles.getPropertyValue('--range-handle-size')) || 20;
+        const travel = Math.max(0, rect.width - handle);
+        const rtl = styles.direction === 'rtl';
+        const distance = handle / 2 + ratio * travel;
+        this.el.style.setProperty('--range-progress', `${distance}px`);
+        this.value.textContent = this.options.formatValue ? this.options.formatValue(this.el.valueAsNumber) : this.el.value;
+        if (this.options.formatValue)
+            this.el.setAttribute('aria-valuetext', this.value.textContent);
+        const parent = this.thumb.offsetParent;
+        const origin = parent?.getBoundingClientRect();
+        const left = rect.left - (origin?.left || 0) + (parent?.scrollLeft || 0) - (parent?.clientLeft || 0);
+        const top = rect.top - (origin?.top || 0) + (parent?.scrollTop || 0) - (parent?.clientTop || 0);
+        // Keep formatted labels within the control at either endpoint.
+        this.thumb.style.maxWidth = `${rect.width}px`;
+        const labelWidth = this.thumb.offsetWidth;
+        const center = left + (rtl ? rect.width - distance : distance);
+        const labelCenter = Math.max(left + labelWidth / 2, Math.min(left + rect.width - labelWidth / 2, center));
+        this.thumb.style.left = `${labelCenter}px`;
+        this.thumb.style.setProperty('--range-label-arrow', `${center - labelCenter + labelWidth / 2}px`);
+        this.thumb.style.top = `${top + rect.height / 2 - handle / 2 - 12}px`;
+        this._ticks.style.left = `${left}px`;
+        this._ticks.style.top = `${top + rect.height / 2 - 2}px`;
+        this._ticks.style.width = `${rect.width}px`;
+        this._ticks.classList.toggle('is-disabled', this.el.disabled);
+        Array.from(this._ticks.children).forEach((tick, index) => {
+            const tickRatio = (this._tickValues[index] - min) / (max - min);
+            const position = handle / 2 + tickRatio * travel;
+            tick.style.left = `${rtl ? rect.width - position : position}px`;
+            tick.style.visibility = Math.abs(position - distance) < handle / 2 ? 'hidden' : '';
+            tick.classList.toggle('is-active', this._tickValues[index] <= this.el.valueAsNumber);
+        });
+        if (this.el.disabled || !this._showValue())
+            this.thumb.classList.remove('active');
+        if (this.el.disabled) {
+            this._pointerDown = false;
+            this.el.classList.remove('active');
+        }
+    };
+    _showValue() { return this.options.showValue && this.el.dataset.valueLabel !== 'false'; }
+    _activate() {
+        if (!this.el.disabled && this._showValue())
+            this.thumb.classList.add('active');
+    }
+    _handleInput = () => { this.update(); if (document.activeElement === this.el || this._pointerDown)
+        this._activate(); };
+    _handleDown = () => {
+        if (this.el.disabled)
+            return;
+        this._pointerDown = true;
+        this.el.classList.add('active');
+        this.update();
+        this._activate();
+    };
+    _handleUp = () => {
+        this._pointerDown = false;
+        this.el.classList.remove('active');
+        if (!this.el.matches(':focus-visible'))
+            this.thumb.classList.remove('active');
+    };
+    _handleFocus = () => { this.update(); if (this.el.matches(':focus-visible'))
+        this._activate(); };
+    _handleBlur = () => { this._pointerDown = false; this.el.classList.remove('active'); this.thumb.classList.remove('active'); };
+    _handleReset = () => {
+        clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(this.update, 0);
+    };
     destroy() {
-        this._removeEventHandlers();
-        this._removeThumb();
+        this._disposed = true;
+        clearTimeout(this._resetTimer);
+        this.el.removeEventListener('input', this._handleInput);
+        this.el.removeEventListener('change', this._handleInput);
+        this.el.removeEventListener('pointerdown', this._handleDown);
+        this.el.removeEventListener('focus', this._handleFocus);
+        this.el.removeEventListener('blur', this._handleBlur);
+        document.removeEventListener('pointerup', this._handleUp);
+        document.removeEventListener('pointercancel', this._handleUp);
+        window.removeEventListener('blur', this._handleBlur);
+        window.removeEventListener('resize', this.update);
+        this._form?.removeEventListener('reset', this._handleReset);
+        this._resize?.disconnect();
+        this._attributes.disconnect();
+        this.thumb.remove();
+        this._ticks.remove();
+        this.el.classList.remove('active');
+        if (this._originalProgress)
+            this.el.style.setProperty('--range-progress', this._originalProgress, this._originalPriority);
+        else
+            this.el.style.removeProperty('--range-progress');
+        if (this.options.formatValue) {
+            if (this._originalValueText === null)
+                this.el.removeAttribute('aria-valuetext');
+            else
+                this.el.setAttribute('aria-valuetext', this._originalValueText);
+        }
         this.el['M_Range'] = undefined;
     }
-    _setupEventHandlers() {
-        this.el.addEventListener('change', this._handleRangeChange);
-        this.el.addEventListener('mousedown', this._handleRangeMousedownTouchstart);
-        this.el.addEventListener('touchstart', this._handleRangeMousedownTouchstart);
-        this.el.addEventListener('input', this._handleRangeInputMousemoveTouchmove);
-        this.el.addEventListener('mousemove', this._handleRangeInputMousemoveTouchmove);
-        this.el.addEventListener('touchmove', this._handleRangeInputMousemoveTouchmove);
-        this.el.addEventListener('mouseup', this._handleRangeMouseupTouchend);
-        this.el.addEventListener('touchend', this._handleRangeMouseupTouchend);
-        this.el.addEventListener('blur', this._handleRangeBlurMouseoutTouchleave);
-        this.el.addEventListener('mouseout', this._handleRangeBlurMouseoutTouchleave);
-        this.el.addEventListener('touchleave', this._handleRangeBlurMouseoutTouchleave);
-    }
-    _removeEventHandlers() {
-        this.el.removeEventListener('change', this._handleRangeChange);
-        this.el.removeEventListener('mousedown', this._handleRangeMousedownTouchstart);
-        this.el.removeEventListener('touchstart', this._handleRangeMousedownTouchstart);
-        this.el.removeEventListener('input', this._handleRangeInputMousemoveTouchmove);
-        this.el.removeEventListener('mousemove', this._handleRangeInputMousemoveTouchmove);
-        this.el.removeEventListener('touchmove', this._handleRangeInputMousemoveTouchmove);
-        this.el.removeEventListener('mouseup', this._handleRangeMouseupTouchend);
-        this.el.removeEventListener('touchend', this._handleRangeMouseupTouchend);
-        this.el.removeEventListener('blur', this._handleRangeBlurMouseoutTouchleave);
-        this.el.removeEventListener('mouseout', this._handleRangeBlurMouseoutTouchleave);
-        this.el.removeEventListener('touchleave', this._handleRangeBlurMouseoutTouchleave);
-    }
-    _handleRangeChange = () => {
-        this.value.innerHTML = this.el.value;
-        if (!this.thumb.classList.contains('active')) {
-            this._showRangeBubble();
-        }
-        const offsetLeft = this._calcRangeOffset();
-        this.thumb.classList.add('active');
-        this.thumb.style.left = offsetLeft + 'px';
-    };
-    _handleRangeMousedownTouchstart = (e) => {
-        // Set indicator value
-        this.value.innerHTML = this.el.value;
-        this._mousedown = true;
-        this.el.classList.add('active');
-        if (!this.thumb.classList.contains('active')) {
-            this._showRangeBubble();
-        }
-        if (e.type !== 'input') {
-            const offsetLeft = this._calcRangeOffset();
-            this.thumb.classList.add('active');
-            this.thumb.style.left = offsetLeft + 'px';
-        }
-    };
-    _handleRangeInputMousemoveTouchmove = () => {
-        if (this._mousedown) {
-            if (!this.thumb.classList.contains('active')) {
-                this._showRangeBubble();
-            }
-            const offsetLeft = this._calcRangeOffset();
-            this.thumb.classList.add('active');
-            this.thumb.style.left = offsetLeft + 'px';
-            this.value.innerHTML = this.el.value;
-        }
-    };
-    _handleRangeMouseupTouchend = () => {
-        this._mousedown = false;
-        this.el.classList.remove('active');
-    };
-    _handleRangeBlurMouseoutTouchleave = () => {
-        if (!this._mousedown) {
-            const paddingLeft = parseInt(getComputedStyle(this.el).paddingLeft);
-            const marginLeftText = 7 + paddingLeft + 'px';
-            if (this.thumb.classList.contains('active')) {
-                const duration = 100;
-                // from
-                this.thumb.style.transition = 'none';
-                setTimeout(() => {
-                    this.thumb.style.transition = `
-            height ${duration}ms ease,
-            width ${duration}ms ease,
-            top ${duration}ms ease,
-            margin ${duration}ms ease
-          `;
-                    // to
-                    this.thumb.style.height = '0';
-                    this.thumb.style.width = '0';
-                    this.thumb.style.top = '0';
-                    this.thumb.style.marginLeft = marginLeftText;
-                }, 1);
-            }
-            this.thumb.classList.remove('active');
-        }
-    };
-    _setupThumb() {
-        this.thumb = document.createElement('span');
-        this.value = document.createElement('span');
-        this.thumb.classList.add('thumb');
-        this.value.classList.add('value');
-        this.thumb.append(this.value);
-        this.el.after(this.thumb);
-    }
-    _removeThumb() {
-        this.thumb.remove();
-    }
-    _showRangeBubble() {
-        const paddingLeft = parseInt(getComputedStyle(this.thumb.parentElement).paddingLeft);
-        const marginLeftText = -7 + paddingLeft + 'px'; // TODO: fix magic number?
-        const duration = 300;
-        // easeOutQuint
-        this.thumb.style.transition = `
-      height ${duration}ms ease,
-      width ${duration}ms ease,
-      top ${duration}ms ease,
-      margin ${duration}ms ease
-    `;
-        // to
-        this.thumb.style.height = '30px';
-        this.thumb.style.width = '30px';
-        this.thumb.style.top = '-30px';
-        this.thumb.style.marginLeft = marginLeftText;
-    }
-    _calcRangeOffset() {
-        const width = this.el.getBoundingClientRect().width - 15;
-        const max = parseFloat(this.el.getAttribute('max')) || 100; // Range default max
-        const min = parseFloat(this.el.getAttribute('min')) || 0; // Range default min
-        const percent = (parseFloat(this.el.value) - min) / (max - min);
-        return percent * width;
-    }
-    /**
-     * Initializes every range input in the current document.
-     */
+    /** Initialize uninitialized ranges currently in the document. */
     static Init() {
         if (typeof document !== 'undefined')
-            Range.init(document?.querySelectorAll('input[type=range]'), {});
+            document.querySelectorAll('input[type=range]').forEach(el => {
+                if (!Range.getInstance(el))
+                    Range.init(el);
+            });
     }
 }
 
-const _defaults$b = {};
+const _defaults$a = {};
 // @implement /Users/kzarshenas/Sites/RodeoFx/rodeo_toolkit_2/app/Environment/Partials/PlanningToolbar.ts
 // Generic version of that file's track-indicator sliding and expandable
 // search behavior, decoupled from the page-specific filter/state-binding
@@ -7927,7 +8744,7 @@ class Toolbar extends Component {
         }
     }
     static get defaults() {
-        return _defaults$b;
+        return _defaults$a;
     }
     static init(els, options = {}) {
         return super.init(els, options, Toolbar);
@@ -8033,7 +8850,7 @@ class Toolbar extends Component {
     }
 }
 
-const _defaults$a = {};
+const _defaults$9 = {};
 // @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Password.ts
 // Show/hide toggle for a password input - no third-party dependency, just
 // Materialize's own .prefix/.suffix icon-slot convention (see
@@ -8054,7 +8871,7 @@ class PasswordInput extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$a;
+        return _defaults$9;
     }
     static init(els, options = {}) {
         return super.init(els, options, PasswordInput);
@@ -8080,217 +8897,6 @@ class PasswordInput extends Component {
         if (iconEl)
             iconEl.textContent = visible ? 'visibility' : 'visibility_off';
     };
-}
-
-const _defaults$9 = {
-    thousandsSeparator: ' ',
-    radix: '.',
-    mapToRadix: [',']
-};
-// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Number.ts
-// Masked/formatted numeric input via IMask (thousands separator, decimal
-// scale, min/max) - deliberately opts in on `type="text" data-type="number"`
-// rather than `type="number"`, so IMask can format the display value
-// (thousands separators etc.) that a native number input wouldn't allow.
-//
-// IMask is an optional peerDependency, loaded on demand via peer-loader -
-// see that file for the bundler/no-bundler resolution strategy.
-class NumberInput extends Component {
-    mask;
-    ready;
-    constructor(el, options) {
-        super(el, options, NumberInput);
-        this.el.M_NumberInput = this;
-        this.options = {
-            ...NumberInput.defaults,
-            ...options
-        };
-        this.ready = this._setup();
-    }
-    static get defaults() {
-        return _defaults$9;
-    }
-    static init(els, options = {}) {
-        return super.init(els, options, NumberInput);
-    }
-    static getInstance(el) {
-        return el.M_NumberInput;
-    }
-    destroy() {
-        this._destroyed = true;
-        this._events?.abort();
-        this._observer?.disconnect();
-        this.mask?.off('accept', this.syncControls);
-        this.mask?.destroy();
-        if (this._controls) {
-            this._controls.replaceWith(this.el);
-            this._controls = undefined;
-        }
-        for (const [name, value] of this._originalAttributes) {
-            if (value === null)
-                this.el.removeAttribute(name);
-            else
-                this.el.setAttribute(name, value);
-        }
-        this.el.M_NumberInput = undefined;
-    }
-    _destroyed = false;
-    _controls;
-    _events;
-    _observer;
-    _originalAttributes = new Map();
-    get stepSize() {
-        const value = this.options.step ?? Number(this.el.getAttribute('step') || 1);
-        return Number.isFinite(value) && value > 0 ? value : 1;
-    }
-    get largeStepSize() {
-        const value = this.options.largeStep ?? Number(this.el.dataset.numberLargeStep || this.stepSize * 10);
-        return Number.isFinite(value) && value > 0 ? value : this.stepSize * 10;
-    }
-    bound(name) {
-        const value = this.options[name] ?? (this.el.hasAttribute(name) ? Number(this.el.getAttribute(name)) : undefined);
-        return Number.isFinite(value) ? value : undefined;
-    }
-    decimalPlaces(value) {
-        const [coefficient, exponent = '0'] = String(value).split('e');
-        return Math.max(0, (coefficient.split('.')[1]?.length || 0) - Number(exponent));
-    }
-    /** Increase by the fine step, or the coarse step when large is true. */
-    increment(large = false) { this.adjust(large ? this.largeStepSize : this.stepSize); }
-    /** Decrease by the fine step, or the coarse step when large is true. */
-    decrement(large = false) { this.adjust(-(large ? this.largeStepSize : this.stepSize)); }
-    adjust(delta) {
-        if (!this.mask || this._destroyed || this.el.matches(':disabled') || this.el.readOnly)
-            return;
-        const current = Number(this.mask.typedValue) || 0;
-        // Round decimal steps before formatting: 0.2 + 0.1 must display 0.3.
-        const precision = Math.min(15, Math.max(this.decimalPlaces(current), this.decimalPlaces(delta)));
-        let next = Number((current + delta).toFixed(precision));
-        next = Math.max(this.bound('min') ?? -Infinity, Math.min(this.bound('max') ?? Infinity, next));
-        if (!Number.isFinite(next))
-            return;
-        if (next === current && this.el.value !== '')
-            return;
-        this.mask.typedValue = next;
-        this.syncControls();
-        this.el.dispatchEvent(new Event('input', { bubbles: true }));
-        this.el.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    setupControls() {
-        this._events = new AbortController();
-        const signal = this._events.signal;
-        for (const name of ['role', 'inputmode', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow']) {
-            this._originalAttributes.set(name, this.el.getAttribute(name));
-        }
-        this.el.setAttribute('role', 'spinbutton');
-        this.el.setAttribute('inputmode', 'decimal');
-        const wrapper = document.createElement('div');
-        wrapper.className = 'number-input-stepper';
-        this.el.before(wrapper);
-        wrapper.append(this.el);
-        this._controls = wrapper;
-        const makeButton = (direction, large) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.dataset.direction = String(direction);
-            button.dataset.large = String(large);
-            button.innerHTML = `<span aria-hidden="true">${direction < 0 ? large ? '«' : '‹' : large ? '»' : '›'}</span><small aria-hidden="true"></small>`;
-            button.addEventListener('click', () => {
-                this.adjust(direction * (large ? this.largeStepSize : this.stepSize));
-            }, { signal });
-            return button;
-        };
-        wrapper.prepend(makeButton(-1, true), makeButton(-1, false));
-        wrapper.append(makeButton(1, false), makeButton(1, true));
-        this.el.addEventListener('keydown', event => {
-            if (event.altKey || event.ctrlKey || event.metaKey)
-                return;
-            if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(event.key))
-                return;
-            event.preventDefault();
-            const large = event.shiftKey || event.key.startsWith('Page');
-            if (event.key === 'ArrowUp' || event.key === 'PageUp')
-                this.increment(large);
-            else
-                this.decrement(large);
-        }, { signal });
-        this.el.addEventListener('change', () => { this.mask?.updateValue(); this.syncControls(); }, { signal });
-        this.mask.on('accept', this.syncControls);
-        this._observer = new MutationObserver(() => {
-            this.mask?.updateOptions({ min: this.bound('min'), max: this.bound('max') });
-            this.syncControls();
-        });
-        this._observer.observe(this.el, { attributes: true, attributeFilter: ['disabled', 'readonly', 'min', 'max', 'step', 'data-number-large-step'] });
-        for (let parent = this.el.parentElement; parent; parent = parent.parentElement) {
-            if (parent instanceof HTMLFieldSetElement)
-                this._observer.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
-        }
-        this.el.form?.addEventListener('reset', () => {
-            queueMicrotask(() => { if (!this._destroyed) {
-                this.mask?.updateValue();
-                this.syncControls();
-            } });
-        }, { signal });
-        this.syncControls();
-    }
-    syncControls = () => {
-        if (!this._controls || !this.mask)
-            return;
-        const value = Number(this.mask.typedValue) || 0;
-        const min = this.bound('min');
-        const max = this.bound('max');
-        for (const [name, bound] of [['aria-valuemin', min], ['aria-valuemax', max]]) {
-            if (bound === undefined)
-                this.el.removeAttribute(name);
-            else
-                this.el.setAttribute(name, String(bound));
-        }
-        if (this.el.value === '')
-            this.el.removeAttribute('aria-valuenow');
-        else
-            this.el.setAttribute('aria-valuenow', String(value));
-        this._controls.querySelectorAll('button').forEach(button => {
-            const direction = Number(button.dataset.direction);
-            const step = button.dataset.large === 'true' ? this.largeStepSize : this.stepSize;
-            button.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} by ${step}`);
-            button.title = button.getAttribute('aria-label');
-            button.querySelector('small').textContent = String(step);
-            button.disabled = this.el.matches(':disabled') || this.el.readOnly ||
-                (this.el.value !== '' && (direction < 0 ? min !== undefined && value <= min : max !== undefined && value >= max));
-        });
-    };
-    async _setup() {
-        const IMask = await loadPeer({
-            specifier: 'imask',
-            globalName: 'IMask',
-            feature: 'Number input (IMask) enhancement',
-            cdnHint: '<script src="path/to/imask.min.js"></script> (self-hosted - copy from node_modules/imask/dist/imask.min.js, or a CDN of your choice)'
-        }, () => import('imask'));
-        if (this._destroyed)
-            return;
-        const maskOptions = {
-            mask: Number,
-            skipInvalid: true,
-            thousandsSeparator: this.options.thousandsSeparator,
-            radix: this.options.radix,
-            mapToRadix: this.options.mapToRadix,
-            autofix: true
-        };
-        const max = this.options.max ?? (this.el.hasAttribute('max') ? Number(this.el.getAttribute('max')) : undefined);
-        if (max !== undefined && !Number.isNaN(max))
-            maskOptions.max = max;
-        const min = this.options.min ?? (this.el.hasAttribute('min') ? Number(this.el.getAttribute('min')) : undefined);
-        if (min !== undefined && !Number.isNaN(min))
-            maskOptions.min = min;
-        const step = this.el.getAttribute('step');
-        const controls = this.options.controls ?? (this.el.hasAttribute('data-number-controls') && this.el.dataset.numberControls !== 'false');
-        const scale = this.options.scale ?? (controls ? Math.max(this.decimalPlaces(this.stepSize), this.decimalPlaces(this.largeStepSize)) : step?.includes('.') ? step.split('.').at(-1)?.length : undefined);
-        if (scale !== undefined)
-            maskOptions.scale = scale;
-        this.mask = IMask(this.el, maskOptions);
-        if (controls)
-            this.setupControls();
-    }
 }
 
 // @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Color.ts
@@ -11691,7 +12297,79 @@ if (typeof customElements !== 'undefined') {
         customElements.define('loading-screen-btn', LoadingScreenBtn);
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+const instances = new WeakMap();
+/** Initialize navbar overflow fades. Returns cleanup; safe to reinitialize. */
+function initNavbarScroll(navbar) {
+    instances.get(navbar)?.();
+    const row = navbar.querySelector(':scope > .nav-wrapper');
+    if (!row)
+        return () => { };
+    const left = document.createElement('span');
+    const right = document.createElement('span');
+    left.className = 'navbar-scroll-fade navbar-scroll-fade-left';
+    right.className = 'navbar-scroll-fade navbar-scroll-fade-right';
+    left.setAttribute('aria-hidden', 'true');
+    right.setAttribute('aria-hidden', 'true');
+    navbar.append(left, right);
+    const previous = ['--scroll-left-fade', '--scroll-right-fade'].map(name => ({
+        name, value: navbar.style.getPropertyValue(name), priority: navbar.style.getPropertyPriority(name)
+    }));
+    const start = navbar.classList.contains('is-scroll-start');
+    const end = navbar.classList.contains('is-scroll-end');
+    let disposed = false;
+    const update = () => {
+        if (disposed)
+            return;
+        const max = Math.max(0, row.scrollWidth - row.clientWidth);
+        const rtl = getComputedStyle(row).direction === 'rtl';
+        const offset = Math.min(max, Math.max(0, rtl ? -row.scrollLeft : row.scrollLeft));
+        const atLeft = max <= 1 || (rtl ? offset >= max - 1 : offset <= 1);
+        const atRight = max <= 1 || (rtl ? offset <= 1 : offset >= max - 1);
+        navbar.classList.toggle('is-scroll-start', atLeft);
+        navbar.classList.toggle('is-scroll-end', atRight);
+        navbar.style.setProperty('--scroll-left-fade', atLeft ? '0' : '1');
+        navbar.style.setProperty('--scroll-right-fade', atRight ? '0' : '1');
+        left.classList.toggle('is-hidden', atLeft);
+        right.classList.toggle('is-hidden', atRight);
+    };
+    const resize = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(update);
+    const observeSizes = () => {
+        resize?.disconnect();
+        resize?.observe(row);
+        Array.from(row.children).forEach(child => resize?.observe(child));
+        update();
+    };
+    const mutation = new MutationObserver(observeSizes);
+    mutation.observe(row, { childList: true, subtree: true, characterData: true });
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    document.fonts?.ready.then(update);
+    observeSizes();
+    const dispose = () => {
+        if (disposed)
+            return;
+        disposed = true;
+        row.removeEventListener('scroll', update);
+        window.removeEventListener('resize', update);
+        resize?.disconnect();
+        mutation.disconnect();
+        left.remove();
+        right.remove();
+        navbar.classList.toggle('is-scroll-start', start);
+        navbar.classList.toggle('is-scroll-end', end);
+        previous.forEach(({ name, value, priority }) => {
+            if (value)
+                navbar.style.setProperty(name, value, priority);
+            else
+                navbar.style.removeProperty(name);
+        });
+        if (instances.get(navbar) === dispose)
+            instances.delete(navbar);
+    };
+    instances.set(navbar, dispose);
+    return dispose;
+}
+
 const version = '2.3.3';
 /**
  * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
@@ -11707,6 +12385,8 @@ function toast(options) {
  */
 function AutoInit(context = document.body, options) {
     const registry = {
+        MaskitoInput: context.querySelectorAll('input[data-maskito]:not(.no-autoinit)'),
+        RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
         Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
         Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
         Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
@@ -11735,12 +12415,14 @@ function AutoInit(context = document.body, options) {
         // mode reusing the same class name, not this component.
         Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)'),
         PasswordInput: context.querySelectorAll('input[data-password-toggle]:not(.no-autoinit)'),
-        NumberInput: context.querySelectorAll('input[data-type="number"]:not(.no-autoinit)'),
+        NumberInput: context.querySelectorAll('input[data-type="number"]:not([data-maskito]):not(.no-autoinit)'),
         ColorInput: context.querySelectorAll('input[type="color"][data-color-picker="pickr"]:not(.no-autoinit)'),
         AirDatepickerField: context.querySelectorAll('input[data-date-picker="air-datepicker"]:not(.no-autoinit)'),
         FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
         TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
     };
+    MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
+    RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
     Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
     Loading.init(registry.Loading, options?.Loading ?? {});
     Alert.init(registry.Alert, options?.Alert ?? {});
@@ -11784,4 +12466,4 @@ Waves.Init();
 Range.Init();
 Cards.Init();
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, printChart, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };

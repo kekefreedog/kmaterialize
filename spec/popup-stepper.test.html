@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Popup stepper browser regression checks</title>
+<!-- Build kmaterialize first, then open this file in a browser.
+     The result element reports PASS or FAIL after the async checks finish. -->
+<link rel="stylesheet" href="../node_modules/sweetalert2/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<pre id="result">PENDING</pre>
+<script src="../node_modules/sweetalert2/dist/sweetalert2.js"></script>
+<script src="../dist/js/materialize.js"></script>
+<script>
+(async () => {
+  const log = [];
+  const check = (value, message) => { if (!value) throw Error(message); };
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  async function until(test) { for (let i=0;i<100;i++) { if(test()) return; await wait(20); } throw Error('Timed out: '+test); }
+  const state = value => document.querySelector(`.popup-stepper-step[data-state="${value}"]`);
+  try {
+    let invalid = false;
+    try { await M.Popup.steps({ title: 'Invalid', steps: [] }); } catch { invalid = true; }
+    check(invalid, 'empty steps rejected');
+    log.push('empty-step validation');
+    const order = [];
+    const success = M.Popup.steps({ title: 'Success <b>plain</b>', steps: [
+      { title: 'First <img>', run: async ({signal,setMessage}) => { order.push(1);setMessage('<b>plain text</b>');await wait(60);check(!signal.aborted,'active signal');return 'one'; } },
+      { title: 'Second', run: async ({results}) => { check(results[0]==='one','previous result');check(Object.isFrozen(results),'immutable snapshot');order.push(2);await wait(60);return 'two'; } }
+    ] });
+    await until(()=>state('active'));
+    check(!document.querySelector('.popup-stepper img'),'titles escaped');
+    check(!document.querySelector('.popup-stepper b'),'messages escaped');
+    await until(()=>document.querySelectorAll('[data-state="complete"]').length===2);
+    check(document.querySelector('progress').value===2,'progress reaches max');
+    check(order.join(',')==='1,2','sequential');
+    await M.Popup.clickConfirm();
+    const successResult=await success;
+    check(successResult.isConfirmed && successResult.value.join(',')==='one,two','ordered result');
+    log.push('sequential async results, plain text, progress, Done');
+    await wait(200);
+    let first=0, attempts=0;
+    const retry=M.Popup.steps({title:'Retry',steps:[
+      {title:'Once',run:()=>++first},
+      {title:'Fail once',run:async()=>{await wait(50);if(++attempts===1)throw Error('<img src=x>Failure');return 2;}}
+    ]});
+    await until(()=>state('error'));
+    check(!document.querySelector('.popup-stepper img'),'errors escaped');
+    check(document.querySelector('.popup-stepper-step[data-state="error"] p').textContent.includes('<img'),'error visible');
+    await M.Popup.clickConfirm();
+    await until(()=>document.querySelectorAll('[data-state="complete"]').length===2);
+    check(first===1 && attempts===2,'retry only failed step');
+    await M.Popup.clickConfirm();check((await retry).isConfirmed,'retry success result');
+    log.push('failure and retry without repeating completed work');
+    await wait(200);
+    let signal, finish, later=0;
+    const cancel=M.Popup.steps({title:'Cancel',steps:[
+      {title:'Pending',run:context=>{signal=context.signal;return new Promise(resolve=>finish=resolve);}},
+      {title:'Must not run',run:()=>later++}
+    ]});
+    await until(()=>signal);
+    Swal.getCancelButton().click();
+    const cancelled=await cancel;
+    check(cancelled.isDismissed && signal.aborted,'cancel aborts');
+    finish('ignored');await wait(100);check(later===0,'cancel stops next step');
+    log.push('cancellation abort signal and no further steps');
+    await wait(200);
+    let replacementSignal, resolveOld;
+    const old=M.Popup.steps({title:'Old',steps:[{title:'Pending',run:context=>{replacementSignal=context.signal;return new Promise(resolve=>resolveOld=resolve);}}]});
+    await until(()=>replacementSignal);
+    const replacement=M.Popup.fire({titleText:'Replacement',text:'Keep this dialog'});
+    await until(()=>Swal.getTitle()?.textContent==='Replacement');
+    resolveOld('late');await wait(100);
+    check(replacementSignal.aborted,'replacement aborts old signal');
+    check(Swal.getTitle().textContent==='Replacement','late result cannot mutate replacement');
+    await M.Popup.close();await replacement;await old;
+    log.push('replacement and late async result isolation');
+    await wait(200);
+    const locked=M.Popup.steps({title:'Locked',cancellable:false,steps:[{title:'Failure',run:()=>{throw Error('retry or close');}}]});
+    await until(()=>state('error'));
+    check(Swal.getCancelButton().style.display!=='none','failed locked run can close');
+    Swal.getCancelButton().click();await locked;
+    log.push('failure remains dismissible');
+    document.querySelector('#result').textContent='PASS: '+log.join('; ');
+  } catch(error) { document.querySelector('#result').textContent='FAIL: '+error.stack+'; passed: '+log.join('; '); }
+})();
+
+</script>
+</html>

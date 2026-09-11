@@ -110,3 +110,21 @@
   background-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
   border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 38%);
 }
+
+// Arrange standard Materialize radio labels horizontally, wrapping on small screens.
+.radio-group-horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  > label { position: relative; padding-block: 8px; }
+  > label > input:focus-visible + span {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}

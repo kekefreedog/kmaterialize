@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Navbar library CSS regression checks</title>
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<pre id="result">PENDING</pre>
+<nav class="navbar appbar-bordered navbar-rounded" id="bar"><div class="nav-wrapper"><ul>
+<li><a id="icon" href="#"><i class="material-icons">home</i></a></li>
+<li><a id="text-icon" href="#"><i class="material-icons left">home</i>Home</a></li>
+<li><a id="dropdown" class="dropdown-trigger" href="#">Menu<i class="material-icons right">arrow_drop_down</i></a></li>
+<li><a id="button" class="btn" href="#"><i class="material-icons left">add</i>Create</a></li>
+<li><a id="large" class="btn-large" href="#">Large</a></li>
+</ul></div></nav>
+<nav id="extended" class="navbar appbar-bordered nav-extended navbar-rounded"><div class="nav-wrapper"><a class="sidenav-trigger"><i class="material-icons">menu</i></a></div><div class="nav-content"><ul class="tabs"><li class="tab"><a class="active">Active</a></li></ul></div></nav>
+<nav id="wrap" class="navbar appbar-bordered navbar-wrap" style="width:250px"><div class="nav-wrapper"><ul class="ml-auto"><li><a>First long action</a></li><li><a>Second long action</a></li><li><a>Third action</a></li></ul></div></nav>
+<ul class="dropdown-content" id="menu"><li><a>Enabled</a></li><li class="disabled"><a>Disabled</a></li></ul>
+<script>
+requestAnimationFrame(()=>{try {
+ const el=id=>document.getElementById(id), style=id=>getComputedStyle(el(id));
+ const check=(ok,message)=>{if(!ok)throw Error(message)};
+ check(style('icon').width==='40px' && style('icon').height==='40px','icon target geometry');
+ for(const id of ['icon','text-icon','dropdown','button']) {
+   const icon=el(id).querySelector('i'), r=icon.getBoundingClientRect(), a=el(id).getBoundingClientRect();
+   check(getComputedStyle(icon).position==='static',id+' static icon');
+   check(Math.abs(r.y+r.height/2-a.y-a.height/2)<1,id+' vertical icon alignment');
+ }
+ check(style('button').height==='40px' && style('large').height==='48px','button sizes');
+ check(style('bar').height==='64px','rounded bar height');
+ check(el('extended').getBoundingClientRect().height>100 && style('extended').overflow==='visible','extended rounded bar not clipped');
+ const tabs=el('extended').querySelector('.tabs');check(getComputedStyle(tabs.querySelector('a')).color===getComputedStyle(tabs).getPropertyValue('--md-sys-color-on-surface').trim() || getComputedStyle(tabs.querySelector('a')).opacity==='1','active tabs foreground');
+ check(el('wrap').scrollWidth<=el('wrap').clientWidth+2,'wrapped bar has no horizontal overflow');
+ check(style('menu').borderTopWidth==='1px','dropdown outline');
+ document.getElementById('result').textContent='PASS: library-only icons, dropdowns, button sizes, rounded/extended/wrapped bars, tabs and dropdown outline';
+} catch(e) {document.getElementById('result').textContent='FAIL: '+e.message}});
+</script></html>

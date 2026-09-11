@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Range browser regression checks</title>
+<!-- Build kmaterialize, then open in a browser. Wait for PASS or FAIL. -->
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<form><div class="range-field"><label for="range-test">Test</label>
+<input id="range-test" type="range" min="0" max="100" step="25" value="25" data-ticks style="width:300px">
+</div></form>
+<pre id="result">PENDING</pre>
+<script src="../dist/js/materialize.js"></script>
+<script>
+(async()=>{
+  const check=(value,message)=>{if(!value)throw Error(message)};
+  const tick=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,50)));
+  const input=document.querySelector('#range-test');
+  const slider=M.Range.getInstance(input);
+  const progress=()=>parseFloat(input.style.getPropertyValue('--range-progress'));
+  const log=[];
+  try {
+    check(slider,'automatic initialization');
+    check(getComputedStyle(input).height==='48px','48px input target');
+    check(progress()===80,'initial fill includes thumb inset');
+    check(input.parentElement.querySelectorAll('.range-ticks > span').length===5,'step ticks');
+    input.value='100';input.dispatchEvent(new Event('input'));
+    check(progress()===290 && slider.value.textContent==='100','input updates track and label');
+    input.value='0';slider.update();check(progress()===10,'minimum fill');
+    input.value='75';slider.update();input.form.reset();await tick();
+    check(input.value==='25' && progress()===80,'form reset');
+    input.min='-100';input.max='0';input.value='-25';await tick();
+    check(progress()===220,'zero maximum and negative minimum');
+    input.dir='rtl';await tick();
+    check(parseFloat(slider.thumb.style.left)===80,'RTL indicator');
+    check(getComputedStyle(input).getPropertyValue('--range-direction').trim()==='to left','RTL track');
+    input.style.width='200px';await tick();
+    check(progress()===145,'resize updates fill geometry');
+    input.focus();input.dispatchEvent(new Event('input'));
+    check(slider.thumb.classList.contains('active'),'keyboard focus shows label');
+    input.disabled=true;await tick();
+    check(!slider.thumb.classList.contains('active'),'disabled hides label');
+    check(input.parentElement.querySelector('.range-ticks').classList.contains('is-disabled'),'disabled ticks');
+    input.disabled=false;input.step='any';await tick();
+    check(input.parentElement.querySelector('.range-ticks').children.length===0,'continuous has no ticks');
+    input.step='.00001';await tick();
+    check(input.parentElement.querySelector('.range-ticks').children.length<=101,'dense ticks bounded');
+    log.push('initial fill, input, reset, zero max, RTL, resize, focus, disabled, tick density');
+    const formatted=M.Range.init(input,{formatValue:value=>`<b>${value} units</b>`});
+    check(input.parentElement.querySelectorAll('.thumb').length===1,'reinit no duplicate');
+    check(!formatted.value.querySelector('b'),'formatting uses plain text');
+    check(input.getAttribute('aria-valuetext').includes('units'),'accessible formatted value');
+    M.Range.Init();check(M.Range.getInstance(input)===formatted,'global init preserves instance');
+    formatted.destroy();
+    check(!input.parentElement.querySelector('.thumb'),'destroy removes bubble');
+    check(!input.parentElement.querySelector('.range-ticks'),'destroy removes ticks');
+    check(!input.hasAttribute('aria-valuetext'),'destroy restores ARIA');
+    check(!input.style.getPropertyValue('--range-progress'),'destroy restores style');
+    input.value='-50';input.dispatchEvent(new Event('input'));await tick();
+    check(!input.style.getPropertyValue('--range-progress'),'destroy removes listeners');
+    log.push('safe formatting, reinit, idempotent initialization, cleanup');
+    document.querySelector('#result').textContent='PASS: '+log.join('; ');
+  } catch(e) {document.querySelector('#result').textContent='FAIL: '+e.stack+'; '+log.join('; ')}
+})();
+
+</script>
+</html>

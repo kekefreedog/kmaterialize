@@ -1,3 +1,6 @@
+import { MaskitoOptions, Maskito } from '@maskito/core';
+import { MaskitoNumberParams, MaskitoDateParams, MaskitoTimeParams } from '@maskito/kit';
+import Quill from 'quill';
 import { SweetAlertOptions, SweetAlertResult } from 'sweetalert2';
 import { InputMask, MaskedNumberOptions } from 'imask';
 import PickrCtor from '@simonwep/pickr';
@@ -77,6 +80,100 @@ declare class Component<O extends BaseOptions$1> {
     /**
      * Destroy plugin instance and teardown.
      */
+    destroy(): void;
+}
+
+interface MaskitoInputOptions extends BaseOptions$1 {
+    preset?: 'pattern' | 'number' | 'date' | 'time';
+    /** # = digit, A = ASCII letter, * = alphanumeric. Backslash escapes literals. */
+    pattern?: string;
+    number?: MaskitoNumberParams;
+    date?: MaskitoDateParams;
+    time?: MaskitoTimeParams;
+    /** Native Maskito options, including regex/dynamic masks, processors and plugins. */
+    maskOptions?: Partial<MaskitoOptions>;
+}
+/** Optional Maskito enhancement for native text inputs. */
+declare class MaskitoInput extends Component<MaskitoInputOptions> {
+    el: HTMLInputElement;
+    mask?: Maskito;
+    ready: Promise<void>;
+    private _core?;
+    private _maskOptions?;
+    private _destroyed;
+    private _form;
+    private _resetTimer?;
+    constructor(el: HTMLInputElement, options: Partial<MaskitoInputOptions>);
+    static get defaults(): MaskitoInputOptions;
+    static init(el: HTMLInputElement, options?: Partial<MaskitoInputOptions>): MaskitoInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<MaskitoInputOptions>): MaskitoInput[];
+    static getInstance(el: HTMLInputElement): MaskitoInput;
+    private static _readMarkup;
+    private _options;
+    private _setup;
+    /** Set and format a value, emitting a normal input event by default. */
+    setValue(value: string, emit?: boolean): Promise<void>;
+    /** Normalize a value assigned through input.value without emitting input. */
+    refresh(): Promise<void>;
+    /** The native, formatted string. Use Maskito kit parsers for typed values. */
+    getValue(): string;
+    private _onReset;
+    destroy(): void;
+}
+
+type ToolbarItem = string | Record<string, unknown>;
+interface RichTextareaOptions extends BaseOptions$1 {
+    /** Native textarea serialization. HTML preserves formatting; text stores plain text. */
+    valueFormat?: 'html' | 'text';
+    toolbar?: false | Array<ToolbarItem | ToolbarItem[]>;
+    formats?: string[];
+    placeholder?: string;
+    label?: string;
+}
+/** Quill enhancement of a native textarea, including form value synchronization. */
+declare class RichTextarea extends Component<RichTextareaOptions> {
+    el: HTMLTextAreaElement;
+    quill?: Quill;
+    ready: Promise<void>;
+    private _wrapper?;
+    private _error?;
+    private _observer?;
+    private _form;
+    private _labels;
+    private _labelIds;
+    private _hidden;
+    private _ariaHidden;
+    private _destroyed;
+    private _updating;
+    private _dirty;
+    private _invalid;
+    private _lastValue;
+    private _resetTimer?;
+    private _blurTimer?;
+    constructor(el: HTMLTextAreaElement, options: Partial<RichTextareaOptions>);
+    static get defaults(): RichTextareaOptions;
+    static init(el: HTMLTextAreaElement, options?: Partial<RichTextareaOptions>): RichTextarea;
+    static init(els: InitElements<HTMLTextAreaElement | MElement>, options?: Partial<RichTextareaOptions>): RichTextarea[];
+    static getInstance(el: HTMLTextAreaElement): RichTextarea;
+    private _setup;
+    private _labelToolbar;
+    /** Refresh native value, state and accessible labels after programmatic changes. */
+    refresh(): void;
+    /** Set serialized content. Call after ready to update both editor and textarea. */
+    setValue(value: string, emit?: boolean): void;
+    getValue(): string;
+    getHTML(): string;
+    getText(): string;
+    focus(): void;
+    private _isEmpty;
+    private _sync;
+    private _updateValidity;
+    private _onTextChange;
+    private _onNativeInput;
+    private _onLabelClick;
+    private _onInvalid;
+    private _onBlur;
+    private _onReset;
     destroy(): void;
 }
 
@@ -381,6 +478,30 @@ declare class Autocomplete extends Component<AutocompleteOptions> {
     selectOptions(ids: []): void;
 }
 
+interface PopupStepContext<T = unknown> {
+    /** Aborted when the popup closes. Pass this signal to fetch or other work. */
+    signal: AbortSignal;
+    /** Results from completed steps, in order. */
+    results: readonly T[];
+    /** Update the active step's plain-text progress message. */
+    setMessage(message: string): void;
+}
+interface PopupStep<T = unknown> {
+    title: string;
+    description?: string;
+    run(context: PopupStepContext<T>): T | Promise<T>;
+}
+interface PopupStepsOptions<T = unknown> {
+    title: string;
+    description?: string;
+    steps: readonly PopupStep<T>[];
+    /** Allow cancellation while working. Defaults to true. */
+    cancellable?: boolean;
+    cancelButtonText?: string;
+    doneButtonText?: string;
+    retryButtonText?: string;
+}
+
 type PopupOptions = SweetAlertOptions;
 type PopupResult<T = unknown> = SweetAlertResult<T>;
 /** Materialize-themed SweetAlert2 dialogs. No element initialization is needed. */
@@ -390,6 +511,8 @@ declare class Popup {
     private static _load;
     /** Open a dialog and resolve with SweetAlert2's confirmation/dismissal result. */
     static fire<T = unknown>(options?: PopupOptions): Promise<PopupResult<Awaited<T>>>;
+    /** Run async steps in order, with progress, cancellation and failed-step retry. */
+    static steps<T = unknown>(options: PopupStepsOptions<T>): Promise<PopupResult<T[]>>;
     /** Confirm the current dialog, including its validation and preConfirm flow. */
     static clickConfirm(): Promise<void>;
     /** Close the current SweetAlert2 dialog, resolving its pending result. */
@@ -2199,42 +2322,48 @@ declare class Tooltip extends Component<TooltipOptions> {
 }
 
 interface RangeOptions extends BaseOptions$1 {
+    /** Show a value indicator during pointer or keyboard interaction. */
+    showValue: boolean;
+    /** Show ticks at step intervals (dense intervals are thinned to at most 101). */
+    showTicks: boolean;
+    /** Optional plain-text value indicator and accessible value formatting. */
+    formatValue?: (value: number) => string;
 }
+/** Material-styled native range input. */
 declare class Range extends Component<RangeOptions> {
     el: HTMLInputElement;
-    private _mousedown;
     value: HTMLElement;
     thumb: HTMLElement;
+    private _ticks;
+    private _tickValues;
+    private _pointerDown;
+    private _disposed;
+    private _resize?;
+    private _attributes;
+    private _form;
+    private _resetTimer?;
+    private _originalProgress;
+    private _originalPriority;
+    private _originalValueText;
     constructor(el: HTMLInputElement, options: Partial<RangeOptions>);
     static get defaults(): RangeOptions;
-    /**
-     * Initializes instance of Range.
-     * @param el HTML element.
-     * @param options Component options.
-     */
     static init(el: HTMLInputElement, options?: Partial<RangeOptions>): Range;
-    /**
-     * Initializes instances of Range.
-     * @param els HTML elements.
-     * @param options Component options.
-     */
     static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<RangeOptions>): Range[];
     static getInstance(el: HTMLInputElement): Range;
+    private _bounds;
+    private _buildTicks;
+    /** Refresh after assigning input.value programmatically or changing layout/direction. */
+    update: () => void;
+    private _showValue;
+    private _activate;
+    private _handleInput;
+    private _handleDown;
+    private _handleUp;
+    private _handleFocus;
+    private _handleBlur;
+    private _handleReset;
     destroy(): void;
-    _setupEventHandlers(): void;
-    _removeEventHandlers(): void;
-    _handleRangeChange: () => void;
-    _handleRangeMousedownTouchstart: (e: MouseEvent | TouchEvent) => void;
-    _handleRangeInputMousemoveTouchmove: () => void;
-    _handleRangeMouseupTouchend: () => void;
-    _handleRangeBlurMouseoutTouchleave: () => void;
-    _setupThumb(): void;
-    _removeThumb(): void;
-    _showRangeBubble(): void;
-    _calcRangeOffset(): number;
-    /**
-     * Initializes every range input in the current document.
-     */
+    /** Initialize uninitialized ranges currently in the document. */
     static Init(): void;
 }
 
@@ -3442,6 +3571,9 @@ declare class LoadingScreenBtn extends CrazyLoading {
     static properties: KmcomponentProperties;
 }
 
+/** Initialize navbar overflow fades. Returns cleanup; safe to reinitialize. */
+declare function initNavbarScroll(navbar: HTMLElement): () => void;
+
 declare const version = "2.3.3";
 /**
  * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
@@ -3449,6 +3581,8 @@ declare const version = "2.3.3";
  */
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
+    MaskitoInput?: Partial<MaskitoInputOptions>;
+    RichTextarea?: Partial<RichTextareaOptions>;
     Loading?: Partial<LoadingOptions>;
     Alert?: Partial<AlertOptions>;
     Kanban?: Partial<KanbanOptions>;
@@ -3486,5 +3620,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };

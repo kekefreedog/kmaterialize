@@ -1,161 +1,152 @@
-@use '../../sass/global' as *;
+.range-field { position: relative; min-width: 0; }
 
-.range-field {
-  position: relative;
-}
-
-input[type=range],
-input[type=range] + .thumb {
-  @extend .no-select;
-  cursor: pointer;
-}
-
-input[type=range] {
-  position: relative;
-  background: linear-gradient(var(--md-sys-color-outline-variant), var(--md-sys-color-outline-variant));
-  border: none;
-  outline: none;
-  width: 100%;
-  margin: 15px 0;
-  padding: 0;
-  height: 3px;
-
-  &:focus {
-    outline: none;
-  }
-}
-
-input[type=range] + .thumb {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  border: none;
-  height: 0;
-  width: 0;
-  border-radius: 50%;
-  background-color: var(--md-sys-color-primary);
-  margin-left: 7px;
-
-  transform-origin: 50% 50%;
-  transform: rotate(-45deg);
-
-  .value {
-    display: block;
-    width: 30px;
-    text-align: center;
-    color: var(--md-sys-color-primary);
-    font-size: 0;
-    transform: rotate(45deg);
-  }
-
-  &.active {
-    border-radius: 50% 50% 50% 0;
-
-    .value {
-      color: var(--md-sys-color-on-primary);
-      margin-left: -1px;
-      margin-top: 8px;
-      font-size: 10px;
-    }
-  }
-}
-
-// Shared
-@mixin range-track {
-  height: 3px;
-  background-color: var(--md-sys-color-surface-variant);
-  border: none;
-}
-
-@mixin range-thumb {
-  border: none;
-  height: 14px;
-  width: 14px;
-  border-radius: 50%;
-  background: var(--md-sys-color-primary);
-  transition: box-shadow .3s;
-}
-
-// WebKit
-input[type=range] {
+input[type='range'] {
+  --range-active-color: var(--md-sys-color-primary);
+  --range-inactive-color: var(--md-sys-color-surface-variant);
+  --range-handle-size: 20px;
+  --range-track-height: 4px;
+  --range-direction: to right;
   appearance: none;
   -webkit-appearance: none;
-}
-
-input[type=range]::-webkit-slider-runnable-track {
-  @include range-track;
-}
-
-input[type=range]::-webkit-slider-thumb {
-  @include range-thumb;
-  -webkit-appearance: none;
-  background-color: var(--md-sys-color-primary);
-  transform-origin: 50% 50%;
-  margin: -5px 0 0 0;
-
-}
-
-.keyboard-focused input[type=range]:focus:not(.active)::-webkit-slider-thumb {
-  box-shadow: 0 0 0 10px color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
-}
-
-// FireFox
-input[type=range] {
-  /*required for proper track sizing in FF*/
-}
-
-input[type=range]::-moz-range-track {
-  @include range-track;
-}
-
-input[type=range]::-moz-focus-inner {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  margin: 8px 0;
+  padding: 0;
   border: 0;
-}
-
-input[type=range]::-moz-range-thumb {
-  @include range-thumb;
-  // No margin-top here, unlike the -webkit-slider-thumb rule above:
-  // Firefox already vertically centers ::-moz-range-thumb on the track
-  // by default. Copying webkit's -5px correction (needed there because
-  // Chrome/Safari top-align the thumb by default) over-corrects in
-  // Firefox, pushing an already-centered thumb noticeably too high.
-}
-
-// hide the outline behind the border
-input[type=range]:-moz-focusring {
-  outline: 1px solid #fff;
-  outline-offset: -1px;
-}
-
-.keyboard-focused input[type=range]:focus:not(.active)::-moz-range-thumb {
-  box-shadow: 0 0 0 10px color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
-}
-
-//------------------------------- Remove this?
-// IE 10+
-input[type=range]::-ms-track {
-  height: 3px;
-  // remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead
+  border-radius: 0;
   background: transparent;
-  // leave room for the larger thumb to overflow with a transparent border */
-  border-color: transparent;
-  border-width: 6px 0;
-  /*remove default tick marks*/
-  color: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  &:dir(rtl) { --range-direction: to left; }
+  &:focus { outline: none; box-shadow: none; }
+  &:disabled {
+    --range-active-color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+    --range-inactive-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+    cursor: default;
+  }
 }
-input[type=range]::-ms-fill-lower,
-input[type=range]::-moz-range-progress {
-  background: var(--md-sys-color-primary);
-}
-input[type=range]::-ms-fill-upper,
-input[type=range]::-moz-range-track {
-  background: var(--md-sys-color-shadow-light);
-}
-input[type=range]::-ms-thumb {
-  @include range-thumb;
-}
-//--------------------------------
 
-.keyboard-focused input[type=range]:focus:not(.active)::-ms-thumb {
-  box-shadow: 0 0 0 10px color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
+@mixin range-track {
+  box-sizing: border-box;
+  height: var(--range-track-height);
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(var(--range-direction),
+    var(--range-active-color) 0 var(--range-progress, 50%),
+    var(--range-inactive-color) var(--range-progress, 50%) 100%);
+}
+@mixin range-handle {
+  box-sizing: border-box;
+  width: var(--range-handle-size);
+  height: var(--range-handle-size);
+  border: none;
+  border-radius: 50%;
+  background: var(--range-active-color);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow) 24%, transparent);
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+input[type='range']::-webkit-slider-runnable-track { @include range-track; }
+input[type='range']::-moz-range-track { @include range-track; }
+input[type='range']::-moz-range-progress { background: transparent; }
+input[type='range']::-webkit-slider-thumb {
+  @include range-handle;
+  -webkit-appearance: none;
+  margin-top: calc((var(--range-track-height) - var(--range-handle-size)) / 2);
+}
+input[type='range']::-moz-range-thumb { @include range-handle; }
+input[type='range']:not(:disabled):hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+}
+input[type='range']:not(:disabled):hover::-moz-range-thumb {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+}
+input[type='range']:not(:disabled):is(:focus-visible, :active, .active)::-webkit-slider-thumb {
+  box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+}
+input[type='range']:not(:disabled):is(:focus-visible, :active, .active)::-moz-range-thumb {
+  box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+}
+
+// Decorative value indicator. The native input retains keyboard and ARIA semantics.
+input[type='range'] + .thumb {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  width: max-content;
+  min-width: 32px;
+  max-width: min(16rem, 80vw);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -100%) scale(.85);
+  transform-origin: bottom center;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: var(--range-label-arrow, 50%);
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom: 0;
+    border-top-color: var(--md-sys-color-primary);
+  }
+  .value { display: block; }
+  &.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+.range-ticks {
+  position: absolute;
+  height: 4px;
+  pointer-events: none;
+  > span {
+    position: absolute;
+    top: 1px;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: var(--md-sys-color-on-surface-variant);
+    &.is-active { background: var(--md-sys-color-on-primary); }
+  }
+  &.is-disabled { opacity: .38; }
+}
+@media (prefers-reduced-motion: reduce) {
+  input[type='range'] + .thumb { transition: none; }
+  input[type='range']::-webkit-slider-thumb { transition: none; }
+  input[type='range']::-moz-range-thumb { transition: none; }
+}
+@media (forced-colors: active) {
+  input[type='range'] {
+    --range-active-color: Highlight;
+    --range-inactive-color: GrayText;
+  }
+  input[type='range']:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  input[type='range']::-webkit-slider-runnable-track { border: 1px solid CanvasText; }
+  input[type='range']::-moz-range-track { border: 1px solid CanvasText; }
+  input[type='range']::-webkit-slider-thumb { border: 1px solid CanvasText; }
+  input[type='range']::-moz-range-thumb { border: 1px solid CanvasText; }
+  input[type='range'] + .thumb { border: 1px solid CanvasText; }
 }

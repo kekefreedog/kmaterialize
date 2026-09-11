@@ -1,3 +1,5 @@
+import { MaskitoInput, type MaskitoInputOptions } from '../components/maskito-input/maskito-input';
+import { RichTextarea, type RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Autocomplete, AutocompleteOptions } from '../components/search/autocomplete';
 import { Popup } from '../components/popup/popup';
@@ -44,6 +46,8 @@ export type { PopupOptions, PopupResult } from '../components/popup/popup';
 export type { ToastOptions } from '../components/snackbar/toasts';
 
 export {
+  MaskitoInput,
+  RichTextarea,
   Popup,
   Loading,
   Alert,
@@ -93,6 +97,8 @@ export function toast(options: Partial<ToastOptions>): Toast {
 }
 
 export interface AutoInitOptions {
+  MaskitoInput?: Partial<MaskitoInputOptions>;
+  RichTextarea?: Partial<RichTextareaOptions>;
   Loading?: Partial<LoadingOptions>;
   Alert?: Partial<AlertOptions>;
   Kanban?: Partial<KanbanOptions>;
@@ -131,6 +137,8 @@ export interface AutoInitOptions {
  */
 export function AutoInit(context: HTMLElement = document.body, options?: Partial<AutoInitOptions>) {
   const registry = {
+    MaskitoInput: context.querySelectorAll('input[data-maskito]:not(.no-autoinit)'),
+    RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
     Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
     Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
@@ -159,12 +167,14 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     // mode reusing the same class name, not this component.
     Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)'),
     PasswordInput: context.querySelectorAll('input[data-password-toggle]:not(.no-autoinit)'),
-    NumberInput: context.querySelectorAll('input[data-type="number"]:not(.no-autoinit)'),
+    NumberInput: context.querySelectorAll('input[data-type="number"]:not([data-maskito]):not(.no-autoinit)'),
     ColorInput: context.querySelectorAll('input[type="color"][data-color-picker="pickr"]:not(.no-autoinit)'),
     AirDatepickerField: context.querySelectorAll('input[data-date-picker="air-datepicker"]:not(.no-autoinit)'),
     FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
     TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
   };
+  MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
+  RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
   Loading.init(registry.Loading, options?.Loading ?? {});
   Alert.init(registry.Alert, options?.Alert ?? {});
@@ -223,3 +233,13 @@ export * from '../components/extensions/web/kmcomponent';
 export { default as CrazyButton } from '../components/extensions/web/crazy-button';
 
 export { default as CrazyLoading, LoadingScreenBtn } from '../components/extensions/web/crazy-loading';
+
+export { initNavbarScroll } from '../components/appbar/navbar-scroll';
+
+export type { PopupStep, PopupStepContext, PopupStepsOptions } from '../components/popup/popup-stepper';
+
+export type { RangeOptions } from '../components/slider/range';
+
+export type { RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
+
+export type { MaskitoInputOptions } from '../components/maskito-input/maskito-input';

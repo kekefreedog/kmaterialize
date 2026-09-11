@@ -1,0 +1,79 @@
+// Sequential async progress, themed entirely by Material color roles.
+.swal2-popup.popup.popup-stepper-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  .popup-stepper { text-align: start; }
+  .popup-stepper-progress {
+    display: block;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-primary);
+    &::-webkit-progress-bar { background: var(--md-sys-color-surface-variant); }
+    &::-webkit-progress-value { background: var(--md-sys-color-primary); }
+    &::-moz-progress-bar { background: var(--md-sys-color-primary); }
+  }
+  .popup-stepper-list { list-style: none; margin: 24px 0; padding: 0; }
+  .popup-stepper-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 16px;
+    padding-block-end: 24px;
+    color: var(--md-sys-color-on-surface-variant);
+    &:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      inset-inline-start: 17px;
+      top: 40px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--md-sys-color-outline-variant);
+    }
+    &:last-child { padding-block-end: 0; }
+    strong { display: block; color: var(--md-sys-color-on-surface); overflow-wrap: anywhere; }
+    p { margin: 4px 0 0; font-size: .875rem; overflow-wrap: anywhere; }
+    &[data-state='active'] .popup-stepper-marker {
+      background: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      &::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border: 2px solid var(--md-sys-color-primary);
+        border-inline-end-color: transparent;
+        border-radius: 50%;
+        animation: popup-stepper-spin 1s linear infinite;
+      }
+    }
+    &[data-state='complete'] .popup-stepper-marker {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+    &[data-state='error'] .popup-stepper-marker {
+      background: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-on-error-container);
+    }
+    &[data-state='error'] p { color: var(--md-sys-color-error); }
+  }
+  .popup-stepper-marker {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+  }
+  .popup-stepper-state { display: block; font-size: .75rem; }
+  .popup-stepper-status { font-size: .875rem; color: var(--md-sys-color-on-surface-variant); }
+}
+@keyframes popup-stepper-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .swal2-popup.popup .popup-stepper-marker::after { animation: none !important; }
+}

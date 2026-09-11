@@ -1,0 +1,104 @@
+.rich-textarea-field {
+  margin-block: 24px;
+  > label { display: block; margin-bottom: 8px; color: var(--md-sys-color-on-surface); font-size: .875rem; font-weight: 500; }
+  > textarea[hidden] { display: none !important; }
+}
+.rich-textarea {
+  --rich-textarea-min-height: 160px;
+  min-width: 0;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 12px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  &:focus-within { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 1px var(--md-sys-color-primary); }
+  &.is-invalid { border-color: var(--md-sys-color-error); }
+  &.is-invalid:focus-within { box-shadow: 0 0 0 1px var(--md-sys-color-error); }
+  &.is-disabled { opacity: .5; background: var(--md-sys-color-surface-variant); }
+  .ql-toolbar.ql-snow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    border: 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 11px 11px 0 0;
+    background: var(--md-sys-color-surface-container, var(--md-sys-color-surface-variant));
+    font-family: inherit;
+    .ql-formats { display: inline-flex; align-items: center; margin: 0 8px 0 0; }
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 8px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--md-sys-color-on-surface-variant);
+      background: transparent;
+      svg { width: 20px; height: 20px; }
+      &:hover, &.ql-active { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+      &:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+    }
+    .ql-picker { height: 36px; color: var(--md-sys-color-on-surface-variant); }
+    .ql-picker-label { display: inline-flex; align-items: center; min-height: 36px; border: 0; border-radius: 8px; }
+    .ql-picker-label:focus-visible, .ql-picker-item:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+    .ql-picker-options {
+      z-index: 10;
+      padding: 8px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 8px;
+      background: var(--md-sys-color-surface);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-shadow) 16%, transparent);
+    }
+    .ql-picker-item { padding: 6px 8px; border-radius: 4px; }
+    .ql-picker-item:hover, .ql-picker-item.ql-selected { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+  }
+  .ql-snow {
+    .ql-stroke { stroke: currentColor; }
+    .ql-fill { fill: currentColor; }
+    .ql-stroke.ql-fill { fill: currentColor; }
+    .ql-picker-label:hover, .ql-picker-label.ql-active { color: var(--md-sys-color-primary); }
+    button:hover .ql-stroke, button.ql-active .ql-stroke,
+    .ql-picker-label:hover .ql-stroke, .ql-picker-label.ql-active .ql-stroke { stroke: currentColor; }
+    button:hover .ql-fill, button.ql-active .ql-fill { fill: currentColor; }
+    a { color: var(--md-sys-color-primary); }
+  }
+  .ql-container.ql-snow { height: auto; border: 0; font-family: inherit; font-size: 1rem; }
+  .ql-editor {
+    min-height: var(--rich-textarea-min-height);
+    max-height: var(--rich-textarea-max-height, 480px);
+    padding: 16px;
+    line-height: 1.6;
+    color: inherit;
+    overflow-wrap: anywhere;
+    outline: none;
+    &.ql-blank::before { left: 16px; right: 16px; color: var(--md-sys-color-on-surface-variant); font-style: normal; }
+    blockquote { border-color: var(--md-sys-color-outline); }
+  }
+  .ql-tooltip {
+    z-index: 11;
+    max-width: 100%;
+    white-space: normal;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 8px;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-shadow) 16%, transparent);
+    input[type='text'] {
+      width: 180px;
+      max-width: 100%;
+      height: 32px;
+      margin: 4px 0;
+      padding: 4px 8px;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: 4px;
+      background: var(--md-sys-color-surface);
+      color: inherit;
+    }
+  }
+  .rich-textarea-error { padding: 8px 16px; color: var(--md-sys-color-error); font-size: .75rem; }
+  [hidden] { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .rich-textarea { transition: none; } }

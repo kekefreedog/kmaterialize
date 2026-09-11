@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>RichTextarea browser checks</title>
+<!-- Build kmaterialize, then open this file. Result becomes PASS or FAIL. -->
+<link rel="stylesheet" href="../node_modules/quill/dist/quill.snow.css">
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<form><fieldset><div class="rich-textarea-field"><label for="rich">Brief</label>
+<textarea id="rich" name="brief" required><p>Hello team</p></textarea>
+</div></fieldset></form><button id="outside">Outside</button>
+<div id="auto"><textarea data-editor="quill" aria-label="Auto editor"></textarea></div>
+<pre id="result">PENDING</pre>
+<script src="../node_modules/quill/dist/quill.js"></script>
+<script src="../dist/js/materialize.js"></script>
+<script>
+(async()=>{
+ const check=(value,message)=>{if(!value)throw Error(message)};
+ const tick=()=>new Promise(resolve=>setTimeout(resolve,50));
+ const log=[];
+ try{
+  const el=document.querySelector('#rich'), form=el.form, label=document.querySelector('label[for="rich"]');
+  const field=M.RichTextarea.init(el);await field.ready;
+  check(el.hidden && getComputedStyle(el).display==='none','native textarea hidden');
+  check(field.getText()==='Hello team','initial HTML converted');
+  check(field.quill.root.getAttribute('role')==='textbox','textbox semantics');
+  check(field.quill.root.getAttribute('aria-labelledby')===label.id,'linked label');
+  check(document.querySelectorAll('.ql-toolbar').length===1,'toolbar created');
+  check(Array.from(document.querySelectorAll('.ql-toolbar button')).every(button=>button.getAttribute('aria-label')),'toolbar accessible names');
+  let inputs=0,changes=0;el.addEventListener('input',()=>inputs++);el.addEventListener('change',()=>changes++);
+  field.quill.insertText(5,' wonderful','user');
+  field.quill.formatText(0,5,'bold',true,'user');
+  check(inputs>=2,'native input events');
+  check(field.getValue().includes('<strong>Hello</strong>'),'format serialized');
+  check(new FormData(form).get('brief')===field.getValue(),'native form value');
+  field.focus();document.querySelector('#outside').focus();await tick();check(changes===1,'native change on blur');
+  field.setValue('');check(el.value==='','empty canonical value');
+  check(!form.reportValidity(),'required validation');
+  check(document.activeElement===field.quill.root,'invalid focuses editor');
+  check(field.quill.root.getAttribute('aria-invalid')==='true','invalid state');
+  field.quill.setText('Ready');check(el.validity.valid,'typing clears required error');
+  check(field.quill.root.getAttribute('aria-invalid')==='false','error clears');
+  el.readOnly=true;await tick();check(!field.quill.isEnabled(),'readonly state');
+  check(document.querySelector('.ql-toolbar').inert,'readonly toolbar inert');
+  field.quill.insertText(0,'Ignored','user');check(field.getText()==='Ready','readonly rejects edits');
+  el.readOnly=false;el.disabled=true;await tick();check(!field.quill.isEnabled(),'disabled state');
+  check(!new FormData(form).has('brief'),'disabled not submitted');
+  el.disabled=false;await tick();
+  document.querySelector('fieldset').disabled=true;await tick();check(!field.quill.isEnabled(),'fieldset disabled');
+  document.querySelector('fieldset').disabled=false;await tick();check(field.quill.isEnabled(),'fieldset restored');
+  el.value='<p>External update</p>';el.dispatchEvent(new Event('input',{bubbles:true}));check(field.getText()==='External update','native external update');
+  form.reset();await tick();check(field.getText()==='Hello team','form reset content');
+  log.push('HTML, toolbar labels, native input/change/FormData, required validation, readonly/disabled, reset');
+  field.setValue('<p>Keep latest</p>');const saved=el.value;
+  field.destroy();check(!el.hidden && !el.hasAttribute('aria-hidden'),'native restored');
+  check(el.value===saved,'destroy retains value');check(!document.querySelector('.rich-textarea'),'owned DOM removed');
+  check(!label.id,'generated label ID removed');
+  const first=M.RichTextarea.init(el);await first.ready;
+  const second=M.RichTextarea.init(el);await second.ready;
+  check(document.querySelectorAll('.rich-textarea').length===1,'reinit one editor');
+  second.destroy();
+  const pending=M.RichTextarea.init(el);pending.destroy();await pending.ready;
+  check(!document.querySelector('.rich-textarea')&&!el.hidden,'destroy during async initialization');
+  const text=M.RichTextarea.init(el,{valueFormat:'text',toolbar:false});await text.ready;
+  text.setValue('<b>Literal</b>');check(text.getText()==='<b>Literal</b>','plain text mode');
+  check(el.value==='<b>Literal</b>','plain text stored');check(!document.querySelector('.ql-toolbar'),'toolbar false');
+  text.destroy();
+  log.push('cleanup, reinit, destroy-before-ready, plain text mode');
+  M.AutoInit(document.querySelector('#auto'));const auto=M.RichTextarea.getInstance(document.querySelector('#auto textarea'));check(auto,'AutoInit registration');await auto.ready;auto.destroy();
+  log.push('AutoInit');
+  document.querySelector('#result').textContent='PASS: '+log.join('; ');
+ }catch(error){document.querySelector('#result').textContent='FAIL: '+error.stack+'; completed: '+log.join('; ')}
+})();
+
+</script>
+</html>

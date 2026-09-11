@@ -124,3 +124,33 @@ input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
   opacity: 0.5;
 }
 
+/* Optional icon-thumb variation for Materialize switches. */
+.switch.switch-with-icon {
+  --size-off: 24px;
+}
+
+.switch.switch-with-icon label .lever::after {
+  content: var(--switch-icon-off, "\e5cd"); /* close */
+  display: grid;
+  place-items: center;
+  font-family: "Material Icons";
+  font-feature-settings: "liga";
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  font-size: var(--icon-size);
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: var(--md-sys-color-surface);
+}
+
+.switch.switch-with-icon label input[type="checkbox"]:checked + .lever::after {
+  content: var(--switch-icon-on, "\e5ca"); /* check */
+  color: var(--md-sys-color-primary);
+}
+
+.switch.switch-with-icon label input[type="checkbox"]:focus-visible + .lever {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 4px;
+}

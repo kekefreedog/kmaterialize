@@ -1,0 +1,317 @@
+/* App-bar content geometry and surface variants. */
+.navbar .nav-icon-img {
+  display: block;
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+}
+
+.navbar .navbar-search-toolbar {
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: 4px;
+  overflow: visible;
+}
+
+/* Inset surfaces retain their height at desktop and mobile sizes. */
+.navbar.appbar-bordered.navbar-rounded:not(.nav-extended):not(.navbar-wrap) {
+  box-sizing: border-box;
+  height: 64px;
+  margin: 8px 0;
+  padding: 4px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.navbar.appbar-bordered.navbar-rounded:not(.nav-extended):not(.navbar-wrap) > .nav-wrapper {
+  box-sizing: border-box;
+  flex: 0 0 56px;
+  height: 56px;
+  border-radius: 11px;
+  transform: none;
+}
+
+.navbar.appbar-bordered.navbar-full {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+}
+
+/* Dropdown triggers: keep the label and arrow in one predictable hit
+   target instead of inheriting the legacy floated-icon offsets. */
+.navbar.appbar-bordered .dropdown-trigger {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: max-content !important;
+  max-width: none;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px 0 16px;
+  line-height: 1;
+}
+
+.navbar.appbar-bordered .dropdown-trigger > .material-icons {
+  display: inline-block !important;
+  position: static !important;
+  float: none !important;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  line-height: 20px;
+  transition: transform 160ms ease;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> .dropdown-trigger) {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> .dropdown-trigger) > .dropdown-trigger {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
+}
+
+.navbar.appbar-bordered .dropdown-trigger[aria-expanded="true"] > .material-icons.right {
+  transform: rotate(180deg);
+}
+
+/* Icon links: center standalone icons inside their 40px hit targets. */
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons:only-child) {
+  display: inline-grid !important;
+  place-items: center;
+  box-sizing: border-box;
+  width: 40px !important;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child {
+  display: block !important;
+  position: static !important;
+  float: none !important;
+  width: 24px;
+  height: 24px;
+  margin: 0 !important;
+  line-height: 24px;
+  text-align: center;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.left),
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.right) {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: max-content !important;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 12px !important;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left,
+.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right {
+  display: block !important;
+  position: static !important;
+  float: none !important;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin: 0 !important;
+  line-height: 24px;
+  text-align: center;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left),
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right) {
+  flex: 0 0 auto;
+  width: max-content;
+  height: 40px;
+}
+
+/* Button rows: normalize the item row and prevent text-plus-icon buttons
+   from being mistaken for standalone icon buttons. */
+.navbar.appbar-bordered .nav-wrapper > ul > li:has(> :is(.btn, .btn-large)) {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn,
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: max-content !important;
+  min-width: 104px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large {
+  min-width: 144px;
+  height: 48px;
+  min-height: 48px;
+  padding-inline: 24px !important;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn:has(> .material-icons),
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large:has(> .material-icons) {
+  gap: 8px;
+}
+
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn > .material-icons,
+.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large > .material-icons {
+  display: block !important;
+  position: static !important;
+  float: none !important;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  margin: 0 !important;
+  line-height: 20px;
+}
+
+/* Extended navbar tabs: use the navbar's readable foreground instead of the
+   low-contrast primary token inherited by transparent tabs. */
+.navbar.appbar-bordered .nav-content,
+.navbar.appbar-bordered .nav-content .tabs {
+  background: var(--md-sys-color-surface-variant);
+}
+
+.navbar.appbar-bordered .nav-content .tabs > .tab > a {
+  color: var(--md-sys-color-on-surface) !important;
+  opacity: 0.92;
+}
+
+.navbar.appbar-bordered .nav-content .tabs > .tab > a.active {
+  color: var(--md-sys-color-on-surface) !important;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.navbar.appbar-bordered .nav-content .tabs > .tab.disabled > a {
+  color: var(--md-sys-color-on-surface) !important;
+  opacity: 0.5;
+}
+
+.navbar.appbar-bordered .nav-content .tabs > .indicator {
+  background-color: var(--md-sys-color-on-surface) !important;
+}
+
+.navbar.appbar-bordered .sidenav-trigger {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.navbar.appbar-bordered .sidenav-trigger > .material-icons {
+  display: block !important;
+  position: static !important;
+  float: none !important;
+  width: 24px;
+  height: 24px;
+  margin: 0 !important;
+  line-height: 24px;
+  text-align: center;
+}
+
+.navbar.appbar-bordered.navbar-wrap > .nav-wrapper {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 56px;
+  padding-bottom: 8px;
+  overflow: visible;
+  row-gap: 8px;
+}
+
+.navbar.appbar-bordered.navbar-wrap {
+  height: auto;
+  min-height: 56px;
+}
+
+.navbar.appbar-bordered.navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 100%;
+  padding-left: 0;
+  height: auto !important;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.navbar.appbar-bordered.navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) > li {
+  height: auto !important;
+}
+
+.navbar.appbar-bordered ul:not(.dropdown-content) > li > a {
+  white-space: nowrap;
+}
+
+.navbar.appbar-bordered:not(.navbar-wrap) .nav-wrapper > ul.ml-auto:not(.nav-actions):not(.dropdown-content) {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
+}
+
+/* Separators used as list items need an explicit display/height; otherwise
+   navbar item rules can collapse the one-pixel divider. */
+.navbar.appbar-bordered .nav-actions > li.nav-separator {
+  display: block !important;
+  flex: 0 0 1px;
+  width: 1px;
+  height: 24px;
+  margin: 0 4px;
+  padding: 0;
+  background: var(--md-sys-color-on-surface-variant);
+  opacity: 0.7;
+  border: 0;
+  visibility: visible !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar.appbar-bordered .dropdown-trigger > .material-icons { transition: none; }
+}

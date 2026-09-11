@@ -1,3 +1,4 @@
+import { runPopupSteps, type PopupStepsOptions } from './popup-stepper';
 import type Swal from 'sweetalert2';
 import type {
   SweetAlertCustomClass,
@@ -103,6 +104,12 @@ export class Popup {
      * equivalent here but TypeScript can report them as unrelated.
      */
     return result as PopupResult<Awaited<T>>;
+  }
+
+  /** Run async steps in order, with progress, cancellation and failed-step retry. */
+  static async steps<T = unknown>(options: PopupStepsOptions<T>): Promise<PopupResult<T[]>> {
+    const swal = await Popup._load();
+    return runPopupSteps(swal, options, dialog => Popup.fire<T[]>(dialog));
   }
 
   /** Confirm the current dialog, including its validation and preConfirm flow. */

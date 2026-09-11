@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>MaskitoInput browser checks</title>
+<!-- Build kmaterialize. Open in a browser or serve the repository root. -->
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<script type="importmap">{"imports":{"@maskito/core":"../node_modules/@maskito/core/index.esm.js","@maskito/kit":"../node_modules/@maskito/kit/index.esm.js"}}</script>
+<form><input id="masked" name="masked" type="text" value="123456" aria-label="Masked test"></form>
+<div id="auto"><input type="text" data-maskito="pattern" data-maskito-pattern="####" data-type="number" aria-label="Auto mask"></div>
+<pre id="result">PENDING</pre>
+<script src="../dist/js/materialize.js"></script>
+<script type="module">
+(async()=>{
+ const check=(value,message)=>{if(!value)throw Error(message)};
+ const tick=()=>new Promise(resolve=>setTimeout(resolve,50));
+ const log=[];
+ try{
+  const el=document.querySelector('#masked'),form=el.form;
+  const field=M.MaskitoInput.init(el,{pattern:'###-###'});await field.ready;
+  check(el.value==='123-456','initial normalization');
+  let inputs=0;el.addEventListener('input',()=>inputs++);
+  await field.setValue('987654');check(el.value==='987-654'&&inputs===1,'programmatic input event');
+  check(new FormData(form).get('masked')==='987-654','native form value');
+  el.value='111222';await field.refresh();check(el.value==='111-222'&&inputs===1,'silent refresh');
+  form.reset();await tick();check(el.value==='123-456','reset formats default');
+  field.destroy();check(!M.MaskitoInput.getInstance(el)&&el.value==='123-456','cleanup preserves value');
+  const pending=M.MaskitoInput.init(el,{pattern:'####'});pending.destroy();await pending.ready;check(!pending.mask,'destroy before ready');
+  let created=0,removed=0;
+  const custom=M.MaskitoInput.init(el,{pattern:'AA-####',maskOptions:{
+   postprocessors:[({value,selection})=>({value:value.toUpperCase(),selection})],
+   plugins:[()=>{created++;return ()=>removed++}]
+  }});await custom.ready;await custom.setValue('ab1234');check(el.value==='AB-1234','postprocessor');
+  const replacement=M.MaskitoInput.init(el,{pattern:'\\A##'});await replacement.ready;
+  check(created===1&&removed===1,'reinit cleans plugin');
+  await replacement.setValue('34');check(el.value==='A34','escaped literal');replacement.destroy();
+  log.push('patterns, native events/FormData, reset, refresh, cleanup, lifecycle, processors');
+  const number=M.MaskitoInput.init(el,{preset:'number',number:{decimalSeparator:',',thousandSeparator:' ',maximumFractionDigits:2,minimumFractionDigits:2,postfix:' €',min:0,max:10000}});
+  await number.ready;await number.setValue('1234,5');check(el.value==='1 234,50 €','currency');
+  const kit=await import('@maskito/kit');check(kit.maskitoParseNumber(el.value,{decimalSeparator:',',thousandSeparator:' ',postfix:' €'})===1234.5,'number parser');number.destroy();
+  const date=M.MaskitoInput.init(el,{preset:'date',date:{mode:'dd/mm/yyyy',separator:'/'}});await date.ready;await date.setValue('12092026');check(el.value==='12/09/2026','date formatting');date.destroy();
+  const time=M.MaskitoInput.init(el,{preset:'time',time:{mode:'HH:MM'}});await time.ready;await time.setValue('1430');check(el.value==='14:30','time formatting');time.destroy();
+  const invalid=M.MaskitoInput.init(el);let rejected=false;try{await invalid.ready}catch{rejected=true}check(rejected&&!M.MaskitoInput.getInstance(el),'missing mask rejected cleanly');
+  log.push('number/currency, date, time, invalid options');
+  const autoEl=document.querySelector('#auto input');M.AutoInit(document.querySelector('#auto'));
+  const auto=M.MaskitoInput.getInstance(autoEl);check(auto,'AutoInit');await auto.ready;
+  check(!M.NumberInput.getInstance(autoEl),'AutoInit uses one masking engine');auto.destroy();
+  log.push('AutoInit and NumberInput exclusion');
+  document.querySelector('#result').textContent='PASS: '+log.join('; ');
+ }catch(error){document.querySelector('#result').textContent='FAIL: '+error.stack+'; completed: '+log.join('; ')}
+})();
+
+</script></html>
