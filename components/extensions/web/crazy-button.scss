@@ -4,6 +4,15 @@
   max-width: 100%;
   > .btn, > .btn-split > .btn { position: relative; }
   .btn > img { width: var(--button-icon); height: var(--button-icon); object-fit: contain; }
+  // Image-only buttons fill the control and follow its round or square shape.
+  .btn.btn-icon[part="button"] > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: inherit;
+  }
   .btn > i { color: inherit; flex-shrink: 0; }
   slot { display: contents; }
   &[size="small"] .btn { --button-height: 30px; }

@@ -41,6 +41,7 @@ import { Component } from './component';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 export type { PopupOptions, PopupResult } from '../components/popup/popup';
+export type { ToastOptions } from '../components/snackbar/toasts';
 
 export {
   Popup,

@@ -1467,6 +1467,11 @@ var M = (function (exports) {
              */
             return result;
         }
+        /** Confirm the current dialog, including its validation and preConfirm flow. */
+        static async clickConfirm() {
+            const swal = await Popup._load();
+            swal.clickConfirm();
+        }
         /** Close the current SweetAlert2 dialog, resolving its pending result. */
         static async close() {
             const swal = await Popup._load();
@@ -8532,8 +8537,8 @@ var M = (function (exports) {
             }, () => import('air-datepicker'));
             const dataset = this.el.dataset;
             const builtInLocale = dataset.dateLang === 'fr-FR'
-                ? (await import('air-datepicker/locale/fr')).default
-                : (await import('air-datepicker/locale/en')).default;
+                ? (await import('air-datepicker/locale/fr.js')).default
+                : (await import('air-datepicker/locale/en.js')).default;
             const pickerOptions = {
                 dateFormat: dataset.dateFormat || 'yyyy-MM-dd',
                 autoClose: dataset.dateAutoClose !== 'false',
@@ -11454,6 +11459,13 @@ var M = (function (exports) {
     const boolean = () => ({ type: 'boolean', default: false, reflect: true });
     const escape$1 = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
     const sizes = { small: 'xs', normal: 'sm', large: 'md', 'extra-large': 'lg' };
+    // Palette names from sass/_colors.scss take precedence over CSS named colors.
+    const paletteColors = new Set([
+        'materialize-red', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
+        'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime',
+        'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blue-grey',
+        'grey', 'gold', 'black', 'white', 'transparent',
+    ]);
     /** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
     class CrazyButton extends Kmcomponent {
         static properties = {
@@ -11572,7 +11584,8 @@ var M = (function (exports) {
                 button.removeEventListener('click', click);
             });
             const trigger = this.querySelector('.dropdown-trigger');
-            const menu = document.getElementById(String(a['menu-target']));
+            const menuTarget = String(a['menu-target'] ?? '');
+            const menu = trigger && menuTarget ? document.getElementById(menuTarget) : null;
             if (trigger && menu && !a.disabled) {
                 const parent = menu.parentNode;
                 const next = menu.nextSibling;
@@ -11595,9 +11608,10 @@ var M = (function (exports) {
         }
         restoreFocus = false;
         applyColor(element, color, foreground) {
-            if (!color.trim() || this.getProperty('disabled'))
+            color = color.trim();
+            if (!color || this.getProperty('disabled'))
                 return;
-            if (CSS.supports('color', color)) {
+            if (!paletteColors.has(color) && CSS.supports('color', color)) {
                 element.style.setProperty(foreground ? 'color' : 'background-color', color);
                 if (foreground)
                     element.style.borderColor = color;

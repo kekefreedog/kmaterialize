@@ -390,6 +390,8 @@ declare class Popup {
     private static _load;
     /** Open a dialog and resolve with SweetAlert2's confirmation/dismissal result. */
     static fire<T = unknown>(options?: PopupOptions): Promise<PopupResult<Awaited<T>>>;
+    /** Confirm the current dialog, including its validation and preConfirm flow. */
+    static clickConfirm(): Promise<void>;
     /** Close the current SweetAlert2 dialog, resolving its pending result. */
     static close(): Promise<void>;
 }
@@ -3485,4 +3487,4 @@ interface AutoInitOptions {
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
 export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult, ToastOptions };

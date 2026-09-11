@@ -118,6 +118,23 @@ describe('Popup', function () {
     expect((await result).value).toBe('Preview ready');
   });
 
+  it('confirms programmatically through validation and preConfirm', async function () {
+    const { el, result } = await open({
+      input: 'text',
+      inputValidator: value => value.trim() ? undefined : 'Enter a name.',
+      preConfirm: value => value.toUpperCase()
+    });
+    await M.Popup.clickConfirm();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(el.querySelector('.swal2-validation-message').textContent).toBe('Enter a name.');
+    expect(el.isConnected).toBeTrue();
+    el.querySelector('.swal2-input').value = 'Studio';
+    await M.Popup.clickConfirm();
+    const response = await result;
+    expect(response.isConfirmed).toBeTrue();
+    expect(response.value).toBe('STUDIO');
+  });
+
   it('closes a dialog programmatically and resolves its pending result', async function () {
     const { el, result } = await open();
     await M.Popup.close();

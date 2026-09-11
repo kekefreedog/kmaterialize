@@ -9,6 +9,14 @@ const boolean = () => ({ type: 'boolean' as const, default: false, reflect: true
 const escape = (value: unknown) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 const sizes = { small: 'xs', normal: 'sm', large: 'md', 'extra-large': 'lg' };
 
+// Palette names from sass/_colors.scss take precedence over CSS named colors.
+const paletteColors = new Set([
+  'materialize-red', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
+  'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime',
+  'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blue-grey',
+  'grey', 'gold', 'black', 'white', 'transparent',
+]);
+
 /** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
 export default class CrazyButton extends Kmcomponent {
   static properties: KmcomponentProperties = {
@@ -123,7 +131,8 @@ export default class CrazyButton extends Kmcomponent {
       button.removeEventListener('click', click);
     });
     const trigger = this.querySelector<HTMLElement>('.dropdown-trigger');
-    const menu = document.getElementById(String(a['menu-target']));
+    const menuTarget = String(a['menu-target'] ?? '');
+    const menu = trigger && menuTarget ? document.getElementById(menuTarget) : null;
     if (trigger && menu && !a.disabled) {
       const parent = menu.parentNode;
       const next = menu.nextSibling;
@@ -146,8 +155,9 @@ export default class CrazyButton extends Kmcomponent {
   private restoreFocus = false;
 
   private applyColor(element: HTMLElement, color: string, foreground: boolean): void {
-    if (!color.trim() || this.getProperty('disabled')) return;
-    if (CSS.supports('color', color)) {
+    color = color.trim();
+    if (!color || this.getProperty('disabled')) return;
+    if (!paletteColors.has(color) && CSS.supports('color', color)) {
       element.style.setProperty(foreground ? 'color' : 'background-color', color);
       if (foreground) element.style.borderColor = color;
     } else {

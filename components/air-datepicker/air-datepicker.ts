@@ -111,8 +111,8 @@ export class AirDatepickerField extends Component<AirDatepickerFieldOptions> {
 
     const dataset = this.el.dataset;
     const builtInLocale = dataset.dateLang === 'fr-FR'
-      ? (await import('air-datepicker/locale/fr')).default
-      : (await import('air-datepicker/locale/en')).default;
+      ? (await import('air-datepicker/locale/fr.js')).default
+      : (await import('air-datepicker/locale/en.js')).default;
     const pickerOptions: AirDatepickerOptions = {
       dateFormat: dataset.dateFormat || 'yyyy-MM-dd',
       autoClose: dataset.dateAutoClose !== 'false',

@@ -105,6 +105,12 @@ export class Popup {
     return result as PopupResult<Awaited<T>>;
   }
 
+  /** Confirm the current dialog, including its validation and preConfirm flow. */
+  static async clickConfirm(): Promise<void> {
+    const swal = await Popup._load();
+    swal.clickConfirm();
+  }
+
   /** Close the current SweetAlert2 dialog, resolving its pending result. */
   static async close(): Promise<void> {
     const swal = await Popup._load();
