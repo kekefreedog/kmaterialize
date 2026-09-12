@@ -7287,6 +7287,9 @@ class Tabs extends Component {
         this._tabLinks = this.el.querySelectorAll('li.tab > a');
         this._index = 0;
         this._setupActiveTabLink();
+        // Empty/unfinished tab markup is a valid inert instance. Reinitialize after adding links.
+        if (!this._activeTabLink)
+            return;
         if (this.options.swipeable) {
             this._setupSwipeableTabs();
         }
@@ -7314,9 +7317,10 @@ class Tabs extends Component {
     }
     destroy() {
         this._removeEventHandlers();
-        this._indicator.parentNode.removeChild(this._indicator);
+        this._indicator?.remove();
         if (this.options.swipeable) {
-            this._teardownSwipeableTabs();
+            if (this._tabsCarousel)
+                this._teardownSwipeableTabs();
         }
         else {
             this._teardownNormalTabs();
@@ -7345,6 +7349,8 @@ class Tabs extends Component {
         this.el.removeEventListener('click', this._handleTabClick);
     }
     _handleWindowResize = () => {
+        if (!this._activeTabLink || !this._indicator)
+            return;
         this._setTabsAndTabWidth();
         if (this._tabWidth !== 0 && this._tabsWidth !== 0) {
             this._indicator.style.left = this._calcLeftPos(this._activeTabLink) + 'px';
@@ -7361,7 +7367,7 @@ class Tabs extends Component {
             tab = tab.parentElement;
         }
         // Handle click on tab link only
-        if (!tabLink || !tab.classList.contains('tab'))
+        if (!tabLink || !tab || !tab.classList.contains('tab'))
             return;
         // is disabled?
         if (tab.classList.contains('disabled')) {
@@ -7427,6 +7433,10 @@ class Tabs extends Component {
                 activeTabLink = this.el.querySelector('li.tab a');
             }
             this._activeTabLink = activeTabLink;
+        }
+        if (!this._activeTabLink) {
+            this._index = -1;
+            return;
         }
         Array.from(this._tabLinks).forEach((a) => a.classList.remove('active'));
         this._activeTabLink.classList.add('active');
@@ -7522,6 +7532,8 @@ class Tabs extends Component {
      * the indicator position is not correct.
      */
     updateTabIndicator() {
+        if (!this._activeTabLink || !this._indicator)
+            return;
         this._setTabsAndTabWidth();
         this._animateIndicator(this._index);
     }
@@ -12252,8 +12264,22 @@ class Kmcomponent extends (typeof HTMLElement === "undefined" ? class {
 
 /** Shared tooltip configuration for direct imports and lazy component tooltips. */
 function createTooltipWith(factory, fill, target, style, options = {}) {
+    // Dynamic imports of CommonJS builds can wrap Tippy in one or more
+    // default exports. Static ESM imports and browser globals are callable already.
+    let resolved = factory;
+    const seen = new Set();
+    while (resolved && typeof resolved === "object" && !seen.has(resolved)) {
+        seen.add(resolved);
+        const module = resolved;
+        fill ??= module.animateFill;
+        resolved = module.default;
+    }
+    if (typeof resolved !== "function") {
+        throw new TypeError('kmaterialize: "tippy.js" did not export a tooltip function.');
+    }
+    const create = resolved;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const instance = factory(target, {
+    const instance = create(target, {
         animateFill: !reducedMotion && !!fill,
         arrow: false,
         plugins: fill ? [fill] : [],

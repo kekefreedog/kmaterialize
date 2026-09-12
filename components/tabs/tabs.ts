@@ -40,7 +40,7 @@ export class Tabs extends Component<TabsOptions> {
   _tabWidth: number;
   _tabsWidth: number;
   _tabsCarousel: Carousel;
-  _activeTabLink: HTMLAnchorElement;
+  _activeTabLink: HTMLAnchorElement | null;
   _content: HTMLElement;
 
   constructor(el: HTMLElement, options: Partial<TabsOptions>) {
@@ -55,6 +55,8 @@ export class Tabs extends Component<TabsOptions> {
     this._tabLinks = this.el.querySelectorAll('li.tab > a');
     this._index = 0;
     this._setupActiveTabLink();
+    // Empty/unfinished tab markup is a valid inert instance. Reinitialize after adding links.
+    if (!this._activeTabLink) return;
     if (this.options.swipeable) {
       this._setupSwipeableTabs();
     } else {
@@ -100,9 +102,9 @@ export class Tabs extends Component<TabsOptions> {
 
   destroy() {
     this._removeEventHandlers();
-    this._indicator.parentNode.removeChild(this._indicator);
+    this._indicator?.remove();
     if (this.options.swipeable) {
-      this._teardownSwipeableTabs();
+      if (this._tabsCarousel) this._teardownSwipeableTabs();
     } else {
       this._teardownNormalTabs();
     }
@@ -134,6 +136,7 @@ export class Tabs extends Component<TabsOptions> {
   }
 
   _handleWindowResize = () => {
+    if (!this._activeTabLink || !this._indicator) return;
     this._setTabsAndTabWidth();
     if (this._tabWidth !== 0 && this._tabsWidth !== 0) {
       this._indicator.style.left = this._calcLeftPos(this._activeTabLink) + 'px';
@@ -152,7 +155,7 @@ export class Tabs extends Component<TabsOptions> {
     }
 
     // Handle click on tab link only
-    if (!tabLink || !tab.classList.contains('tab')) return;
+    if (!tabLink || !tab || !tab.classList.contains('tab')) return;
     // is disabled?
     if (tab.classList.contains('disabled')) {
       e.preventDefault();
@@ -220,6 +223,10 @@ export class Tabs extends Component<TabsOptions> {
         activeTabLink = this.el.querySelector('li.tab a');
       }
       this._activeTabLink = activeTabLink as HTMLAnchorElement;
+    }
+    if (!this._activeTabLink) {
+      this._index = -1;
+      return;
     }
     Array.from(this._tabLinks).forEach((a: HTMLAnchorElement) => a.classList.remove('active'));
     this._activeTabLink.classList.add('active');
@@ -324,6 +331,7 @@ export class Tabs extends Component<TabsOptions> {
    * the indicator position is not correct.
    */
   updateTabIndicator() {
+    if (!this._activeTabLink || !this._indicator) return;
     this._setTabsAndTabWidth();
     this._animateIndicator(this._index);
   }

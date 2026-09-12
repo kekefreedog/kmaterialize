@@ -11,10 +11,24 @@ export function createTooltipWith(
   style: TooltipStyle,
   options: Partial<Props> = {},
 ): Instance {
+  // Dynamic imports of CommonJS builds can wrap Tippy in one or more
+  // default exports. Static ESM imports and browser globals are callable already.
+  let resolved: unknown = factory;
+  const seen = new Set<unknown>();
+  while (resolved && typeof resolved === "object" && !seen.has(resolved)) {
+    seen.add(resolved);
+    const module = resolved as { default?: unknown; animateFill?: typeof animateFill };
+    fill ??= module.animateFill;
+    resolved = module.default;
+  }
+  if (typeof resolved !== "function") {
+    throw new TypeError('kmaterialize: "tippy.js" did not export a tooltip function.');
+  }
+  const create = resolved as typeof tippy;
   const reducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
-  const instance = factory(target, {
+  const instance = create(target, {
     animateFill: !reducedMotion && !!fill,
     arrow: false,
     plugins: fill ? [fill] : [],

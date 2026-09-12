@@ -1910,7 +1910,7 @@ declare class Tabs extends Component<TabsOptions> {
     _tabWidth: number;
     _tabsWidth: number;
     _tabsCarousel: Carousel;
-    _activeTabLink: HTMLAnchorElement;
+    _activeTabLink: HTMLAnchorElement | null;
     _content: HTMLElement;
     constructor(el: HTMLElement, options: Partial<TabsOptions>);
     static get defaults(): TabsOptions;

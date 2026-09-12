@@ -1,10 +1,21 @@
 .breadcrumb-wrapper {
   display: flex;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+
+  // Support both direct breadcrumbs and an optional inner wrapper.
+  > * { flex-shrink: 0; }
+
+  .breadcrumb,
+  .breadcrumb > * { flex-shrink: 0; }
 }
 
 .breadcrumb {
   display: inline-flex;
+  vertical-align: middle;
   align-items: center;
 
   i,
@@ -18,10 +29,11 @@
 
   &:before {
     content: '\E5CC';
+    opacity: 0.6;
     font-family: 'Material Symbols Outlined', 'Material Symbols Rounded', 'Material Symbols Sharp', 'Material Icons';
   }
 
   &:first-child:before {
-    visibility: hidden;
+    display: none;
   }
 }

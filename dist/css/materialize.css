@@ -14184,7 +14184,7 @@ button.btn-floating {
 .collapsible-header:focus {
   outline: 0;
 }
-.collapsible-header i {
+.collapsible-header > i {
   width: 2rem;
   font-size: 1.6rem;
   display: inline-block;
@@ -18239,6 +18239,21 @@ input[type=text].timepicker-input-minutes:focus {
   -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.breadcrumb-wrapper > * {
+  -webkit-flex-shrink: 0;
+      -ms-flex-negative: 0;
+          flex-shrink: 0;
+}
+.breadcrumb-wrapper .breadcrumb,
+.breadcrumb-wrapper .breadcrumb > * {
+  -webkit-flex-shrink: 0;
+      -ms-flex-negative: 0;
+          flex-shrink: 0;
 }
 
 .breadcrumb {
@@ -18246,6 +18261,7 @@ input[type=text].timepicker-input-minutes:focus {
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
   display: inline-flex;
+  vertical-align: middle;
   -webkit-box-align: center;
   -webkit-align-items: center;
       -ms-flex-align: center;
@@ -18260,10 +18276,11 @@ input[type=text].timepicker-input-minutes:focus {
 }
 .breadcrumb:before {
   content: "\e5cc";
+  opacity: 0.6;
   font-family: "Material Symbols Outlined", "Material Symbols Rounded", "Material Symbols Sharp", "Material Icons";
 }
 .breadcrumb:first-child:before {
-  visibility: hidden;
+  display: none;
 }
 
 .pagination li {
@@ -21310,6 +21327,10 @@ div.suffix.suffix-tomselect {
 .divider.divider-line.divider-middle {
   margin-inline: var(--divider-inset);
 }
+.divider.divider-line.divider-dashed, .divider.divider-line.divider-dotted {
+  --divider-color: var(--md-sys-color-outline);
+  --divider-thickness: 1.5px;
+}
 .divider.divider-line.divider-strong {
   --divider-color: var(--md-sys-color-outline);
 }
@@ -22015,6 +22036,23 @@ div.suffix.suffix-tomselect {
 }
 :is(crazy-button, regular-btn)[size=extra-large] .btn {
   --button-height: 100px;
+}
+
+:where(h1, h2, h3, h4, h5, h6):has(> :where(crazy-button, regular-btn)) {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+:where(h1, h2, h3, h4, h5, h6):has(> :where(crazy-button, regular-btn)) > :where(crazy-button, regular-btn) {
+  -webkit-flex-shrink: 0;
+      -ms-flex-negative: 0;
+          flex-shrink: 0;
+  line-height: 0;
 }
 
 .btn-group > :is(crazy-button, regular-btn) {

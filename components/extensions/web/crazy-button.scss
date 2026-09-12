@@ -20,6 +20,19 @@
   &[size="small"] .btn { --button-height: 30px; }
   &[size="extra-large"] .btn { --button-height: 100px; }
 }
+// Headings center their button and text as a row instead of aligning their
+// different font baselines. Keep this default easy to override in app layouts.
+:where(h1, h2, h3, h4, h5, h6):has(> :where(crazy-button, regular-btn)) {
+  display: flex;
+  align-items: center;
+  > :where(crazy-button, regular-btn) {
+    flex-shrink: 0;
+    // Legacy inline-block overrides must not inherit the heading's line box.
+    // The inner .btn defines its own line-height for its label and icon.
+    line-height: 0;
+  }
+}
+
 .btn-group > :is(crazy-button, regular-btn) {
   flex: 1 1 0;
   min-width: 0;
