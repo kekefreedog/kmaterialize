@@ -1,3 +1,4 @@
+import { OtpInput, type OtpInputOptions } from '../components/otp-input/otp-input';
 import { MaskitoInput, type MaskitoInputOptions } from '../components/maskito-input/maskito-input';
 import { RichTextarea, type RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -46,6 +47,7 @@ export type { PopupOptions, PopupResult } from '../components/popup/popup';
 export type { ToastOptions } from '../components/snackbar/toasts';
 
 export {
+  OtpInput,
   MaskitoInput,
   RichTextarea,
   Popup,
@@ -97,6 +99,7 @@ export function toast(options: Partial<ToastOptions>): Toast {
 }
 
 export interface AutoInitOptions {
+  OtpInput?: Partial<OtpInputOptions>;
   MaskitoInput?: Partial<MaskitoInputOptions>;
   RichTextarea?: Partial<RichTextareaOptions>;
   Loading?: Partial<LoadingOptions>;
@@ -137,7 +140,8 @@ export interface AutoInitOptions {
  */
 export function AutoInit(context: HTMLElement = document.body, options?: Partial<AutoInitOptions>) {
   const registry = {
-    MaskitoInput: context.querySelectorAll('input[data-maskito]:not(.no-autoinit)'),
+    OtpInput: context.querySelectorAll('input[data-otp]:not(.no-autoinit)'),
+    MaskitoInput: context.querySelectorAll('input[data-maskito]:not([data-otp]):not(.no-autoinit)'),
     RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
     Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
@@ -167,12 +171,13 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     // mode reusing the same class name, not this component.
     Toolbar: context.querySelectorAll('.toolbar:not(.fixed-action-btn):not(.no-autoinit)'),
     PasswordInput: context.querySelectorAll('input[data-password-toggle]:not(.no-autoinit)'),
-    NumberInput: context.querySelectorAll('input[data-type="number"]:not([data-maskito]):not(.no-autoinit)'),
+    NumberInput: context.querySelectorAll('input[data-type="number"]:not([data-otp]):not([data-maskito]):not(.no-autoinit)'),
     ColorInput: context.querySelectorAll('input[type="color"][data-color-picker="pickr"]:not(.no-autoinit)'),
     AirDatepickerField: context.querySelectorAll('input[data-date-picker="air-datepicker"]:not(.no-autoinit)'),
     FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
     TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
   };
+  OtpInput.init(registry.OtpInput, options?.OtpInput ?? {});
   MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
   RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
@@ -243,3 +248,5 @@ export type { RangeOptions } from '../components/slider/range';
 export type { RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
 
 export type { MaskitoInputOptions } from '../components/maskito-input/maskito-input';
+
+export type { OtpInputOptions } from '../components/otp-input/otp-input';

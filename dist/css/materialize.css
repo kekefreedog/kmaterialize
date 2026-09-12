@@ -21964,6 +21964,14 @@ div.suffix.suffix-tomselect {
   color: var(--md-sys-color-inverse-surface);
 }
 
+:where(crazy-button, regular-btn) {
+  cursor: pointer;
+}
+
+:where(crazy-button[disabled], regular-btn[disabled]) {
+  cursor: default;
+}
+
 :is(crazy-button, regular-btn) {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -21974,6 +21982,7 @@ div.suffix.suffix-tomselect {
 }
 :is(crazy-button, regular-btn) > .btn, :is(crazy-button, regular-btn) > .btn-split > .btn {
   position: relative;
+  cursor: inherit;
 }
 :is(crazy-button, regular-btn) .btn > img {
   width: var(--button-icon);
@@ -23333,4 +23342,177 @@ loading-screen-btn {
     -webkit-transition: none;
     transition: none;
   }
+}
+.otp-input {
+  --otp-slot-size: 48px;
+  --otp-slot-gap: 8px;
+  --otp-slot-radius: 4px;
+  position: relative;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  max-width: 100%;
+  margin-block: 8px;
+  border-radius: var(--otp-slot-radius);
+}
+.otp-input > input.otp-input-native {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0;
+  font-size: 16px;
+  z-index: 1;
+}
+.otp-input .otp-input-slots {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: var(--otp-slot-gap);
+}
+.otp-input .otp-input-slot {
+  display: inline-grid;
+  place-items: center;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 var(--otp-slot-size);
+      -ms-flex: 0 0 var(--otp-slot-size);
+          flex: 0 0 var(--otp-slot-size);
+  width: var(--otp-slot-size);
+  height: calc(var(--otp-slot-size) + 8px);
+  border: 1px solid var(--md-sys-color-on-surface-variant);
+  border-radius: var(--otp-slot-radius);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-size: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  -webkit-transition: border-color 120ms ease, background-color 120ms ease, -webkit-box-shadow 120ms ease;
+  transition: border-color 120ms ease, background-color 120ms ease, -webkit-box-shadow 120ms ease;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, -webkit-box-shadow 120ms ease;
+}
+.otp-input .otp-input-slot.is-selected {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.otp-input .otp-input-slot.is-active {
+  border: 2px solid var(--input-color, var(--md-sys-color-primary));
+}
+.otp-input .otp-input-group-start {
+  -webkit-margin-start: var(--otp-slot-gap);
+     -moz-margin-start: var(--otp-slot-gap);
+          margin-inline-start: var(--otp-slot-gap);
+}
+.otp-input .otp-input-separator {
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: pre;
+}
+.otp-input:hover:not(:has(> input:disabled)) .otp-input-slot:not(.is-active) {
+  border-color: var(--md-sys-color-on-surface);
+}
+.otp-input:has(> input:disabled) {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.otp-input[data-invalid] .otp-input-slot, .otp-input:has(> input[aria-invalid=true]) .otp-input-slot, .otp-input:has(> input:user-invalid) .otp-input-slot {
+  border-color: var(--md-sys-color-error);
+}
+.otp-input[data-invalid] .otp-input-slot.is-active, .otp-input:has(> input[aria-invalid=true]) .otp-input-slot.is-active, .otp-input:has(> input:user-invalid) .otp-input-slot.is-active {
+  border-width: 2px;
+}
+
+@media (max-width: 600px) {
+  .otp-input {
+    --otp-slot-size: 36px;
+    --otp-slot-gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .otp-input .otp-input-slot {
+    -webkit-transition: none;
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .otp-input .otp-input-slot {
+    border-color: ButtonText;
+  }
+  .otp-input .otp-input-slot.is-active {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  .otp-input:has(> input:disabled) .otp-input-slot {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}
+.input-field:has(> .otp-input) {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: start;
+  -webkit-align-items: flex-start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  margin-block: 24px;
+}
+.input-field:has(> .otp-input) > .otp-input {
+  margin: 0;
+}
+.input-field:has(> .otp-input) > label {
+  position: static;
+  -webkit-box-ordinal-group: 0;
+  -webkit-order: -1;
+      -ms-flex-order: -1;
+          order: -1;
+  -webkit-transform: none;
+          transform: none;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  background: transparent;
+}
+.input-field:has(> .otp-input) > .supporting-text {
+  display: block;
+  padding-inline: 0;
+}
+.input-field:has(> .otp-input):focus-within > label {
+  color: var(--input-color);
+}
+.input-field:has(> .otp-input):has(input:disabled) > label {
+  opacity: 0.38;
+}
+.input-field:has(> .otp-input).error > label, .input-field:has(> .otp-input).error > .supporting-text, .input-field:has(> .otp-input):has(input[aria-invalid=true]) > label, .input-field:has(> .otp-input):has(input[aria-invalid=true]) > .supporting-text, .input-field:has(> .otp-input):has(.otp-input[data-invalid]) > label, .input-field:has(> .otp-input):has(.otp-input[data-invalid]) > .supporting-text, .input-field:has(> .otp-input):has(input:user-invalid) > label, .input-field:has(> .otp-input):has(input:user-invalid) > .supporting-text {
+  color: var(--md-sys-color-error);
+}
+.input-field:has(> .otp-input).error .otp-input-slot, .input-field:has(> .otp-input):has(input[aria-invalid=true]) .otp-input-slot, .input-field:has(> .otp-input):has(.otp-input[data-invalid]) .otp-input-slot, .input-field:has(> .otp-input):has(input:user-invalid) .otp-input-slot {
+  border-color: var(--md-sys-color-error);
+}
+
+.input-field:not(.outlined) > .otp-input .otp-input-slot {
+  border-width: 0 0 1px;
+  border-radius: var(--otp-slot-radius) var(--otp-slot-radius) 0 0;
+}
+.input-field:not(.outlined) > .otp-input .otp-input-slot.is-active {
+  border-width: 0 0 2px;
 }

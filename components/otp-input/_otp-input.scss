@@ -1,0 +1,94 @@
+.otp-input {
+  --otp-slot-size: 48px;
+  --otp-slot-gap: 8px;
+  --otp-slot-radius: 4px;
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  margin-block: 8px;
+  border-radius: var(--otp-slot-radius);
+
+  // One native control preserves selection, password semantics, autofill and form validation.
+  // Its accessible name comes from the original label; decorative slots are aria-hidden.
+  > input.otp-input-native {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0;
+    font-size: 16px;
+    z-index: 1;
+  }
+  .otp-input-slots { display: flex; flex-wrap: wrap; align-items: center; gap: var(--otp-slot-gap); }
+  .otp-input-slot {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    flex: 0 0 var(--otp-slot-size);
+    width: var(--otp-slot-size);
+    height: calc(var(--otp-slot-size) + 8px);
+    border: 1px solid var(--md-sys-color-on-surface-variant);
+    border-radius: var(--otp-slot-radius);
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: 24px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+    &.is-selected { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+    &.is-active { border: 2px solid var(--input-color, var(--md-sys-color-primary)); }
+  }
+  .otp-input-group-start { margin-inline-start: var(--otp-slot-gap); }
+  .otp-input-separator { color: var(--md-sys-color-on-surface-variant); white-space: pre; }
+  &:hover:not(:has(> input:disabled)) .otp-input-slot:not(.is-active) { border-color: var(--md-sys-color-on-surface); }
+  &:has(> input:disabled) { opacity: .38; cursor: not-allowed; }
+  &[data-invalid], &:has(> input[aria-invalid='true']), &:has(> input:user-invalid) {
+    .otp-input-slot { border-color: var(--md-sys-color-error); }
+    .otp-input-slot.is-active { border-width: 2px; }
+  }
+}
+@media (max-width: 600px) { .otp-input { --otp-slot-size: 36px; --otp-slot-gap: 4px; } }
+@media (prefers-reduced-motion: reduce) { .otp-input .otp-input-slot { transition: none; } }
+@media (forced-colors: active) {
+  .otp-input .otp-input-slot { border-color: ButtonText; }
+  .otp-input .otp-input-slot.is-active { outline: 2px solid Highlight; outline-offset: 2px; }
+  .otp-input:has(> input:disabled) .otp-input-slot { color: GrayText; border-color: GrayText; }
+}
+
+// Standard text-field markup: input, label, supporting text. Keep the label
+// above the entire code so it never overlaps an individual slot or separator.
+.input-field:has(> .otp-input) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-block: 24px;
+  > .otp-input { margin: 0; }
+  > label {
+    position: static;
+    order: -1;
+    transform: none;
+    margin: 0 0 8px;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    background: transparent;
+  }
+  > .supporting-text { display: block; padding-inline: 0; }
+  &:focus-within > label { color: var(--input-color); }
+  &:has(input:disabled) > label { opacity: .38; }
+  &.error, &:has(input[aria-invalid='true']), &:has(.otp-input[data-invalid]), &:has(input:user-invalid) {
+    > label, > .supporting-text { color: var(--md-sys-color-error); }
+    .otp-input-slot { border-color: var(--md-sys-color-error); }
+  }
+}
+
+// Match the standard text field: omit .outlined for bottom borders only.
+// Set widths separately so focus, validation and forced-color tokens still apply.
+.input-field:not(.outlined) > .otp-input .otp-input-slot {
+  border-width: 0 0 1px;
+  border-radius: var(--otp-slot-radius) var(--otp-slot-radius) 0 0;
+  &.is-active { border-width: 0 0 2px; }
+}

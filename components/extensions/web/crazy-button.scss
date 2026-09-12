@@ -1,8 +1,10 @@
+:where(crazy-button, regular-btn) { cursor: pointer; }
+:where(crazy-button[disabled], regular-btn[disabled]) { cursor: default; }
 :is(crazy-button, regular-btn) {
   display: inline-flex;
   vertical-align: middle;
   max-width: 100%;
-  > .btn, > .btn-split > .btn { position: relative; }
+  > .btn, > .btn-split > .btn { position: relative; cursor: inherit; }
   .btn > img { width: var(--button-icon); height: var(--button-icon); object-fit: contain; }
   // Image-only buttons fill the control and follow its round or square shape.
   .btn.btn-icon[part="button"] > img {

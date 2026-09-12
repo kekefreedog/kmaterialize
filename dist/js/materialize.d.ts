@@ -83,6 +83,60 @@ declare class Component<O extends BaseOptions$1> {
     destroy(): void;
 }
 
+interface OtpInputOptions extends BaseOptions$1 {
+    /** Number of editable slots (1–32); inferred when pattern is supplied. */
+    length?: number;
+    characters?: 'digits' | 'alphanumeric';
+    /** # = digit, A = ASCII letter, * = alphanumeric; backslash escapes literals. */
+    pattern?: string;
+    /** Maskito processing and overwrite behavior. The slot pattern owns the mask. */
+    maskOptions?: Partial<Omit<MaskitoOptions, 'mask'>>;
+    /** Visually group slots without adding separators to the submitted value. */
+    groupSize?: number;
+    /** Hide entered characters, using a native password input. */
+    masked?: boolean;
+    onComplete?: (value: string, instance: OtpInput) => void;
+}
+/** A single accessible native input, rendered as Material OTP/PIN slots. Requires @maskito/core. */
+declare class OtpInput extends Component<OtpInputOptions> {
+    el: HTMLInputElement;
+    ready: Promise<void>;
+    private _mask?;
+    private _wrapper?;
+    private _cells;
+    private _slots;
+    private _attributes;
+    private _observer?;
+    private _form;
+    private _resetTimer?;
+    private _destroyed;
+    private _lastComplete;
+    private _hadClass;
+    constructor(el: HTMLInputElement, options?: Partial<OtpInputOptions>);
+    static get defaults(): OtpInputOptions;
+    static init(el: HTMLInputElement, options?: Partial<OtpInputOptions>): OtpInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<OtpInputOptions>): OtpInput[];
+    static getInstance(el: HTMLInputElement): OtpInput;
+    private static _markup;
+    private _setAttribute;
+    private _setup;
+    getValue(): string;
+    /** Editable characters only; pattern separators are omitted. */
+    getUnmaskedValue(): string;
+    isComplete(): boolean;
+    setValue(value: string, emit?: boolean): Promise<void>;
+    clear(emit?: boolean): Promise<void>;
+    refresh(): Promise<void>;
+    focus(): void;
+    private _onInput;
+    private _onSelection;
+    private _onInvalid;
+    private _onReset;
+    private _onPointerDown;
+    private _render;
+    destroy(): void;
+}
+
 interface MaskitoInputOptions extends BaseOptions$1 {
     preset?: 'pattern' | 'number' | 'date' | 'time';
     /** # = digit, A = ASCII letter, * = alphanumeric. Backslash escapes literals. */
@@ -3581,6 +3635,7 @@ declare const version = "2.3.3";
  */
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
+    OtpInput?: Partial<OtpInputOptions>;
     MaskitoInput?: Partial<MaskitoInputOptions>;
     RichTextarea?: Partial<RichTextareaOptions>;
     Loading?: Partial<LoadingOptions>;
@@ -3620,5 +3675,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };

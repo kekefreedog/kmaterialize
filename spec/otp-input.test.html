@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>OTP input regression checks</title>
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<script type="importmap">{"imports":{"@maskito/core":"../node_modules/@maskito/core/index.esm.js"}}</script>
+<form><div class="input-field outlined"><input id="code" name="code" type="text" required value="012345" aria-describedby="help"><label for="code">Code</label></div><p id="help">Six digits</p></form>
+<div id="auto"><input data-otp data-otp-length="4" data-maskito data-type="number" aria-label="Automatic code"></div>
+<pre id="result">PENDING</pre><script src="../dist/js/materialize.js"></script>
+<script type="module">
+const tick=()=>new Promise(resolve=>setTimeout(resolve,50));
+const check=(ok,message)=>{if(!ok)throw Error(message)};
+(async()=>{const log=[];try {
+ const el=document.querySelector('#code'),form=el.form;
+ let calls=0,events=0,inputs=0;
+ el.addEventListener('otpcomplete',e=>{events++;check(e.detail.value===el.value,'event value');});el.addEventListener('input',()=>inputs++);
+ let field=M.OtpInput.init(el,{length:6,onComplete:()=>calls++});await field.ready;
+ check(field.isComplete()&&field.getValue()==='012345','initial leading zero');check(calls===0&&events===0,'initialization silent');
+ check(form.querySelectorAll('input').length===1&&document.querySelectorAll('.otp-input-slot').length===6,'one native input and six decorative slots');
+ check(el.labels[0].textContent==='Code'&&el.getAttribute('aria-describedby')==='help','native labels and descriptions');
+ check(el.autocomplete==='one-time-code'&&el.inputMode==='numeric','autofill and numeric keyboard');
+ check(el.nextElementSibling.getAttribute('aria-hidden')==='true','slots hidden from screen readers');
+ await field.setValue('098765');check(calls===1&&events===1&&inputs===1,'completion/input callbacks');
+ check(new FormData(form).get('code')==='098765','native form data');
+ await field.setValue('098765');check(calls===1,'same complete value does not repeat');
+ await field.setValue('123');check(!el.checkValidity()&&!field.isComplete(),'incomplete validity');
+ await field.clear();check(!el.checkValidity(),'required empty validity');
+ await field.setValue('999999',false);check(calls===1,'silent setValue');
+ form.reset();await tick();check(el.value==='012345'&&calls===1,'reset default and silent completion');
+ el.value='765432';await field.refresh();check(el.parentElement.querySelector('.otp-input-slot').textContent==='7'&&calls===1,'refresh without completion');
+ el.focus();el.setSelectionRange(2,3);el.dispatchEvent(new Event('select'));check(el.parentElement.querySelectorAll('.is-active').length===1,'active slot');
+ el.disabled=true;await tick();check(getComputedStyle(el.parentElement).opacity==='0.38','disabled state');el.disabled=false;
+ el.blur();
+ const cell=el.parentElement.querySelector('.otp-input-slot');
+ check(getComputedStyle(cell).borderRadius==='4px'&&getComputedStyle(cell).borderTopWidth==='1px','standard outlined slot shape');
+ check(el.labels[0].getBoundingClientRect().bottom<=cell.getBoundingClientRect().top,'input-field label above slots');
+ log.push('native labels, form values, leading zeroes, validation, completion, reset, refresh, focus and disabled state');
+ field.destroy();check(!el.closest('.otp-input')&&!el.hasAttribute('maxlength')&&!el.hasAttribute('pattern')&&!el.hasAttribute('autocomplete'),'cleanup attributes and wrapper');check(!M.MaskitoInput.getInstance(el),'owned mask destroyed');
+ field=M.OtpInput.init(el,{pattern:'AA-####',maskOptions:{postprocessors:[({value,selection})=>({value:value.toUpperCase(),selection})]}});await field.ready;
+ await field.setValue('fx2048');check(el.value==='FX-2048'&&field.getUnmaskedValue()==='FX2048'&&field.isComplete(),'pattern processor and unmasked value');check(el.inputMode==='text'&&el.checkValidity(),'pattern keyboard and native validation');
+ check(el.parentElement.querySelectorAll('.otp-input-slot').length===6&&el.parentElement.querySelector('.otp-input-separator').textContent==='-','literal separator not editable');
+ field=M.OtpInput.init(el,{length:4,masked:true});await field.ready;await field.setValue('1234');
+ check(el.type==='password'&&el.parentElement.querySelector('.otp-input-slot').textContent==='•','masked PIN');
+ el.type='text';await tick();check(el.parentElement.querySelector('.otp-input-slot').textContent==='1','native reveal');
+ check(document.querySelectorAll('.otp-input').length===1,'reinit single wrapper');field.destroy();
+ const early=M.OtpInput.init(el,{length:4});early.destroy();await early.ready;check(!el.closest('.otp-input')&&!M.OtpInput.getInstance(el),'destroy before ready');
+ for(const options of [{length:0},{length:33},{length:4,pattern:'######'},{pattern:'\\'},{groupSize:-1}]) {let error=false;try{M.OtpInput.init(el,options)}catch{error=true}check(error,'reject invalid options '+JSON.stringify(options));}
+ M.AutoInit(document.querySelector('#auto'));const autoEl=document.querySelector('#auto input'),auto=M.OtpInput.getInstance(autoEl);await auto.ready;
+ check(auto.options.length===4&&!!M.MaskitoInput.getInstance(autoEl)&&!M.NumberInput.getInstance(autoEl),'AutoInit owns one masking engine');auto.destroy();
+ log.push('pattern masks/processors, PIN reveal, cleanup/reinit, early destroy, invalid options and AutoInit');
+ document.querySelector('#result').textContent='PASS: '+log.join('; ');
+}catch(e){document.querySelector('#result').textContent='FAIL: '+e.stack+'; completed: '+log.join('; ')}})();
+</script></html>

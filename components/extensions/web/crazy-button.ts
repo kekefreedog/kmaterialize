@@ -27,6 +27,7 @@ export default class CrazyButton extends Kmcomponent {
     wave: string('light', ['light', 'dark', 'false']),
     'tooltip-style': string('classic', ['classic', 'material']),
     'tooltip-position': string('top', ['top', 'right', 'bottom', 'left']),
+    cursor: string(),
     label: string(), 'icon-class': string('material-icons'), 'icon-text': string(),
     'icon-image': string(), 'icon-image-style': string(),
     'icon-position': string('right', ['left', 'right']),
@@ -93,6 +94,9 @@ export default class CrazyButton extends Kmcomponent {
     const a = this.prepareContext().attributes;
     const button = this.querySelector<HTMLElement>('[part="button"]')!;
     for (const el of this.querySelectorAll<HTMLElement>('.btn')) {
+      // CSSOM validates the value and supports keywords, var(), and image URLs.
+      // Invalid/empty values fall back to the host cursor; disabled controls keep their default.
+      if (!a.disabled && a.cursor) el.style.cursor = String(a.cursor);
       this.applyColor(el, String(a['color-primary']), false);
       this.applyColor(el, String(a['color-secondary']), true);
     }
