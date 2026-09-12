@@ -1,3 +1,4 @@
+import { initOutlinedNotches } from './outlined-notch';
 import { Utils } from '../../src/utils';
 
 export class Forms {
@@ -110,6 +111,7 @@ export class Forms {
   }
 
   static Init() {
+    initOutlinedNotches();
     if (typeof document !== 'undefined')
       document?.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('change', (e: KeyboardEvent) => {

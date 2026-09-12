@@ -19447,6 +19447,88 @@ textarea.materialize-textarea {
   text-indent: -9999px;
 }
 
+.input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio]), .input-field.outlined.has-outlined-notch > textarea,
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio]),
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea {
+  border-color: transparent;
+}
+.input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):focus:not([readonly]), .input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):disabled, .input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio])[readonly], .input-field.outlined.has-outlined-notch > textarea:focus:not([readonly]), .input-field.outlined.has-outlined-notch > textarea:disabled, .input-field.outlined.has-outlined-notch > textarea[readonly],
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):focus:not([readonly]),
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):disabled,
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio])[readonly],
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea:focus:not([readonly]),
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea:disabled,
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea[readonly] {
+  border-color: transparent;
+}
+.input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio]) + label, .input-field.outlined.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label, .input-field.outlined.has-outlined-notch > textarea + label, .input-field.outlined.has-outlined-notch > textarea:focus:not([readonly]) + label,
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio]) + label,
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:not([type=checkbox]):not([type=radio]):focus:not([readonly]) + label,
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea + label,
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea:focus:not([readonly]) + label {
+  background-color: transparent;
+}
+.input-field.outlined.has-outlined-notch > .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch > .input-outline {
+  position: absolute;
+  pointer-events: none;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--md-sys-color-on-surface-variant);
+  border-radius: 4px;
+  background: transparent;
+}
+.input-field.outlined.has-outlined-notch > .input-outline > legend,
+.input-field.outlined > .select-wrapper.has-outlined-notch > .input-outline > legend {
+  float: none;
+  width: auto;
+  display: block;
+  max-width: 0.01px;
+  height: 16px;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  visibility: hidden;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.input-field.outlined.has-outlined-notch > .input-outline > legend > span,
+.input-field.outlined > .select-wrapper.has-outlined-notch > .input-outline > legend > span {
+  display: inline-block;
+  padding: 0 3px;
+}
+.input-field.outlined.has-outlined-notch > input:focus:not([readonly]) ~ .input-outline,
+.input-field.outlined.has-outlined-notch > textarea:focus:not([readonly]) ~ .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch > input:focus:not([readonly]) ~ .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch > textarea:focus:not([readonly]) ~ .input-outline {
+  border-width: 2px;
+  border-color: var(--input-color);
+  padding-inline: 11px;
+}
+.input-field.outlined.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:-moz-placeholder)) ~ .input-outline > legend, .input-field.outlined > .select-wrapper.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:-moz-placeholder)) ~ .input-outline > legend {
+  max-width: 100%;
+}
+.input-field.outlined.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:-ms-input-placeholder)) ~ .input-outline > legend, .input-field.outlined > .select-wrapper.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:-ms-input-placeholder)) ~ .input-outline > legend {
+  max-width: 100%;
+}
+.input-field.outlined.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:placeholder-shown)) ~ .input-outline > legend,
+.input-field.outlined > .select-wrapper.has-outlined-notch > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=" "]), :not(:placeholder-shown)) ~ .input-outline > legend {
+  max-width: 100%;
+}
+.input-field.outlined.has-outlined-notch > :is(input, textarea):is(:disabled, [readonly]:not(.select-dropdown)) ~ .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch > :is(input, textarea):is(:disabled, [readonly]:not(.select-dropdown)) ~ .input-outline {
+  border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
+}
+.input-field.outlined.has-outlined-notch > :is(input, textarea).invalid ~ .input-outline, .input-field.outlined.has-outlined-notch.error > .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch > :is(input, textarea).invalid ~ .input-outline,
+.input-field.outlined > .select-wrapper.has-outlined-notch.error > .input-outline {
+  border-color: var(--md-sys-color-error);
+}
+
 select.browser-default {
   opacity: 1;
   color: var(--md-sys-color-on-background);
@@ -19555,21 +19637,21 @@ select:disabled {
 
 .input-field > .select-wrapper:has(> input.select-dropdown:not(:-moz-placeholder)) > label {
   position: absolute !important;
-  top: -12px !important;
+  top: 4px !important;
   left: 16px !important;
-  padding: 0 4px !important;
+  padding: 0 !important;
   font-size: 16px !important;
-  background: var(--md-sys-color-surface);
+  background: transparent;
   transform: scale(0.75) !important;
 }
 
 .input-field > .select-wrapper:has(> input.select-dropdown:not(:-ms-input-placeholder)) > label {
   position: absolute !important;
-  top: -12px !important;
+  top: 4px !important;
   left: 16px !important;
-  padding: 0 4px !important;
+  padding: 0 !important;
   font-size: 16px !important;
-  background: var(--md-sys-color-surface);
+  background: transparent;
   transform: scale(0.75) !important;
 }
 
@@ -19577,11 +19659,11 @@ select:disabled {
 .input-field > .select-wrapper:has(.hide-select > select[placeholder]:not([placeholder=""])) > label,
 .input-field > .select-wrapper:focus-within > label {
   position: absolute !important;
-  top: -12px !important;
+  top: 4px !important;
   left: 16px !important;
-  padding: 0 4px !important;
+  padding: 0 !important;
   font-size: 16px !important;
-  background: var(--md-sys-color-surface);
+  background: transparent;
   -webkit-transform: scale(0.75) !important;
           transform: scale(0.75) !important;
 }
@@ -19631,6 +19713,58 @@ select:disabled {
 }
 .select-dropdown li.optgroup ~ li.optgroup-option {
   padding-left: 1rem;
+}
+
+.input-field.outlined > .select-wrapper:focus-within {
+  outline: none;
+}
+.input-field.outlined > .select-wrapper > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:focus):not(:-moz-placeholder) {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 40px;
+}
+.input-field.outlined > .select-wrapper > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:focus):not(:-ms-input-placeholder) {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 40px;
+}
+.input-field.outlined > .select-wrapper > input.select-dropdown,
+.input-field.outlined > .select-wrapper > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:focus):not(:placeholder-shown) {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 40px;
+}
+.input-field.outlined > .select-wrapper.has-outlined-notch > input.select-dropdown + label {
+  background: transparent;
+}
+.input-field.outlined > .select-wrapper.has-outlined-notch > .input-outline {
+  border-color: var(--md-sys-color-on-surface-variant);
+}
+.input-field.outlined > .select-wrapper.has-outlined-notch:focus-within > .input-outline {
+  border-color: var(--input-color);
+  border-width: 2px;
+  padding-inline: 11px;
+}
+.input-field.outlined > .select-wrapper.has-outlined-notch:focus-within > .input-outline > legend {
+  max-width: 100%;
+}
+.input-field.outlined > .select-wrapper.has-outlined-notch.disabled > .input-outline {
+  border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
+}
+
+.input-field:not(.outlined) > .select-wrapper:has(> label) > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:-moz-placeholder) {
+  padding-top: 12px;
+  padding-right: 40px;
+}
+
+.input-field:not(.outlined) > .select-wrapper:has(> label) > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:-ms-input-placeholder) {
+  padding-top: 12px;
+  padding-right: 40px;
+}
+
+.input-field:not(.outlined) > .select-wrapper:has(> label) > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:placeholder-shown), .input-field:not(.outlined) > .select-wrapper:has(> label):focus-within > input.select-dropdown:not([type=checkbox]):not([type=radio]) {
+  padding-top: 12px;
+  padding-right: 40px;
 }
 
 .file-field {

@@ -371,3 +371,54 @@ textarea {
     text-indent: -9999px;
   }
 }
+
+// Native legend cuts a real notch: no background-color patch is needed.
+.input-field.outlined.has-outlined-notch,
+.input-field.outlined > .select-wrapper.has-outlined-notch {
+  > input:not([type=checkbox]):not([type=radio]), > textarea {
+    border-color: transparent;
+    &:focus:not([readonly]), &:disabled, &[readonly] { border-color: transparent; }
+    + label,
+    &:focus:not([readonly]) + label { background-color: transparent; }
+  }
+  > .input-outline {
+    position: absolute;
+    pointer-events: none;
+    box-sizing: border-box;
+    min-width: 0;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 4px;
+    background: transparent;
+    > legend {
+      float: none;
+      width: auto;
+      display: block;
+      max-width: 0.01px;
+      height: 16px;
+      padding: 0;
+      font: inherit;
+      font-size: 12px;
+      line-height: 16px;
+      visibility: hidden;
+      white-space: nowrap;
+      overflow: hidden;
+      > span { display: inline-block; padding: 0 3px; }
+    }
+  }
+  > input:focus:not([readonly]) ~ .input-outline,
+  > textarea:focus:not([readonly]) ~ .input-outline {
+    border-width: 2px;
+    border-color: var(--input-color);
+    padding-inline: 11px;
+  }
+  > :is(input, textarea):is(:focus:not([readonly]), :not([placeholder=' ']), :not(:placeholder-shown)) ~ .input-outline > legend {
+    max-width: 100%;
+  }
+  > :is(input, textarea):is(:disabled, [readonly]:not(.select-dropdown)) ~ .input-outline {
+    border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
+  }
+  > :is(input, textarea).invalid ~ .input-outline,
+  &.error > .input-outline { border-color: var(--md-sys-color-error); }
+}

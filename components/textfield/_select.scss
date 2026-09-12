@@ -119,11 +119,11 @@ select:disabled {
 .input-field > .select-wrapper:has(.hide-select > select[placeholder]:not([placeholder=""])) > label,
 .input-field > .select-wrapper:focus-within > label {
   position: absolute !important;
-  top: -12px !important;
+  top: 4px !important;
   left: 16px !important;
-  padding: 0 4px !important;
+  padding: 0 !important;
   font-size: 16px !important;
-  background: var(--md-sys-color-surface);
+  background: transparent;
   transform: scale(0.75) !important;
 }
 
@@ -154,5 +154,39 @@ select:disabled {
   }
   & ~ li.optgroup-option {
     padding-left: 1rem;
+  }
+}
+
+// Generated select inputs are readonly for typing, but remain interactive.
+// They must not inherit the filled input's extra top padding or disabled outline.
+.input-field.outlined > .select-wrapper {
+  &:focus-within { outline: none; }
+  > input.select-dropdown,
+  > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:focus):not(:placeholder-shown) {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 40px;
+  }
+  &.has-outlined-notch {
+    > input.select-dropdown + label { background: transparent; }
+    > .input-outline { border-color: var(--md-sys-color-on-surface-variant); }
+    &:focus-within > .input-outline {
+      border-color: var(--input-color);
+      border-width: 2px;
+      padding-inline: 11px;
+      > legend { max-width: 100%; }
+    }
+    &.disabled > .input-outline {
+      border-color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 12%);
+    }
+  }
+}
+
+// Filled selects share the text field's in-field floating label layout.
+.input-field:not(.outlined) > .select-wrapper:has(> label) {
+  > input.select-dropdown:not([type=checkbox]):not([type=radio]):not(:placeholder-shown),
+  &:focus-within > input.select-dropdown:not([type=checkbox]):not([type=radio]) {
+    padding-top: 12px;
+    padding-right: 40px;
   }
 }

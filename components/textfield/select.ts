@@ -255,7 +255,7 @@ export class FormSelect extends Component<FormSelectOptions> {
     // Add input dropdown
     this.input = document.createElement('input');
     this.input.id = 'm_select-input-' + Utils.guid();
-    this.input.classList.add('select-dropdown', 'dropdown-trigger');
+    this.input.classList.add('select-dropdown', 'dropdown-trigger', 'no-autoinit');
     this.input.type = 'text';
     this.input.readOnly = true;
     this.input.setAttribute('data-target', this.dropdownOptions.id);

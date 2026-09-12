@@ -4477,7 +4477,7 @@ var M = (function (exports) {
             // Add input dropdown
             this.input = document.createElement('input');
             this.input.id = 'm_select-input-' + Utils.guid();
-            this.input.classList.add('select-dropdown', 'dropdown-trigger');
+            this.input.classList.add('select-dropdown', 'dropdown-trigger', 'no-autoinit');
             this.input.type = 'text';
             this.input.readOnly = true;
             this.input.setAttribute('data-target', this.dropdownOptions.id);
@@ -5855,6 +5855,100 @@ var M = (function (exports) {
         }
     }
 
+    /** Decorative native fieldset notches; the original input and label remain accessible. */
+    function initOutlinedNotches() {
+        if (typeof document === 'undefined')
+            return;
+        const start = () => {
+            const selector = '.input-field.outlined, .input-field.outlined > .select-wrapper';
+            const entries = new Map();
+            const position = (field) => {
+                const entry = entries.get(field);
+                if (!entry)
+                    return;
+                const { input, outline } = entry;
+                outline.style.left = `${input.offsetLeft}px`;
+                outline.style.top = `${input.offsetTop - 8}px`;
+                outline.style.width = `${input.offsetWidth}px`;
+                outline.style.height = `${input.offsetHeight + 8}px`;
+            };
+            const resize = new ResizeObserver(records => records.forEach(record => {
+                const field = record.target.parentElement;
+                if (field)
+                    position(field);
+            }));
+            const sync = (field) => {
+                const input = field.querySelector(':scope > input:not([type=checkbox]):not([type=radio]):not([type=hidden]), :scope > textarea');
+                const label = input?.nextElementSibling;
+                const old = entries.get(field);
+                if (!field.isConnected || !field.matches(selector) || !input || label?.tagName !== 'LABEL') {
+                    if (old) {
+                        resize.unobserve(old.input);
+                        old.outline.remove();
+                        entries.delete(field);
+                        field.classList.remove('has-outlined-notch');
+                    }
+                    return;
+                }
+                if (old && old.input !== input) {
+                    resize.unobserve(old.input);
+                    old.outline.remove();
+                    entries.delete(field);
+                }
+                let entry = entries.get(field);
+                if (!entry) {
+                    const outline = document.createElement('fieldset');
+                    outline.className = 'input-outline';
+                    outline.setAttribute('aria-hidden', 'true');
+                    const legend = document.createElement('legend');
+                    legend.appendChild(document.createElement('span'));
+                    outline.appendChild(legend);
+                    entry = { input, outline };
+                    entries.set(field, entry);
+                    field.appendChild(outline);
+                    field.classList.add('has-outlined-notch');
+                    resize.observe(input);
+                }
+                const text = entry.outline.querySelector('span');
+                if (text.textContent !== label.textContent)
+                    text.textContent = label.textContent;
+                position(field);
+            };
+            document.querySelectorAll(selector).forEach(sync);
+            const observer = new MutationObserver(records => {
+                const fields = new Set();
+                for (const record of records) {
+                    const target = record.target instanceof Element ? record.target : record.target.parentElement;
+                    if (target?.closest('.input-outline'))
+                        continue;
+                    const field = target?.closest('.input-field');
+                    if (field)
+                        fields.add(field);
+                    for (const node of record.addedNodes) {
+                        if (!(node instanceof HTMLElement) || node.matches('.input-outline'))
+                            continue;
+                        if (node.matches(selector))
+                            fields.add(node);
+                        node.querySelectorAll(selector).forEach(el => fields.add(el));
+                    }
+                }
+                // Release observers for detached partials; reinsertion creates a fresh outline.
+                for (const field of entries.keys())
+                    if (!field.isConnected)
+                        fields.add(field);
+                for (const field of [...fields]) {
+                    field.querySelectorAll(selector).forEach(el => fields.add(el));
+                }
+                fields.forEach(sync);
+            });
+            observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'placeholder', 'type'] });
+        };
+        if (document.readyState === 'loading')
+            document.addEventListener('DOMContentLoaded', start, { once: true });
+        else
+            start();
+    }
+
     class Forms {
         /**
          * Checks if the label has validation and apply
@@ -5963,6 +6057,7 @@ var M = (function (exports) {
             textarea.setAttribute('previous-length', (textarea.value || '').length.toString());
         }
         static Init() {
+            initOutlinedNotches();
             if (typeof document !== 'undefined')
                 document?.addEventListener('DOMContentLoaded', () => {
                     document.addEventListener('change', (e) => {
