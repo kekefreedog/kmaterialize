@@ -18,7 +18,9 @@
   vertical-align: middle;
   align-items: center;
 
-  i,
+  i { font-size: 24px; }
+
+  // Preserve other icon fonts' weights (Font Awesome solid requires 900).
   i.material-icons, i.material-symbols-outlined,
   i.material-symbols-rounded, i.material-symbols-sharp,
   &:before {

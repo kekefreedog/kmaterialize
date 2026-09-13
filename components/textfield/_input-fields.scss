@@ -422,3 +422,68 @@ textarea {
   > :is(input, textarea).invalid ~ .input-outline,
   &.error > .input-outline { border-color: var(--md-sys-color-error); }
 }
+
+// Explicitly authored copy buttons; no button is generated for ordinary inputs.
+.input-field {
+  > button.suffix.input-copy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    top: 8px;
+    right: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    z-index: 1;
+    > i { margin: 0; font-size: 24px; line-height: 1; }
+    &:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+    &:focus-visible { outline: 2px solid var(--input-color); outline-offset: 2px; }
+    &:disabled { opacity: .38; cursor: default; }
+  }
+  &:has(> .input-copy-button) > input:not([type=checkbox]):not([type=radio]),
+  &:has(> .input-copy-button) > textarea { padding-right: 56px; }
+}
+.input-copy-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.autocomplete-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  &[hidden] { display: none; }
+  .autocomplete-selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px 12px;
+    border-radius: 8px;
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      min-height: 28px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 20px;
+      &:focus-visible { outline: 2px solid currentColor; }
+    }
+  }
+}

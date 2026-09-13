@@ -12,13 +12,29 @@ export interface OrgChartAppearance {
   accent?: string;
   accentPosition?: "top" | "right" | "bottom" | "left";
 }
-export interface OrgChartTeam extends OrgChartAppearance { id: string; name: string; x: number; y: number }
-export interface OrgChartPerson extends OrgChartAppearance { id: string; teamId: string; name: string; role?: string }
+export interface OrgChartTeam extends OrgChartAppearance { id: string; name: string; x?: number; y?: number }
+export interface OrgChartPerson extends OrgChartAppearance {
+  id: string;
+  teamId: string;
+  name: string;
+  role?: string;
+  /** Custom avatar text; defaults to initials derived from name. */
+  avatarText?: string;
+  /** Image URL. A failed image falls back to avatarText or initials. */
+  avatarImage?: string;
+  /** How the image fills the avatar. Defaults to cover. */
+  avatarFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+}
 export interface OrgChartLink { from: string; to: string; fromType?: "person" | "team"; toType?: "person" | "team"; label?: string }
 export interface OrgChartData { teams: OrgChartTeam[]; people: OrgChartPerson[]; links: OrgChartLink[] }
 export interface OrgChartOptions {
   data: OrgChartData;
+  /** Shared movement default. Individual movement options take precedence. */
   draggable?: boolean;
+  /** Allow team movement. Defaults to draggable, then true. */
+  draggableTeams?: boolean;
+  /** Allow person reordering and movement between teams. Defaults to draggable, then true. */
+  draggablePeople?: boolean;
   /** Enable mouse/touch connection ports on cards and groups. Defaults to true. */
   connectable?: boolean;
   /** Allow inline link-label editing. Defaults to false. */
@@ -32,7 +48,12 @@ export interface OrgChartOptions {
 }
 
 const svgNS = "http://www.w3.org/2000/svg";
-const copy = (data: OrgChartData): OrgChartData => JSON.parse(JSON.stringify(data));
+type PositionedOrgChartData = Omit<OrgChartData, 'teams'> & { teams: (OrgChartTeam & { x: number; y: number })[] };
+const copy = (data: OrgChartData): PositionedOrgChartData => {
+  const result = JSON.parse(JSON.stringify(data));
+  result.teams.forEach((team: OrgChartTeam) => { team.x ??= 24; team.y ??= 24; });
+  return result;
+};
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string) => {
   const el = document.createElement(tag);
   el.className = className;
@@ -42,10 +63,13 @@ const element = <K extends keyof HTMLElementTagNameMap>(tag: K, className: strin
 
 /** Materialize organization chart; no graph dependency. */
 export class OrgChart {
+  private get canDragTeams(): boolean { return this.options.draggableTeams ?? this.options.draggable ?? true; }
+  private get canDragPeople(): boolean { return this.options.draggablePeople ?? this.options.draggable ?? true; }
   private zoom = 1;
   private labelEditor?: { index: number; input: HTMLInputElement };
   private static instances = new WeakMap<HTMLElement, OrgChart>();
-  private data: OrgChartData;
+  private data: PositionedOrgChartData;
+  private autoPositions = new Map<string, { x: boolean; y: boolean }>();
   private stage = element("div", "org-chart-stage");
   private svg = document.createElementNS(svgNS, "svg");
   private summary = element("div", "org-chart-summary");
@@ -71,6 +95,7 @@ export class OrgChart {
     this.validate(options.data);
     this.zoom = this.clampZoom(options.zoom ?? 1);
     OrgChart.getInstance(el)?.destroy();
+    this.rememberMissingPositions(options.data);
     this.data = copy(options.data);
     this.originalNodes = Array.from(el.childNodes);
     this.hadClass = el.classList.contains("org-chart");
@@ -144,6 +169,7 @@ export class OrgChart {
   setData(data: OrgChartData): void {
     this.validate(data);
     this.endDrag();
+    this.rememberMissingPositions(data);
     this.data = copy(data);
     this.render();
     this.options.onChange?.(this.getData());
@@ -166,9 +192,25 @@ export class OrgChart {
   private validate(data: OrgChartData): void {
     const teams = new Set<string>();
     const people = new Set<string>();
-    for (const team of data.teams) {
-      if (!team.id || teams.has(team.id) || !team.name.trim() || !Number.isFinite(team.x) || !Number.isFinite(team.y) || team.x < 0 || team.y < 0)
-        throw new Error("Teams need unique IDs, a name, and finite, non-negative coordinates.");
+    const groups = new Map<string, { name: string; index: number }[]>();
+    data.teams.forEach((team, index) => {
+      const group = groups.get(team.id) || [];
+      group.push({ name: team.name, index });
+      groups.set(team.id, group);
+    });
+    const duplicates = [...groups].filter(([, group]) => group.length > 1);
+    if (duplicates.length) {
+      throw new Error('Duplicate team IDs: ' + duplicates.map(([id, group]) =>
+        `${JSON.stringify(id)}: ${group.map(team => `${JSON.stringify(team.name)} (teams[${team.index}])`).join(', ')}`
+      ).join('; ') + '. Each team must have a unique ID.');
+    }
+    for (const [index, team] of data.teams.entries()) {
+      if (!team.id || typeof team.name !== 'string' || !team.name.trim())
+        throw new Error(`Invalid team at teams[${index}] (id=${JSON.stringify(team.id)}): a non-empty ID and name are required.`);
+      for (const axis of ['x', 'y'] as const) {
+        if (team[axis] != null && (!Number.isFinite(team[axis]) || team[axis] < 0))
+          throw new Error(`Invalid ${axis} for team ${JSON.stringify(team.name)} (id=${JSON.stringify(team.id)}, teams[${index}]): ${String(team[axis])}. Supply a finite, non-negative coordinate or omit it for automatic placement.`);
+      }
       teams.add(team.id);
     }
     for (const person of data.people) {
@@ -214,10 +256,10 @@ export class OrgChart {
       const header = element("button", "org-chart-team-handle");
       header.type = "button";
       header.dataset.team = team.id;
-      header.disabled = this.options.draggable === false;
+      header.disabled = !this.canDragTeams;
       header.setAttribute("aria-label", `${team.name}, ${members.length} people. Drag or use arrow keys to move; Shift moves faster.`);
       header.append(element("span", "org-chart-team-name", team.name), element("span", "org-chart-count", String(members.length)));
-      if (this.options.draggable !== false) {
+      if (this.canDragTeams) {
         const icon = element("i", "material-icons org-chart-drag-icon", "drag_indicator");
         icon.setAttribute("aria-hidden", "true");
         header.prepend(icon);
@@ -229,8 +271,18 @@ export class OrgChart {
         this.applyAppearance(card, person);
         card.dataset.orgPerson = person.id;
         const initials = person.name.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join("");
-        const avatar = element("span", "org-chart-avatar", initials);
+        const avatarText = person.avatarText ?? initials;
+        const avatar = element("span", "org-chart-avatar", avatarText);
         avatar.setAttribute("aria-hidden", "true");
+        if (person.avatarImage) {
+          const image = document.createElement('img');
+          image.alt = '';
+          image.draggable = false;
+          image.style.objectFit = person.avatarFit ?? 'cover';
+          image.addEventListener('error', () => avatar.replaceChildren(document.createTextNode(avatarText)), { once: true });
+          image.src = person.avatarImage;
+          avatar.replaceChildren(image);
+        }
         const details = element("div", "org-chart-person-details");
         details.append(element("strong", "org-chart-person-name", person.name));
         if (person.role) details.append(element("span", "org-chart-person-role", person.role));
@@ -254,9 +306,9 @@ export class OrgChart {
       list.append(element("li", "", `${from.name} → ${to.name}: ${link.label || "Connected to"}`));
     }
     this.summary.append(element("h2", "", "Relationships"), list);
-    this.removeCardHandles = enableCardHandles(this.el, {
+    this.removeCardHandles = !this.canDragPeople ? undefined : enableCardHandles(this.el, {
       cardSelector: '.org-chart-person', dropSelector: '.org-chart-team',
-      enabled: () => this.options.draggable !== false,
+      enabled: () => this.canDragPeople,
       onMove: (card, _from, to) => {
         const person = this.data.people.find(person => person.id === card.dataset.orgPerson)!;
         person.teamId = to.dataset.orgTeam!;
@@ -286,7 +338,34 @@ export class OrgChart {
     return port;
   }
 
+  private rememberMissingPositions(data: OrgChartData): void {
+    this.autoPositions.clear();
+    for (const team of data.teams) {
+      if (team.x == null || team.y == null)
+        this.autoPositions.set(team.id, { x: team.x == null, y: team.y == null });
+    }
+  }
+
+  private placeAutomaticTeams(): void {
+    const placed = this.data.teams.filter(team => !this.autoPositions.has(team.id));
+    for (const team of this.data.teams) {
+      const missing = this.autoPositions.get(team.id);
+      if (!missing) continue;
+      // Place beyond occupied bounds; measured dimensions include all team members.
+      // Keep any authored coordinate, including zero.
+      if (missing.x) team.x = missing.y ? 24 : Math.max(24, ...placed.map(other =>
+        other.x + this.panels.get(other.id)!.offsetWidth + 48));
+      if (missing.y) team.y = Math.max(24, ...placed.map(other =>
+        other.y + this.panels.get(other.id)!.offsetHeight + 48));
+      const panel = this.panels.get(team.id)!;
+      panel.style.left = `${team.x}px`;
+      panel.style.top = `${team.y}px`;
+      placed.push(team);
+    }
+  }
+
   private draw(): void {
+    this.placeAutomaticTeams();
     const vertical = this.options.orientation === "vertical";
     const width = Math.max(vertical ? 0 : 900, ...this.data.teams.map(team => team.x + this.panels.get(team.id)!.offsetWidth + 80));
     const height = Math.max(560, ...this.data.teams.map(team => team.y + this.panels.get(team.id)!.offsetHeight + 80));
@@ -448,7 +527,7 @@ export class OrgChart {
   }
 
   private startDrag = (event: PointerEvent): void => {
-    if (this.options.draggable === false || event.button !== 0 || this.drag) return;
+    if (!this.canDragTeams || event.button !== 0 || this.drag) return;
     const handle = (event.target as HTMLElement).closest<HTMLElement>("[data-team]");
     if (!handle) return;
     const team = this.data.teams.find(team => team.id === handle.dataset.team)!;
@@ -472,7 +551,7 @@ export class OrgChart {
   };
 
   private moveWithKeyboard = (event: KeyboardEvent): void => {
-    if (this.options.draggable === false) return;
+    if (!this.canDragTeams) return;
     const handle = (event.target as HTMLElement).closest<HTMLElement>("[data-team]");
     const directions: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     if (!handle || !directions[event.key]) return;
@@ -485,6 +564,7 @@ export class OrgChart {
   };
 
   private move(id: string, x: number, y: number): void {
+    this.autoPositions.delete(id);
     const team = this.data.teams.find(team => team.id === id)!;
     team.x = Math.max(24, Math.round(x));
     team.y = Math.max(24, Math.round(y));

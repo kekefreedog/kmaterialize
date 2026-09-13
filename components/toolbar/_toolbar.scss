@@ -322,3 +322,86 @@
     transition: opacity .14s ease;
   }
 }
+
+// Compact zoom group: circular actions and a percentage reset inside one pill.
+.toolbar.toolbar-zoom:not(.fixed-action-btn) {
+  background-color: var(--md-sys-color-surface);
+  width: fit-content;
+  max-width: 100%;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 2px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  flex-shrink: 0;
+  > crazy-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    flex: 0 0 auto;
+    line-height: 0;
+  }
+  > crazy-button > .btn {
+    --button-height: 32px;
+    height: 32px;
+    min-height: 32px;
+    margin: 0;
+    border-radius: 999px;
+  }
+  > crazy-button.toolbar-zoom-reset > .btn {
+    align-self: center;
+    margin-block: auto;
+    --button-height: 28px;
+    height: 28px;
+    min-height: 28px;
+    min-width: 46px;
+    margin-inline-end: 2px;
+    padding-inline: 8px;
+    font-size: 11px;
+    border: 0;
+    background: var(--md-sys-color-surface-variant);
+  }
+}
+
+// A nested zoom group uses the parent toolbar spacing.
+.toolbar:not(.fixed-action-btn) .toolbar.toolbar-zoom {
+  margin: 0;
+}
+
+// Draw the two simple zoom symbols without relying on font glyph rasterization.
+.toolbar.toolbar-zoom {
+  > crazy-button:is(.toolbar-zoom-out, .toolbar-zoom-in) > .btn > i {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin: 0;
+    font-size: 0;
+    line-height: 0;
+    &::before {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 8px;
+      width: 12px;
+      height: 2px;
+      background: currentColor;
+    }
+  }
+  > crazy-button.toolbar-zoom-in > .btn > i::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 3px;
+    width: 2px;
+    height: 12px;
+    background: currentColor;
+  }
+}

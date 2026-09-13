@@ -244,11 +244,14 @@ export class Dropdown extends Component<DropdownOptions> implements Openable {
   };
 
   _handleDocumentClick = (e: MouseEvent) => {
-    const target = <HTMLElement>e.target;
-    if (this.options.closeOnClick && target.closest('.dropdown-content') && !this.isTouchMoving) {
+    // The original event path survives menu rerenders during option selection.
+    const path = e.composedPath();
+    const insideMenu = path.includes(this.dropdownEl);
+    const insideTrigger = path.includes(this.el);
+    if (this.options.closeOnClick && insideMenu && !this.isTouchMoving) {
       // isTouchMoving to check if scrolling on mobile.
       this.close();
-    } else if (!target.closest('.dropdown-content') && !target.closest('.dropdown-trigger')) {
+    } else if (!insideMenu && !insideTrigger) {
       // Do this one frame later so that if the element clicked also triggers _handleClick
       // For example, if a label for a select was clicked, that we don't close/open the dropdown
       setTimeout(() => {

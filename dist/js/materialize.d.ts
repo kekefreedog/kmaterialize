@@ -3082,7 +3082,20 @@ declare function initListChecklist(root: HTMLElement): () => void;
 interface ChartPrintOptions {
     /** PDF-only theme. Does not change the application theme. Defaults to light. */
     theme?: 'light' | 'dark';
+    /** Paper format. Defaults to A3. */
+    format?: 'A0' | 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'A6' | 'letter' | 'legal' | 'tabloid';
+    /** Page orientation. Defaults to landscape. */
+    orientation?: 'portrait' | 'landscape';
 }
+declare function chartPrintLayout(width: number, height: number, options?: ChartPrintOptions): {
+    format: "A0" | "A1" | "A2" | "A3" | "A4" | "A5" | "A6" | "letter" | "legal" | "tabloid";
+    orientation: "portrait" | "landscape";
+    scale: number;
+    printableWidth: number;
+    printableHeight: number;
+    left: number;
+    top: number;
+};
 /** Print a full-size snapshot, without changing the live chart or its zoom. */
 declare function printChart(stage: HTMLElement, title: string, options?: ChartPrintOptions): Promise<void>;
 
@@ -3096,14 +3109,20 @@ interface OrgChartAppearance {
 interface OrgChartTeam extends OrgChartAppearance {
     id: string;
     name: string;
-    x: number;
-    y: number;
+    x?: number;
+    y?: number;
 }
 interface OrgChartPerson extends OrgChartAppearance {
     id: string;
     teamId: string;
     name: string;
     role?: string;
+    /** Custom avatar text; defaults to initials derived from name. */
+    avatarText?: string;
+    /** Image URL. A failed image falls back to avatarText or initials. */
+    avatarImage?: string;
+    /** How the image fills the avatar. Defaults to cover. */
+    avatarFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
 }
 interface OrgChartLink {
     from: string;
@@ -3119,7 +3138,12 @@ interface OrgChartData {
 }
 interface OrgChartOptions {
     data: OrgChartData;
+    /** Shared movement default. Individual movement options take precedence. */
     draggable?: boolean;
+    /** Allow team movement. Defaults to draggable, then true. */
+    draggableTeams?: boolean;
+    /** Allow person reordering and movement between teams. Defaults to draggable, then true. */
+    draggablePeople?: boolean;
     /** Enable mouse/touch connection ports on cards and groups. Defaults to true. */
     connectable?: boolean;
     /** Allow inline link-label editing. Defaults to false. */
@@ -3135,10 +3159,13 @@ interface OrgChartOptions {
 declare class OrgChart {
     private el;
     private options;
+    private get canDragTeams();
+    private get canDragPeople();
     private zoom;
     private labelEditor?;
     private static instances;
     private data;
+    private autoPositions;
     private stage;
     private svg;
     private summary;
@@ -3173,6 +3200,8 @@ declare class OrgChart {
     private render;
     private scheduleDraw;
     private connectionPort;
+    private rememberMissingPositions;
+    private placeAutomaticTeams;
     private draw;
     private positionLabelEditor;
     private editLabel;
@@ -3675,5 +3704,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
 export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };

@@ -270,6 +270,7 @@ export class Autocomplete extends Component<AutocompleteOptions> {
   }
 
   _removeDropdown() {
+    this.el.parentElement.querySelector('.autocomplete-selected')?.remove();
     this.container.ariaExpanded = 'false';
     this.container.parentNode.removeChild(this.container);
   }
@@ -485,6 +486,36 @@ export class Autocomplete extends Component<AutocompleteOptions> {
   }
 
   _updateSelectedInfo() {
+    if (this.options.isMultiSelect) {
+      let selected = this.el.parentElement.querySelector<HTMLElement>('.autocomplete-selected');
+      if (!selected) {
+        selected = document.createElement('div');
+        selected.className = 'autocomplete-selected';
+        selected.setAttribute('aria-label', 'Selected items');
+        this.el.parentElement.append(selected);
+      }
+      selected.replaceChildren();
+      for (const entry of this.selectedValues) {
+        const chip = document.createElement('span');
+        chip.className = 'autocomplete-selected-chip';
+        const text = document.createElement('span');
+        text.textContent = String(entry.text ?? entry.id);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', `Remove ${text.textContent}`);
+        remove.textContent = '×';
+        remove.addEventListener('click', () => {
+          this.selectedValues = this.selectedValues.filter(item => item.id !== entry.id);
+          this._updateSelectedInfo();
+          if (this.dropdown.isOpen) this._renderDropdown();
+          this._triggerChanged();
+          this.el.focus({ preventScroll: true });
+        });
+        chip.append(text, remove);
+        selected.append(chip);
+      }
+      selected.hidden = !this.selectedValues.length;
+    }
     const statusElement = this.el.parentElement.querySelector('.status-info');
     if (statusElement) {
       if (this.options.isMultiSelect)

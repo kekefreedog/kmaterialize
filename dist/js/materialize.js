@@ -1447,12 +1447,15 @@ var M = (function (exports) {
             }
         };
         _handleDocumentClick = (e) => {
-            const target = e.target;
-            if (this.options.closeOnClick && target.closest('.dropdown-content') && !this.isTouchMoving) {
+            // The original event path survives menu rerenders during option selection.
+            const path = e.composedPath();
+            const insideMenu = path.includes(this.dropdownEl);
+            const insideTrigger = path.includes(this.el);
+            if (this.options.closeOnClick && insideMenu && !this.isTouchMoving) {
                 // isTouchMoving to check if scrolling on mobile.
                 this.close();
             }
-            else if (!target.closest('.dropdown-content') && !target.closest('.dropdown-trigger')) {
+            else if (!insideMenu && !insideTrigger) {
                 // Do this one frame later so that if the element clicked also triggers _handleClick
                 // For example, if a label for a select was clicked, that we don't close/open the dropdown
                 setTimeout(() => {
@@ -1968,6 +1971,7 @@ var M = (function (exports) {
             this._updateSelectedInfo();
         }
         _removeDropdown() {
+            this.el.parentElement.querySelector('.autocomplete-selected')?.remove();
             this.container.ariaExpanded = 'false';
             this.container.parentNode.removeChild(this.container);
         }
@@ -2157,6 +2161,37 @@ var M = (function (exports) {
   </svg></div>`;
         }
         _updateSelectedInfo() {
+            if (this.options.isMultiSelect) {
+                let selected = this.el.parentElement.querySelector('.autocomplete-selected');
+                if (!selected) {
+                    selected = document.createElement('div');
+                    selected.className = 'autocomplete-selected';
+                    selected.setAttribute('aria-label', 'Selected items');
+                    this.el.parentElement.append(selected);
+                }
+                selected.replaceChildren();
+                for (const entry of this.selectedValues) {
+                    const chip = document.createElement('span');
+                    chip.className = 'autocomplete-selected-chip';
+                    const text = document.createElement('span');
+                    text.textContent = String(entry.text ?? entry.id);
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.setAttribute('aria-label', `Remove ${text.textContent}`);
+                    remove.textContent = '×';
+                    remove.addEventListener('click', () => {
+                        this.selectedValues = this.selectedValues.filter(item => item.id !== entry.id);
+                        this._updateSelectedInfo();
+                        if (this.dropdown.isOpen)
+                            this._renderDropdown();
+                        this._triggerChanged();
+                        this.el.focus({ preventScroll: true });
+                    });
+                    chip.append(text, remove);
+                    selected.append(chip);
+                }
+                selected.hidden = !this.selectedValues.length;
+            }
             const statusElement = this.el.parentElement.querySelector('.status-info');
             if (statusElement) {
                 if (this.options.isMultiSelect)
@@ -5855,6 +5890,75 @@ var M = (function (exports) {
         }
     }
 
+    /** Opt-in copy action for explicitly authored text-field buttons. */
+    let initialized = false;
+    function initInputCopyButtons() {
+        if (typeof document === 'undefined' || initialized)
+            return;
+        initialized = true;
+        const pending = new WeakSet();
+        const feedback = new WeakMap();
+        document.addEventListener('click', async (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            const button = target?.closest('button[data-copy-target]');
+            if (!button || button.disabled)
+                return;
+            event.preventDefault();
+            if (pending.has(button))
+                return;
+            let input;
+            try {
+                input = document.querySelector(button.dataset.copyTarget);
+            }
+            catch {
+                return;
+            }
+            if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement) || input.disabled)
+                return;
+            pending.add(button);
+            feedback.get(button)?.();
+            const icon = button.querySelector('i');
+            const originalIcon = icon?.textContent;
+            const originalLabel = button.getAttribute('aria-label');
+            let success = false;
+            try {
+                await navigator.clipboard.writeText(input.value);
+                success = true;
+            }
+            catch {
+                // Report failure without displaying or logging the field's contents.
+            }
+            finally {
+                pending.delete(button);
+            }
+            if (!button.isConnected)
+                return;
+            const message = success ? 'Copied' : 'Unable to copy';
+            button.setAttribute('aria-label', message);
+            if (icon)
+                icon.textContent = success ? 'check' : 'error_outline';
+            const status = document.createElement('span');
+            status.className = 'input-copy-status';
+            status.setAttribute('role', 'status');
+            button.after(status);
+            status.textContent = message;
+            const restore = () => {
+                clearTimeout(timer);
+                if (icon)
+                    icon.textContent = originalIcon;
+                if (originalLabel === null)
+                    button.removeAttribute('aria-label');
+                else
+                    button.setAttribute('aria-label', originalLabel);
+                status.remove();
+                feedback.delete(button);
+            };
+            const timer = setTimeout(restore, 2000);
+            feedback.set(button, restore);
+            button.dispatchEvent(new CustomEvent('inputcopy', { bubbles: true, detail: { success } }));
+        });
+    }
+
     /** Decorative native fieldset notches; the original input and label remain accessible. */
     function initOutlinedNotches() {
         if (typeof document === 'undefined')
@@ -6058,6 +6162,7 @@ var M = (function (exports) {
         }
         static Init() {
             initOutlinedNotches();
+            initInputCopyButtons();
             if (typeof document !== 'undefined')
                 document?.addEventListener('DOMContentLoaded', () => {
                     document.addEventListener('change', (e) => {
@@ -11017,11 +11122,35 @@ var M = (function (exports) {
         return () => { end(false); events.abort(); handles.forEach(handle => handle.remove()); };
     }
 
+    const paperSizes = {
+        A0: [841, 1189], A1: [594, 841], A2: [420, 594], A3: [297, 420],
+        A4: [210, 297], A5: [148, 210], A6: [105, 148],
+        letter: [215.9, 279.4], legal: [215.9, 355.6], tabloid: [279.4, 431.8]
+    };
+    function chartPrintLayout(width, height, options = {}) {
+        const format = options.format ?? 'A3';
+        const orientation = options.orientation ?? 'landscape';
+        if (!Object.prototype.hasOwnProperty.call(paperSizes, format))
+            throw new TypeError('Invalid PDF paper format.');
+        if (orientation !== 'portrait' && orientation !== 'landscape')
+            throw new TypeError('Invalid PDF orientation.');
+        const [short, long] = paperSizes[format];
+        const pageWidth = orientation === 'landscape' ? long : short;
+        const pageHeight = orientation === 'landscape' ? short : long;
+        const printableWidth = (pageWidth - 20) * 96 / 25.4;
+        const printableHeight = (pageHeight - 20) * 96 / 25.4;
+        const scale = Math.min(1, printableWidth / Math.max(1, width), printableHeight / Math.max(1, height));
+        return { format, orientation, scale, printableWidth, printableHeight,
+            left: (printableWidth - width * scale) / 2,
+            top: (printableHeight - height * scale) / 2 };
+    }
     /** Print a full-size snapshot, without changing the live chart or its zoom. */
     async function printChart(stage, title, options = {}) {
         const theme = options.theme ?? 'light';
         if (theme !== 'light' && theme !== 'dark')
             throw new TypeError('Invalid PDF theme.');
+        const width = stage.offsetWidth, height = stage.offsetHeight;
+        const { format, orientation } = chartPrintLayout(width, height, options);
         // Open synchronously from the button click so popup blockers allow the preview.
         const preview = window.open('', '_blank');
         if (!preview)
@@ -11061,14 +11190,11 @@ var M = (function (exports) {
             doc.head.append(clone);
             return ready;
         });
-        const width = stage.offsetWidth, height = stage.offsetHeight;
-        // A3 landscape, 10 mm margins. Shrink large charts to one page.
-        const scale = Math.min(1, (400 * 96 / 25.4) / width, (277 * 96 / 25.4) / height);
         const style = doc.createElement('style');
-        style.textContent = `@page { size: A3 landscape; margin: 10mm; } html, body { margin: 0; padding: 0; } body { background: ${theme === 'light' ? 'white' : 'var(--md-sys-color-surface)'}; color: var(--md-sys-color-on-surface); } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }`;
+        style.textContent = `@page { size: ${format} ${orientation}; margin: 10mm; } html, body { margin: 0; padding: 0; } body { background: ${theme === 'light' ? 'white' : 'var(--md-sys-color-surface)'}; color: var(--md-sys-color-on-surface); } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }`;
         doc.head.append(style);
         snapshot.style.setProperty('zoom', '1');
-        snapshot.style.transform = `scale(${scale})`;
+        snapshot.style.transform = 'none';
         snapshot.style.transformOrigin = 'top left';
         snapshot.style.position = 'absolute';
         snapshot.style.left = '0';
@@ -11078,12 +11204,33 @@ var M = (function (exports) {
             handle.style.opacity = '0';
         });
         const page = doc.createElement('div');
-        page.style.cssText = `position:relative;width:${width * scale}px;height:${height * scale}px;overflow:hidden`;
+        page.style.cssText = `position:relative;width:${width}px;height:${height}px;overflow:hidden`;
         page.append(snapshot);
         doc.body.replaceChildren(page);
         await Promise.all(resources);
         await doc.fonts.ready;
         if (!preview.closed) {
+            // Center the actual cards and connectors, excluding unused canvas space.
+            const boxes = Array.from(snapshot.querySelectorAll('.org-chart-team')).map(panel => ({
+                x: panel.offsetLeft, y: panel.offsetTop, width: panel.offsetWidth, height: panel.offsetHeight
+            }));
+            const links = snapshot.querySelector('.org-chart-links');
+            if (links?.childElementCount) {
+                const box = links.getBBox();
+                if (box.width > 0 || box.height > 0)
+                    boxes.push(box);
+            }
+            const left = boxes.length ? Math.min(...boxes.map(box => box.x)) - 8 : 0;
+            const top = boxes.length ? Math.min(...boxes.map(box => box.y)) - 8 : 0;
+            const contentWidth = boxes.length ? Math.max(...boxes.map(box => box.x + box.width)) - left + 8 : width;
+            const contentHeight = boxes.length ? Math.max(...boxes.map(box => box.y + box.height)) - top + 8 : height;
+            const layout = chartPrintLayout(contentWidth, contentHeight, options);
+            // Round down very slightly to avoid a blank second page from print rounding.
+            page.style.width = `${Math.floor(layout.printableWidth * 100) / 100}px`;
+            page.style.height = `${Math.floor(layout.printableHeight * 100) / 100}px`;
+            snapshot.style.transform = `scale(${layout.scale})`;
+            snapshot.style.left = `${layout.left - left * layout.scale}px`;
+            snapshot.style.top = `${layout.top - top * layout.scale}px`;
             preview.focus();
             preview.print();
         }
@@ -11231,7 +11378,11 @@ var M = (function (exports) {
     }
 
     const svgNS = "http://www.w3.org/2000/svg";
-    const copy = (data) => JSON.parse(JSON.stringify(data));
+    const copy = (data) => {
+        const result = JSON.parse(JSON.stringify(data));
+        result.teams.forEach((team) => { team.x ??= 24; team.y ??= 24; });
+        return result;
+    };
     const element = (tag, className, text) => {
         const el = document.createElement(tag);
         el.className = className;
@@ -11243,10 +11394,13 @@ var M = (function (exports) {
     class OrgChart {
         el;
         options;
+        get canDragTeams() { return this.options.draggableTeams ?? this.options.draggable ?? true; }
+        get canDragPeople() { return this.options.draggablePeople ?? this.options.draggable ?? true; }
         zoom = 1;
         labelEditor;
         static instances = new WeakMap();
         data;
+        autoPositions = new Map();
         stage = element("div", "org-chart-stage");
         svg = document.createElementNS(svgNS, "svg");
         summary = element("div", "org-chart-summary");
@@ -11271,6 +11425,7 @@ var M = (function (exports) {
             this.validate(options.data);
             this.zoom = this.clampZoom(options.zoom ?? 1);
             OrgChart.getInstance(el)?.destroy();
+            this.rememberMissingPositions(options.data);
             this.data = copy(options.data);
             this.originalNodes = Array.from(el.childNodes);
             this.hadClass = el.classList.contains("org-chart");
@@ -11338,6 +11493,7 @@ var M = (function (exports) {
         setData(data) {
             this.validate(data);
             this.endDrag();
+            this.rememberMissingPositions(data);
             this.data = copy(data);
             this.render();
             this.options.onChange?.(this.getData());
@@ -11359,9 +11515,23 @@ var M = (function (exports) {
         validate(data) {
             const teams = new Set();
             const people = new Set();
-            for (const team of data.teams) {
-                if (!team.id || teams.has(team.id) || !team.name.trim() || !Number.isFinite(team.x) || !Number.isFinite(team.y) || team.x < 0 || team.y < 0)
-                    throw new Error("Teams need unique IDs, a name, and finite, non-negative coordinates.");
+            const groups = new Map();
+            data.teams.forEach((team, index) => {
+                const group = groups.get(team.id) || [];
+                group.push({ name: team.name, index });
+                groups.set(team.id, group);
+            });
+            const duplicates = [...groups].filter(([, group]) => group.length > 1);
+            if (duplicates.length) {
+                throw new Error('Duplicate team IDs: ' + duplicates.map(([id, group]) => `${JSON.stringify(id)}: ${group.map(team => `${JSON.stringify(team.name)} (teams[${team.index}])`).join(', ')}`).join('; ') + '. Each team must have a unique ID.');
+            }
+            for (const [index, team] of data.teams.entries()) {
+                if (!team.id || typeof team.name !== 'string' || !team.name.trim())
+                    throw new Error(`Invalid team at teams[${index}] (id=${JSON.stringify(team.id)}): a non-empty ID and name are required.`);
+                for (const axis of ['x', 'y']) {
+                    if (team[axis] != null && (!Number.isFinite(team[axis]) || team[axis] < 0))
+                        throw new Error(`Invalid ${axis} for team ${JSON.stringify(team.name)} (id=${JSON.stringify(team.id)}, teams[${index}]): ${String(team[axis])}. Supply a finite, non-negative coordinate or omit it for automatic placement.`);
+                }
                 teams.add(team.id);
             }
             for (const person of data.people) {
@@ -11407,10 +11577,10 @@ var M = (function (exports) {
                 const header = element("button", "org-chart-team-handle");
                 header.type = "button";
                 header.dataset.team = team.id;
-                header.disabled = this.options.draggable === false;
+                header.disabled = !this.canDragTeams;
                 header.setAttribute("aria-label", `${team.name}, ${members.length} people. Drag or use arrow keys to move; Shift moves faster.`);
                 header.append(element("span", "org-chart-team-name", team.name), element("span", "org-chart-count", String(members.length)));
-                if (this.options.draggable !== false) {
+                if (this.canDragTeams) {
                     const icon = element("i", "material-icons org-chart-drag-icon", "drag_indicator");
                     icon.setAttribute("aria-hidden", "true");
                     header.prepend(icon);
@@ -11423,8 +11593,18 @@ var M = (function (exports) {
                     this.applyAppearance(card, person);
                     card.dataset.orgPerson = person.id;
                     const initials = person.name.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join("");
-                    const avatar = element("span", "org-chart-avatar", initials);
+                    const avatarText = person.avatarText ?? initials;
+                    const avatar = element("span", "org-chart-avatar", avatarText);
                     avatar.setAttribute("aria-hidden", "true");
+                    if (person.avatarImage) {
+                        const image = document.createElement('img');
+                        image.alt = '';
+                        image.draggable = false;
+                        image.style.objectFit = person.avatarFit ?? 'cover';
+                        image.addEventListener('error', () => avatar.replaceChildren(document.createTextNode(avatarText)), { once: true });
+                        image.src = person.avatarImage;
+                        avatar.replaceChildren(image);
+                    }
                     const details = element("div", "org-chart-person-details");
                     details.append(element("strong", "org-chart-person-name", person.name));
                     if (person.role)
@@ -11452,9 +11632,9 @@ var M = (function (exports) {
                 list.append(element("li", "", `${from.name} → ${to.name}: ${link.label || "Connected to"}`));
             }
             this.summary.append(element("h2", "", "Relationships"), list);
-            this.removeCardHandles = enableCardHandles(this.el, {
+            this.removeCardHandles = !this.canDragPeople ? undefined : enableCardHandles(this.el, {
                 cardSelector: '.org-chart-person', dropSelector: '.org-chart-team',
-                enabled: () => this.options.draggable !== false,
+                enabled: () => this.canDragPeople,
                 onMove: (card, _from, to) => {
                     const person = this.data.people.find(person => person.id === card.dataset.orgPerson);
                     person.teamId = to.dataset.orgTeam;
@@ -11481,7 +11661,33 @@ var M = (function (exports) {
             port.setAttribute('aria-label', port.title);
             return port;
         }
+        rememberMissingPositions(data) {
+            this.autoPositions.clear();
+            for (const team of data.teams) {
+                if (team.x == null || team.y == null)
+                    this.autoPositions.set(team.id, { x: team.x == null, y: team.y == null });
+            }
+        }
+        placeAutomaticTeams() {
+            const placed = this.data.teams.filter(team => !this.autoPositions.has(team.id));
+            for (const team of this.data.teams) {
+                const missing = this.autoPositions.get(team.id);
+                if (!missing)
+                    continue;
+                // Place beyond occupied bounds; measured dimensions include all team members.
+                // Keep any authored coordinate, including zero.
+                if (missing.x)
+                    team.x = missing.y ? 24 : Math.max(24, ...placed.map(other => other.x + this.panels.get(other.id).offsetWidth + 48));
+                if (missing.y)
+                    team.y = Math.max(24, ...placed.map(other => other.y + this.panels.get(other.id).offsetHeight + 48));
+                const panel = this.panels.get(team.id);
+                panel.style.left = `${team.x}px`;
+                panel.style.top = `${team.y}px`;
+                placed.push(team);
+            }
+        }
         draw() {
+            this.placeAutomaticTeams();
             const vertical = this.options.orientation === "vertical";
             const width = Math.max(vertical ? 0 : 900, ...this.data.teams.map(team => team.x + this.panels.get(team.id).offsetWidth + 80));
             const height = Math.max(560, ...this.data.teams.map(team => team.y + this.panels.get(team.id).offsetHeight + 80));
@@ -11655,7 +11861,7 @@ var M = (function (exports) {
             }
         }
         startDrag = (event) => {
-            if (this.options.draggable === false || event.button !== 0 || this.drag)
+            if (!this.canDragTeams || event.button !== 0 || this.drag)
                 return;
             const handle = event.target.closest("[data-team]");
             if (!handle)
@@ -11681,7 +11887,7 @@ var M = (function (exports) {
             this.options.onChange?.(this.getData());
         };
         moveWithKeyboard = (event) => {
-            if (this.options.draggable === false)
+            if (!this.canDragTeams)
                 return;
             const handle = event.target.closest("[data-team]");
             const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -11695,6 +11901,7 @@ var M = (function (exports) {
             this.options.onChange?.(this.getData());
         };
         move(id, x, y) {
+            this.autoPositions.delete(id);
             const team = this.data.teams.find(team => team.id === id);
             team.x = Math.max(24, Math.round(x));
             team.y = Math.max(24, Math.round(y));
@@ -12878,6 +13085,7 @@ var M = (function (exports) {
     exports.Toolbar = Toolbar;
     exports.Tooltip = Tooltip;
     exports.Waves = Waves;
+    exports.chartPrintLayout = chartPrintLayout;
     exports.enableCardHandles = enableCardHandles;
     exports.enableChartConnections = enableChartConnections;
     exports.enableChartGestures = enableChartGestures;
