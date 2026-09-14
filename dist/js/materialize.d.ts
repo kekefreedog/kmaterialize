@@ -9,6 +9,9 @@ import * as FilePondNS from 'filepond';
 import TomSelectCtor from 'tom-select';
 import { TomSettings } from 'tom-select/dist/esm/types/settings.js';
 import { RecursivePartial } from 'tom-select/dist/esm/types/core.js';
+import * as Jspreadsheet from 'kspreadsheet';
+import Jspreadsheet__default from 'kspreadsheet';
+import { HelperDelegate } from 'handlebars';
 
 /**
  * Base options for component initialization.
@@ -3657,6 +3660,184 @@ declare class LoadingScreenBtn extends CrazyLoading {
 /** Initialize navbar overflow fades. Returns cleanup; safe to reinitialize. */
 declare function initNavbarScroll(navbar: HTMLElement): () => void;
 
+interface EditorSpreadsheetColumn {
+    header: string;
+    value: string;
+    /** Output cell type. Text is the default; numeric and checkbox preserve typed values. */
+    type?: 'text' | 'numeric' | 'checkbox';
+    width?: number;
+}
+interface EditorSpreadsheetResult {
+    headers: string[];
+    rows: Jspreadsheet__default.CellValue[][];
+}
+
+type EditorData = Record<string, unknown> | Record<string, unknown>[];
+interface EditorDataSource {
+    id: string;
+    label: string;
+    data?: EditorData;
+}
+interface EditorTemplate {
+    id: string;
+    label: string;
+    template?: string;
+    columns?: EditorSpreadsheetColumn[];
+}
+type EditorSelectSettings = Omit<NonNullable<TomSelectFieldOptions['settings']>, 'options' | 'items' | 'load' | 'valueField' | 'labelField' | 'maxItems' | 'create' | 'dropdownParent'>;
+/** Pass a Handlebars environment to supply your own helpers and partials. */
+type EditorHelpers = Record<string, HelperDelegate>;
+interface EditorEngine {
+    compile(template: string, options?: {
+        noEscape?: boolean;
+    }): (data: EditorData, options?: {
+        helpers?: EditorHelpers;
+    }) => string;
+}
+interface EditorOptions {
+    variant?: 'handlebars' | 'spreadsheet';
+    columns?: EditorSpreadsheetColumn[];
+    onColumnsChange?: (columns: EditorSpreadsheetColumn[]) => void;
+    onSpreadsheetRender?: (result: EditorSpreadsheetResult) => void;
+    template?: string;
+    data?: EditorData;
+    sources?: EditorDataSource[];
+    sourceId?: string;
+    templates?: EditorTemplate[];
+    templateId?: string;
+    /** Tom Select settings; false hides the corresponding selector. IDs and labels use id/label fields. */
+    templateSelect?: EditorSelectSettings | false;
+    sourceSelect?: EditorSelectSettings | false;
+    loadTemplates?: (query: string, signal: AbortSignal) => Promise<EditorTemplate[]>;
+    loadSources?: (query: string, signal: AbortSignal) => Promise<EditorDataSource[]>;
+    /** Called only when the selected entry has no cached content. */
+    loadTemplate?: (id: string, signal: AbortSignal) => Promise<string | EditorSpreadsheetColumn[]>;
+    loadData?: (id: string, signal: AbortSignal) => Promise<EditorData>;
+    onTemplateChange?: (id: string) => void;
+    onSourceChange?: (id: string) => void;
+    debounce?: number;
+    readOnly?: boolean;
+    /** Prism HTML, CSS and Handlebars syntax highlighting. Defaults to true. */
+    highlight?: boolean;
+    engine?: EditorEngine;
+    /** Per-editor Handlebars helpers; never registered globally. */
+    helpers?: EditorHelpers;
+    onChange?: (template: string) => void;
+    onRender?: (html: string) => void;
+    onError?: (error: Error) => void;
+}
+/** Handlebars template workspace with a data browser and isolated HTML preview. */
+declare class Editor {
+    readonly el: HTMLElement;
+    readonly options: EditorOptions;
+    private static instances;
+    readonly ready: Promise<void>;
+    private engine?;
+    private spreadsheetView?;
+    private downloadQueue;
+    private source;
+    private lines;
+    private highlight;
+    private highlightCode;
+    private prism?;
+    private dropCaret;
+    private dragPoint?;
+    private helpers;
+    private undoStack;
+    private redoStack;
+    private currentSnapshot;
+    private pendingInput?;
+    private composition?;
+    private lastTyping?;
+    private tree;
+    private search;
+    private selector;
+    private templateSelector;
+    private sourceField?;
+    private templateField?;
+    private templates;
+    private activeTemplate;
+    private drafts;
+    private templateRequest?;
+    private dataRequest?;
+    private listRequests;
+    private status;
+    private error;
+    private frame;
+    private wrapper;
+    private controller;
+    private originalNodes;
+    private hadClass;
+    private sources;
+    private activeSource;
+    private html;
+    private timer?;
+    private destroyed;
+    private resizeObserver?;
+    private version;
+    private tokens;
+    private compiled?;
+    constructor(el: HTMLElement, options?: EditorOptions);
+    static init(el: HTMLElement, options?: EditorOptions): Editor;
+    static getInstance(el: HTMLElement): Editor | undefined;
+    private validateData;
+    private initialize;
+    private build;
+    private expression;
+    private renderTokens;
+    /** Resolve a drop point in the unwrapped, monospace textarea, including scroll offset. */
+    private positionAt;
+    private showDropCaret;
+    private syncHighlight;
+    private updateHighlight;
+    private updateLines;
+    private snapshot;
+    private recordEdit;
+    private restoreSnapshot;
+    /** Undo the latest source edit. Returns false when there is nothing to undo or editing is disabled. */
+    undo(): boolean;
+    /** Restore the latest undone source edit. A new source edit clears redo history. */
+    redo(): boolean;
+    private changed;
+    private showError;
+    private renderNow;
+    /** Spreadsheet column definitions; use setColumns to update them. */
+    getColumns(): EditorSpreadsheetColumn[];
+    setColumns(columns: EditorSpreadsheetColumn[]): void;
+    getSpreadsheetData(): EditorSpreadsheetResult;
+    getWorksheet(): Jspreadsheet.WorksheetInstance;
+    /** Refresh and download the generated worksheet, including column headers. */
+    download(format?: 'csv' | 'xlsx', filename?: string): Promise<void>;
+    private commitSpreadsheet;
+    private dropSpreadsheetToken;
+    private editingSource;
+    getTemplateId(): string;
+    getTemplate(): string;
+    getHtml(): string;
+    getSource(): string;
+    setTemplate(template: string): void;
+    /** Replace this editor's helpers and refresh the preview. */
+    setHelpers(helpers: EditorHelpers): void;
+    setData(data: EditorData): void;
+    /** Select a data source, loading its content once when omitted from the entry. */
+    setSource(id: string): Promise<void>;
+    /** Switch templates at the start of the document, retaining each template's local edits and undo history. */
+    selectTemplate(id: string): Promise<void>;
+    private addSelectOptions;
+    private initializeSelectors;
+    private setLoading;
+    private showLoadError;
+    /** Find the expression around the selection, ignoring braces inside quoted arguments. */
+    private expressionContext;
+    /** Replace an argument under the pointer, or add a space-delimited argument. */
+    private argumentInsertion;
+    insertToken(path: string | string[]): void;
+    /** Insert a configured helper and leave the caret in its argument slot. */
+    insertHelper(name: string): void;
+    render(): Promise<string>;
+    destroy(): void;
+}
+
 declare const version = "2.3.3";
 /**
  * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
@@ -3704,5 +3885,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };

@@ -250,3 +250,8 @@ export type { RichTextareaOptions } from '../components/rich-textarea/rich-texta
 export type { MaskitoInputOptions } from '../components/maskito-input/maskito-input';
 
 export type { OtpInputOptions } from '../components/otp-input/otp-input';
+
+export { Editor } from '../components/editor/editor';
+export type { EditorData, EditorDataSource, EditorTemplate, EditorSelectSettings, EditorEngine, EditorHelpers, EditorOptions } from '../components/editor/editor';
+
+export type { EditorSpreadsheetColumn, EditorSpreadsheetResult } from '../components/editor/spreadsheet-view';

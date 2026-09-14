@@ -62,19 +62,22 @@
     "normalize.css": "^8.0.1"
   },
   "peerDependencies": {
+    "@maskito/core": "^5.4.0",
+    "@maskito/kit": "^5.4.0",
     "@simonwep/pickr": "^1.9.0",
     "air-datepicker": "^3.5.0",
     "filepond": "^4.30.0",
     "filepond-plugin-file-validate-type": "^1.2.0",
     "filepond-plugin-image-exif-orientation": "^1.0.0",
     "filepond-plugin-image-preview": "^4.6.0",
+    "handlebars": "^4.7.8",
     "imask": "^7.6.0",
+    "kspreadsheet": "^2.7.0",
+    "prismjs": "^1.30.0",
     "quill": "^2.0.3",
     "sweetalert2": "^11.26.25",
     "tippy.js": "^6.3.7",
-    "tom-select": "^2.3.0",
-    "@maskito/core": "^5.4.0",
-    "@maskito/kit": "^5.4.0"
+    "tom-select": "^2.3.0"
   },
   "peerDependenciesMeta": {
     "@simonwep/pickr": {
@@ -115,6 +118,15 @@
     },
     "@maskito/kit": {
       "optional": true
+    },
+    "handlebars": {
+      "optional": true
+    },
+    "prismjs": {
+      "optional": true
+    },
+    "kspreadsheet": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -129,6 +141,7 @@
     "@storybook/html": "^9.0.12",
     "@storybook/html-vite": "^9.0.12",
     "@types/node": "^20.5.2",
+    "@types/prismjs": "^1.26.6",
     "air-datepicker": "^3.5.0",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.21",
@@ -138,11 +151,14 @@
     "filepond-plugin-file-validate-type": "^1.2.0",
     "filepond-plugin-image-exif-orientation": "^1.0.0",
     "filepond-plugin-image-preview": "^4.6.0",
+    "handlebars": "^4.7.9",
     "imask": "^7.6.0",
     "jasmine": "^5.1.0",
     "jasmine-browser-runner": "^2.5.0",
     "jasmine-core": "^5.2.0",
+    "kspreadsheet": "^2.7.0",
     "postcss": "^8.4.49",
+    "prismjs": "^1.30.0",
     "quill": "2.0.3",
     "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.5.0",

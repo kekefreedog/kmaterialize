@@ -30,6 +30,11 @@ const outputPath = 'dist/js/materialize';
 // these; listing them as `external` just keeps that explicit and silences
 // warnings, and keeps the bundled .d.ts from trying to inline their types.
 const peerDeps = [
+  'kspreadsheet',
+  'handlebars',
+  'prismjs',
+  'prismjs/components/prism-markup-templating.js',
+  'prismjs/components/prism-handlebars.js',
   '@maskito/core',
   '@maskito/kit',
   'quill',
