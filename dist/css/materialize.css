@@ -14404,7 +14404,7 @@ button.btn-floating {
   overflow-wrap: anywhere;
 }
 .gantt .gantt-label.gantt-selectable-label {
-  padding-left: calc(24px + var(--checkbox-size));
+  padding-left: calc(30px + var(--checkbox-size));
 }
 .gantt input.gantt-select {
   position: absolute;

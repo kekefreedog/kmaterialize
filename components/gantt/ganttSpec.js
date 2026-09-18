@@ -484,6 +484,27 @@ describe('Gantt multi-task selection', function () {
     expect(host.querySelectorAll('.gantt-row.is-selected').length).toBe(0);
   });
 
+  it('selects inclusive checkbox ranges in either direction and retains the anchor', function () {
+    const checkbox = id => host.querySelector(`[data-gantt-select="${id}"]`);
+    const shiftClick = id => checkbox(id).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, shiftKey: true }));
+    const selection = jasmine.createSpy('selection');
+    chart.options.onSelectionChange = selection;
+    checkbox('m').click();
+    shiftClick('a');
+    expect(chart.getSelectedTaskIds()).toEqual(['a', 'b', 'c', 'm']);
+    expect(host.querySelectorAll('.gantt-select:checked').length).toBe(4);
+    shiftClick('a');
+    expect(checkbox('a').checked).toBeTrue();
+    expect(selection).toHaveBeenCalledTimes(2);
+    shiftClick('c');
+    expect(chart.getSelectedTaskIds()).toEqual(['c', 'm']);
+    chart.setSelectedTaskIds([]);
+    checkbox('a').click();
+    shiftClick('m');
+    expect(chart.getSelectedTaskIds()).toEqual(['a', 'b', 'c', 'm']);
+    expect(chart.getTasks()).toEqual(original);
+  });
+
   it('cancels all previewed dates together and retains selection through zoom and views', function () {
     chart.setSelectedTaskIds(['a', 'b']);
     pointer('pointerdown', 400, button('b')); pointer('pointermove', 496); key('Escape');

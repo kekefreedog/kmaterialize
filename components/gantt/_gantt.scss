@@ -67,7 +67,7 @@
   }
   .gantt-task-name { font-weight: 600; overflow-wrap: anywhere; line-height: 1.4; }
   .gantt-task-detail { color: var(--md-sys-color-on-surface-variant); font-size: 12px; overflow-wrap: anywhere; }
-  .gantt-label.gantt-selectable-label { padding-left: calc(24px + var(--checkbox-size)); }
+  .gantt-label.gantt-selectable-label { padding-left: calc(30px + var(--checkbox-size)); }
   input.gantt-select { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
   .gantt-row.is-selected .gantt-label { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
   .gantt-row.is-selected .gantt-bar { box-shadow: 0 0 0 2px var(--md-sys-color-primary); }

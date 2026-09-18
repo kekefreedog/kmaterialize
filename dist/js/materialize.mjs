@@ -3321,8 +3321,16 @@ class Gantt extends Component {
         const selector = event.target instanceof Element ? event.target.closest('[data-gantt-select]') : null;
         if (selector) {
             const id = selector.dataset.ganttSelect;
-            this.setSelectedTaskIds(this._selected.has(id) ? this.getSelectedTaskIds().filter(item => item !== id) : [...this.getSelectedTaskIds(), id]);
-            this._selectionAnchor = id;
+            if (event.shiftKey && this._selectionAnchor) {
+                this._selectForInteraction(id, event);
+            }
+            else {
+                this.setSelectedTaskIds(this._selected.has(id) ? this.getSelectedTaskIds().filter(item => item !== id) : [...this.getSelectedTaskIds(), id]);
+                this._selectionAnchor = id;
+            }
+            // A repeated range may not re-render; undo the native toggle in that case.
+            if (selector instanceof HTMLInputElement)
+                selector.checked = this._selected.has(id);
             return;
         }
         const target = event.target instanceof Element ? event.target.closest('[data-gantt-task]') : null;
