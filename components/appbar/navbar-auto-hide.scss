@@ -1,0 +1,30 @@
+// Sticky positioning preserves the navbar's space without a fixed-height spacer.
+.navbar.navbar-hide-on-scroll {
+  position: sticky;
+  top: var(--navbar-hide-offset, 0px);
+  z-index: 997;
+  translate: 0 0;
+  transition: translate 180ms ease;
+
+  &.is-navbar-hidden {
+    translate: 0 calc(-100% - var(--navbar-hide-offset, 0px) - 2px);
+    pointer-events: none;
+  }
+
+  // Keep offscreen links reachable by Tab, and reveal them immediately on focus.
+  &:focus-within { translate: 0 0; pointer-events: auto; transition: none; }
+}
+
+// Preserve sticky positioning when horizontal overflow styles are also enabled.
+.navbar.navbar-hide-on-scroll.navbar-scroll { position: sticky; }
+
+// Retain the existing fixed-navbar wrapper behavior.
+.navbar-fixed > .navbar.navbar-hide-on-scroll { position: fixed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar.navbar-hide-on-scroll { transition: none; }
+}
+
+@media print {
+  .navbar.navbar-hide-on-scroll, .navbar-fixed > .navbar.navbar-hide-on-scroll { position: static; translate: none; }
+}

@@ -14,7 +14,7 @@
 }
 
 /* Inset surfaces retain their height at desktop and mobile sizes. */
-.navbar.appbar-bordered.navbar-rounded:not(.nav-extended):not(.navbar-wrap) {
+.navbar:is(.appbar, .appbar-bordered).navbar-rounded:not(.nav-extended):not(.navbar-wrap) {
   box-sizing: border-box;
   height: 64px;
   margin: 8px 0;
@@ -23,7 +23,7 @@
   overflow: hidden;
 }
 
-.navbar.appbar-bordered.navbar-rounded:not(.nav-extended):not(.navbar-wrap) > .nav-wrapper {
+.navbar:is(.appbar, .appbar-bordered).navbar-rounded:not(.nav-extended):not(.navbar-wrap) > .nav-wrapper {
   box-sizing: border-box;
   flex: 0 0 56px;
   height: 56px;
@@ -31,7 +31,7 @@
   transform: none;
 }
 
-.navbar.appbar-bordered.navbar-full {
+.navbar:is(.appbar, .appbar-bordered).navbar-full {
   width: 100%;
   margin: 0;
   padding: 0;
@@ -42,7 +42,7 @@
 
 /* Dropdown triggers: keep the label and arrow in one predictable hit
    target instead of inheriting the legacy floated-icon offsets. */
-.navbar.appbar-bordered .dropdown-trigger {
+.navbar:is(.appbar, .appbar-bordered) .dropdown-trigger {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -55,7 +55,7 @@
   line-height: 1;
 }
 
-.navbar.appbar-bordered .dropdown-trigger > .material-icons {
+.navbar:is(.appbar, .appbar-bordered) .dropdown-trigger > .material-icons {
   display: inline-block !important;
   position: static !important;
   float: none !important;
@@ -66,7 +66,7 @@
   transition: transform 160ms ease;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> .dropdown-trigger) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> .dropdown-trigger) {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -75,18 +75,18 @@
   padding: 0;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> .dropdown-trigger) > .dropdown-trigger {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> .dropdown-trigger) > .dropdown-trigger {
   flex: 0 0 auto;
   align-self: center;
   margin: 0;
 }
 
-.navbar.appbar-bordered .dropdown-trigger[aria-expanded="true"] > .material-icons.right {
+.navbar:is(.appbar, .appbar-bordered) .dropdown-trigger[aria-expanded="true"] > .material-icons.right {
   transform: rotate(180deg);
 }
 
 /* Icon links: center standalone icons inside their 40px hit targets. */
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,7 +97,7 @@
   padding: 0;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons:only-child) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons:only-child) {
   display: inline-grid !important;
   place-items: center;
   box-sizing: border-box;
@@ -108,7 +108,7 @@
   line-height: 1;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons:only-child {
   display: block !important;
   position: static !important;
   float: none !important;
@@ -119,8 +119,8 @@
   text-align: center;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.left),
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.right) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.left),
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger):has(> .material-icons.right) {
   display: inline-flex !important;
   align-items: center;
   gap: 8px;
@@ -134,8 +134,8 @@
   white-space: nowrap;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left,
-.navbar.appbar-bordered .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left,
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right {
   display: block !important;
   position: static !important;
   float: none !important;
@@ -147,8 +147,8 @@
   text-align: center;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left),
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.left),
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> a:not(.btn):not(.btn-large):not(.btn-floating):not(.dropdown-trigger) > .material-icons.right) {
   flex: 0 0 auto;
   width: max-content;
   height: 40px;
@@ -156,7 +156,7 @@
 
 /* Button rows: normalize the item row and prevent text-plus-icon buttons
    from being mistaken for standalone icon buttons. */
-.navbar.appbar-bordered .nav-wrapper > ul > li:has(> :is(.btn, .btn-large)) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li:has(> :is(.btn, .btn-large)) {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
@@ -165,8 +165,8 @@
   padding: 0;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn,
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn,
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn-large {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -181,20 +181,20 @@
   white-space: nowrap;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn-large {
   min-width: 144px;
   height: 48px;
   min-height: 48px;
   padding-inline: 24px !important;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn:has(> .material-icons),
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large:has(> .material-icons) {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn:has(> .material-icons),
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn-large:has(> .material-icons) {
   gap: 8px;
 }
 
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn > .material-icons,
-.navbar.appbar-bordered .nav-wrapper > ul > li > a.btn-large > .material-icons {
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn > .material-icons,
+.navbar:is(.appbar, .appbar-bordered) .nav-wrapper > ul > li > a.btn-large > .material-icons {
   display: block !important;
   position: static !important;
   float: none !important;
@@ -207,32 +207,32 @@
 
 /* Extended navbar tabs: use the navbar's readable foreground instead of the
    low-contrast primary token inherited by transparent tabs. */
-.navbar.appbar-bordered .nav-content,
-.navbar.appbar-bordered .nav-content .tabs {
+.navbar:is(.appbar, .appbar-bordered) .nav-content,
+.navbar:is(.appbar, .appbar-bordered) .nav-content .tabs {
   background: var(--md-sys-color-surface-variant);
 }
 
-.navbar.appbar-bordered .nav-content .tabs > .tab > a {
+.navbar:is(.appbar, .appbar-bordered) .nav-content .tabs > .tab > a {
   color: var(--md-sys-color-on-surface) !important;
   opacity: 0.92;
 }
 
-.navbar.appbar-bordered .nav-content .tabs > .tab > a.active {
+.navbar:is(.appbar, .appbar-bordered) .nav-content .tabs > .tab > a.active {
   color: var(--md-sys-color-on-surface) !important;
   opacity: 1;
   font-weight: 600;
 }
 
-.navbar.appbar-bordered .nav-content .tabs > .tab.disabled > a {
+.navbar:is(.appbar, .appbar-bordered) .nav-content .tabs > .tab.disabled > a {
   color: var(--md-sys-color-on-surface) !important;
   opacity: 0.5;
 }
 
-.navbar.appbar-bordered .nav-content .tabs > .indicator {
+.navbar:is(.appbar, .appbar-bordered) .nav-content .tabs > .indicator {
   background-color: var(--md-sys-color-on-surface) !important;
 }
 
-.navbar.appbar-bordered .sidenav-trigger {
+.navbar:is(.appbar, .appbar-bordered) .sidenav-trigger {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -246,7 +246,7 @@
   color: var(--md-sys-color-on-surface) !important;
 }
 
-.navbar.appbar-bordered .sidenav-trigger > .material-icons {
+.navbar:is(.appbar, .appbar-bordered) .sidenav-trigger > .material-icons {
   display: block !important;
   position: static !important;
   float: none !important;
@@ -257,7 +257,7 @@
   text-align: center;
 }
 
-.navbar.appbar-bordered.navbar-wrap > .nav-wrapper {
+.navbar:is(.appbar, .appbar-bordered).navbar-wrap > .nav-wrapper {
   flex-wrap: wrap;
   height: auto;
   min-height: 56px;
@@ -266,12 +266,12 @@
   row-gap: 8px;
 }
 
-.navbar.appbar-bordered.navbar-wrap {
+.navbar:is(.appbar, .appbar-bordered).navbar-wrap {
   height: auto;
   min-height: 56px;
 }
 
-.navbar.appbar-bordered.navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) {
+.navbar:is(.appbar, .appbar-bordered).navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) {
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
@@ -283,15 +283,15 @@
   white-space: normal;
 }
 
-.navbar.appbar-bordered.navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) > li {
+.navbar:is(.appbar, .appbar-bordered).navbar-wrap > .nav-wrapper > ul:not(.dropdown-content) > li {
   height: auto !important;
 }
 
-.navbar.appbar-bordered ul:not(.dropdown-content) > li > a {
+.navbar:is(.appbar, .appbar-bordered) ul:not(.dropdown-content) > li > a {
   white-space: nowrap;
 }
 
-.navbar.appbar-bordered:not(.navbar-wrap) .nav-wrapper > ul.ml-auto:not(.nav-actions):not(.dropdown-content) {
+.navbar:is(.appbar, .appbar-bordered):not(.navbar-wrap) .nav-wrapper > ul.ml-auto:not(.nav-actions):not(.dropdown-content) {
   flex: 0 0 auto;
   width: max-content;
   max-width: none;
@@ -299,7 +299,7 @@
 
 /* Separators used as list items need an explicit display/height; otherwise
    navbar item rules can collapse the one-pixel divider. */
-.navbar.appbar-bordered .nav-actions > li.nav-separator {
+.navbar:is(.appbar, .appbar-bordered) .nav-actions > li.nav-separator {
   display: block !important;
   flex: 0 0 1px;
   width: 1px;
@@ -313,5 +313,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navbar.appbar-bordered .dropdown-trigger > .material-icons { transition: none; }
+  .navbar:is(.appbar, .appbar-bordered) .dropdown-trigger > .material-icons { transition: none; }
 }

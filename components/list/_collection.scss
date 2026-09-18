@@ -22,9 +22,16 @@
 
     // Avatar Collection
     &.avatar {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       min-height: 84px;
       padding-left: 72px;
       position: relative;
+      overflow-wrap: anywhere;
+
+      // Keep the text clear of the trailing action, including when it wraps.
+      &:has(> .secondary-content) { padding-right: 60px; }
 
       // Don't style circles inside preloader classes.
       &:not(.circle-clipper) > .circle,
@@ -34,12 +41,13 @@
         height: 42px;
         overflow: hidden;
         left: 15px;
-        top: 21px; // vertically center within the 84px min-height row - without
-                   // this, absolute's default "static position" fallback puts
-                   // an <img> and an <i> icon glyph at different heights
+        top: 50%;
+        transform: translateY(-50%);
         display: inline-block;
         vertical-align: middle;
       }
+
+      img.circle { object-fit: cover; }
 
       i.circle {
         font-size: 18px;
@@ -58,10 +66,18 @@
         margin: 0;
       }
 
-      .secondary-content {
+      > .secondary-content {
         position: absolute;
-        top: 16px;
+        top: 50%;
         right: 16px;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        float: none;
+        line-height: 1;
+
+        > i { display: block; }
       }
     }
 

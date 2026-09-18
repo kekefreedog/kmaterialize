@@ -86,6 +86,64 @@ declare class Component<O extends BaseOptions$1> {
     destroy(): void;
 }
 
+type TinyNavbarPosition = 'inline' | 'top' | 'bottom';
+interface TinyNavbarOptions extends BaseOptions$1 {
+    position: TinyNavbarPosition;
+    dismissible: boolean;
+    closeLabel: string;
+    /** Optional control to focus after closing from inside the navbar. */
+    returnFocus: HTMLElement | null;
+    onClose: ((navbar: TinyNavbar) => void) | null;
+}
+/** Compact navigation or announcement bar, optionally fixed to either viewport edge. */
+declare class TinyNavbar extends Component<TinyNavbarOptions> {
+    private _closeButton;
+    private _originalClasses;
+    private _originalHidden;
+    private static _classes;
+    constructor(el: HTMLElement, options?: Partial<TinyNavbarOptions>);
+    static get defaults(): TinyNavbarOptions;
+    static init(el: HTMLElement, options?: Partial<TinyNavbarOptions>): TinyNavbar;
+    static init(els: InitElements<MElement>, options?: Partial<TinyNavbarOptions>): TinyNavbar[];
+    static getInstance(el: HTMLElement): TinyNavbar;
+    private static _validatePosition;
+    get isOpen(): boolean;
+    getPosition(): TinyNavbarPosition;
+    setPosition(position: TinyNavbarPosition): void;
+    open(): void;
+    close: () => void;
+    destroy(): void;
+}
+
+interface NavbarAutoHideOptions extends BaseOptions$1 {
+    /** Null watches the page. Supply an element for an independently scrolling panel. */
+    scrollTarget: HTMLElement | null;
+    /** Accumulated pixels in one direction before changing visibility. */
+    tolerance: number;
+    /** Keep the navbar visible within this many pixels of the top. */
+    offset: number;
+}
+/** A sticky navbar that hides going down and returns going up. */
+declare class NavbarAutoHide extends Component<NavbarAutoHideOptions> {
+    private _target;
+    private _events;
+    private _frame;
+    private _last;
+    private _distance;
+    private _direction;
+    private _originalClasses;
+    constructor(el: HTMLElement, options?: Partial<NavbarAutoHideOptions>);
+    static get defaults(): NavbarAutoHideOptions;
+    static init(el: HTMLElement, options?: Partial<NavbarAutoHideOptions>): NavbarAutoHide;
+    static init(els: InitElements<MElement>, options?: Partial<NavbarAutoHideOptions>): NavbarAutoHide[];
+    static getInstance(el: HTMLElement): NavbarAutoHide;
+    private _position;
+    private _reset;
+    private _schedule;
+    private _update;
+    destroy(): void;
+}
+
 interface OtpInputOptions extends BaseOptions$1 {
     /** Number of editable slots (1–32); inferred when pattern is supplied. */
     length?: number;
@@ -625,6 +683,137 @@ declare class Alert extends Component<AlertOptions> {
     /** Show an alert that was previously dismissed. */
     open(): void;
     destroy(): void;
+}
+
+type GanttView = 'day' | 'week';
+type GanttTone = 'primary' | 'secondary' | 'tertiary' | 'error';
+type GanttEditAction = 'move' | 'resize-start' | 'resize-end';
+interface GanttDependencyChange {
+    from: string;
+    to: string;
+    action: 'add' | 'remove';
+}
+interface GanttTaskChange {
+    task: GanttTask;
+    previousTask: GanttTask;
+    action: GanttEditAction;
+}
+/** Custom color regions up to 100%; overruns always use the critical region. */
+interface GanttProgressMeter {
+    low: number;
+    high: number;
+    /** Defaults to 100: higher completion is better. */
+    optimum?: number;
+    optimalColor?: string;
+    suboptimalColor?: string;
+    criticalColor?: string;
+}
+interface GanttTask {
+    id: string;
+    name: string;
+    /** Calendar dates in YYYY-MM-DD format. The end date is inclusive. */
+    start: string;
+    end: string;
+    /** Non-negative percentage. Values above 100 indicate an overrun. */
+    progress?: number;
+    /** Any CSS color, including a theme variable. Overrides meter colors. */
+    progressColor?: string;
+    progressMeter?: GanttProgressMeter;
+    /** Optional secondary label, such as a person or department. */
+    detail?: string;
+    tone?: GanttTone;
+    /** A milestone must have the same start and end date. */
+    milestone?: boolean;
+    /** Upstream task IDs. Links propagate moves; they impose no date ordering. */
+    dependencies?: string[];
+}
+interface GanttOptions extends BaseOptions$1 {
+    tasks: GanttTask[];
+    view: GanttView;
+    locale: string;
+    label: string;
+    emptyText: string;
+    showToday: boolean;
+    editable: boolean;
+    /** Show direct connection and removal controls while editable. */
+    connectable: boolean;
+    zoom: number;
+    minZoom: number;
+    maxZoom: number;
+    onTaskClick: ((task: GanttTask, event: MouseEvent) => void) | null;
+    /** Called once after a pointer or keyboard edit commits, with independent copies. */
+    onTaskChange: ((change: GanttTaskChange) => void) | null;
+    onSelectionChange: ((taskIds: string[]) => void) | null;
+    onDependencyChange: ((change: GanttDependencyChange) => void) | null;
+}
+/** Material-themed, horizontally scrollable calendar timeline. */
+declare class Gantt extends Component<GanttOptions> {
+    private _tasks;
+    private _view;
+    private _start;
+    private _end;
+    private _dayWidth;
+    private _viewport;
+    private _original;
+    private _hadClass;
+    private _zoom;
+    private _drag;
+    private _scrollFrame;
+    private _suppressClick;
+    private _announcement;
+    private _originalClasses;
+    private _selected;
+    private _selectionAnchor;
+    private _arrowId;
+    private _resizeObserver;
+    private _connections;
+    constructor(el: HTMLElement, options?: Partial<GanttOptions>);
+    static get defaults(): GanttOptions;
+    static init(el: HTMLElement, options?: Partial<GanttOptions>): Gantt;
+    static init(els: InitElements<MElement>, options?: Partial<GanttOptions>): Gantt[];
+    static getInstance(el: HTMLElement): Gantt;
+    private static validateView;
+    /** Returns a copy; mutate it and call setTasks to update the chart. */
+    getTasks(): GanttTask[];
+    /** Add an upstream → downstream link without rescheduling either task. */
+    addDependency(from: string, to: string): void;
+    removeDependency(from: string, to: string): void;
+    setTasks(tasks: GanttTask[]): void;
+    getSelectedTaskIds(): string[];
+    setSelectedTaskIds(ids: string[]): void;
+    private _selectForInteraction;
+    getView(): GanttView;
+    setView(view: GanttView): void;
+    isEditable(): boolean;
+    setEditable(editable: boolean): void;
+    getZoom(): number;
+    /** Scale calendar columns, preserving the date at the center of the viewport. */
+    setZoom(zoom: number): void;
+    resetZoom(): void;
+    /** Scroll to a calendar date, or to the user's local today when omitted. */
+    scrollToDate(date?: string): void;
+    destroy(): void;
+    private _handleClick;
+    private _labelWidth;
+    private _pointerDay;
+    private _handlePointerDown;
+    private _handlePointerMove;
+    private _previewDrag;
+    private _autoScroll;
+    private _handlePointerUp;
+    private _handlePointerCancel;
+    private _finishDrag;
+    private _cancelDrag;
+    private _editedTask;
+    private _editContext;
+    private _editedTasks;
+    private _commitEdits;
+    private _handleKeyDown;
+    private _renderKeepingDate;
+    private _format;
+    /** Measure actual row heights so connectors follow wrapping labels and responsive layouts. */
+    private _drawDependencies;
+    private _render;
 }
 
 interface KanbanMoveDetail {
@@ -3845,12 +4034,15 @@ declare const version = "2.3.3";
  */
 declare function toast(options: Partial<ToastOptions>): Toast;
 interface AutoInitOptions {
+    TinyNavbar?: Partial<TinyNavbarOptions>;
+    NavbarAutoHide?: Partial<NavbarAutoHideOptions>;
     OtpInput?: Partial<OtpInputOptions>;
     MaskitoInput?: Partial<MaskitoInputOptions>;
     RichTextarea?: Partial<RichTextareaOptions>;
     Loading?: Partial<LoadingOptions>;
     Alert?: Partial<AlertOptions>;
     Kanban?: Partial<KanbanOptions>;
+    Gantt?: Partial<GanttOptions>;
     Autocomplete?: Partial<AutocompleteOptions>;
     Cards?: Partial<CardsOptions>;
     Carousel?: Partial<CarouselOptions>;
@@ -3885,5 +4077,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, GanttDependencyChange, GanttEditAction, GanttOptions, GanttProgressMeter, GanttTask, GanttTaskChange, GanttTone, GanttView, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, NavbarAutoHideOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, TinyNavbarOptions, TinyNavbarPosition, ToastOptions };

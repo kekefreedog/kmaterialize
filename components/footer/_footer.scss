@@ -1,0 +1,37 @@
+.page-footer.footer-bordered {
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 12px;
+}
+
+// A full-height page with a footer at the bottom when content is short.
+.footer-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--footer-layout-height, 100dvh);
+  margin: 0;
+
+  > header, > footer { flex: 0 0 auto; }
+  > main { flex: 1 0 auto; min-width: 0; }
+  > .page-footer { margin-top: 0; }
+
+  // Keep the footer visible while main scrolls. The footer's real height
+  // reserves its own row, including when links or buttons wrap on mobile.
+  &.footer-fixed {
+    height: var(--footer-layout-height, 100dvh);
+    min-height: 0;
+    overflow: hidden;
+
+    > main {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      scroll-padding-block: 16px;
+    }
+
+    > footer {
+      max-height: 50%;
+      overflow: auto;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
+}

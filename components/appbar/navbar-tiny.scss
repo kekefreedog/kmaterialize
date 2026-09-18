@@ -1,0 +1,47 @@
+.navbar.navbar-tiny {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+  padding: 4px 12px;
+  line-height: 1.4;
+  font-size: 13px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+
+  &[hidden] { display: none; }
+  > .nav-wrapper {
+    display: flex; flex: 1 1 auto; align-items: center; flex-wrap: wrap;
+    min-width: 0; height: auto; gap: 4px 16px; padding: 0; background: transparent;
+  }
+  .navbar-tiny-content { flex: 1 1 180px; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+  a { color: inherit; }
+  .brand-logo { position: static; transform: none; height: auto; font-size: 14px; line-height: 1.4; white-space: nowrap; }
+  .brand-logo .brand-logo-image { width: 24px; height: 24px; padding: 4px; border-radius: 8px; margin-right: 6px; }
+  ul:not(.dropdown-content) { gap: 4px; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  ul:not(.dropdown-content) > li > a { display: flex; align-items: center; min-height: 32px; height: auto; padding: 0 8px; line-height: 1.4; border-radius: 16px; white-space: nowrap; }
+  ul:not(.dropdown-content) > li > a:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+  a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  > .navbar-tiny-close {
+    display: inline-flex; flex: 0 0 32px; align-items: center; justify-content: center;
+    width: 32px; height: 32px; margin-left: auto; padding: 0; border: 0; border-radius: 50%;
+    background: transparent; color: inherit; cursor: pointer;
+    > .material-icons { width: 18px; height: 18px; margin: 0; font-size: 18px; line-height: 1; }
+    &:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+    &:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  }
+  &.navbar-tiny-top, &.navbar-tiny-bottom {
+    position: fixed; z-index: 998; inset-inline: 0;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  &.navbar-tiny-top { top: var(--navbar-tiny-offset, 0px); bottom: auto; padding-top: max(4px, env(safe-area-inset-top)); }
+  &.navbar-tiny-bottom { top: auto; bottom: var(--navbar-tiny-offset, 0px); padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+}
+
+@media print {
+  .navbar.navbar-tiny.navbar-tiny-top, .navbar.navbar-tiny.navbar-tiny-bottom { position: static; }
+}

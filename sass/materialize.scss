@@ -20,9 +20,12 @@
 @forward '../components/button/buttons';
 @forward '../components/alert/alerts';
 @forward '../components/kanban/kanban';
+@forward '../components/gantt/gantt';
 @forward '../components/collapsible/collapsible'; // custom
 @forward '../components/badge/badges';
 @forward '../components/card/cards';
+@forward '../components/timeline/timeline';
+@forward '../components/footer/footer';
 @forward '../components/snackbar/toast';
 @forward '../components/tabs/tabs';
 @forward '../components/tooltip/tooltip';
@@ -91,3 +94,7 @@
 @forward '../components/otp-input/otp-input';
 
 @forward '../components/editor/editor';
+
+@forward '../components/appbar/navbar-auto-hide';
+
+@forward '../components/appbar/navbar-tiny';

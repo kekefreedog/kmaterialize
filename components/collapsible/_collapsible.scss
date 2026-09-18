@@ -45,17 +45,34 @@
   }
 }
 
+// Keep one glyph throughout the transition so opening and closing can reverse
+// smoothly, including a second activation before the first turn has finished.
 .collapsible-header::after {
   content: '\e5cf';
-  margin-left: .5rem;
+  display: inline-block;
+  flex: 0 0 1em;
+  align-self: center;
+  width: 1em;
+  height: 1em;
+  margin-inline-start: auto;
   font-family: 'Material Symbols Outlined', 'Material Symbols Rounded', 'Material Symbols Sharp', 'Material Icons';
   font-size: 25px;
-  line-height: .9;
+  line-height: 1;
+  text-align: center;
   -webkit-font-smoothing: antialiased;
+  transform: rotate(0deg);
+  transform-origin: center;
+  transition: transform var(--collapsible-arrow-duration, 300ms) var(--collapsible-arrow-easing, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-.active .collapsible-header::after {
-  content: '\e5ce';
+// Only the owning item controls its chevron; expanded ancestors must not turn
+// the arrows of closed nested sections.
+.collapsible > li.active > .collapsible-header::after {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsible-header::after { transition: none; }
 }
 
 .keyboard-focused .collapsible-header:focus {

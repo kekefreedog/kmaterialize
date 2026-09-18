@@ -387,4 +387,45 @@ describe('Editor Handlebars workspace', function () {
     expect(M.Editor.getInstance(host)).toBeUndefined();
     expect(host.classList.contains('editor')).toBeFalse();
   });
+
+  it('keeps code and token text left aligned inside a centered container', async function () {
+    const parent = document.createElement('div');
+    parent.style.textAlign = 'center';
+    host.replaceWith(parent);
+    parent.append(host);
+    try {
+      await start({ template: '<h1>{{person.name}}</h1>', data: { person: { name: 'Alex' } } });
+      for (const selector of ['textarea.editor-source', '.editor-highlight', '.editor-token-help', '.editor-token-summary']) {
+        expect(getComputedStyle(host.querySelector(selector)).textAlign).toBe('left');
+      }
+      expect(getComputedStyle(host.querySelector('.editor-lines')).textAlign).toBe('right');
+    } finally {
+      parent.replaceWith(host);
+    }
+  });
+
+  it('fits an allocated parent height when resized or revealed from a hidden tab', async function () {
+    const parent = document.createElement('div');
+    parent.style.cssText = 'height: 420px; display: none;';
+    host.replaceWith(parent);
+    parent.append(host);
+    host.classList.add('editor-fill');
+    try {
+      await start({ template: '<p>{{name}}</p>', data: { name: 'Alex' } });
+      parent.style.display = 'block';
+      for (const height of [420, 280, 560]) {
+        parent.style.height = `${height}px`;
+        expect(host.getBoundingClientRect().height).toBe(height);
+        const workspace = host.querySelector('.editor-workspace').getBoundingClientRect();
+        expect(Math.abs(workspace.height - host.clientHeight)).toBeLessThan(1);
+        for (const selector of ['.editor-input-pane', '.editor-preview-pane']) {
+          const bounds = host.querySelector(selector).getBoundingClientRect();
+          expect(bounds.top).toBeGreaterThanOrEqual(workspace.top);
+          expect(bounds.bottom).toBeLessThanOrEqual(workspace.bottom + 1);
+        }
+      }
+    } finally {
+      parent.replaceWith(host);
+    }
+  });
 });

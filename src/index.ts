@@ -1,3 +1,7 @@
+import { TinyNavbar, TinyNavbarOptions } from '../components/appbar/navbar-tiny';
+export type { TinyNavbarOptions, TinyNavbarPosition } from '../components/appbar/navbar-tiny';
+import { NavbarAutoHide, NavbarAutoHideOptions } from '../components/appbar/navbar-auto-hide';
+export type { NavbarAutoHideOptions } from '../components/appbar/navbar-auto-hide';
 import { OtpInput, type OtpInputOptions } from '../components/otp-input/otp-input';
 import { MaskitoInput, type MaskitoInputOptions } from '../components/maskito-input/maskito-input';
 import { RichTextarea, type RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
@@ -6,6 +10,8 @@ import { Autocomplete, AutocompleteOptions } from '../components/search/autocomp
 import { Popup } from '../components/popup/popup';
 import { Loading, LoadingOptions } from '../components/loading/loading';
 import { Alert, AlertOptions } from '../components/alert/alert';
+import { Gantt, GanttOptions } from '../components/gantt/gantt';
+export type { GanttOptions, GanttTask, GanttView, GanttTone, GanttEditAction, GanttTaskChange, GanttProgressMeter, GanttDependencyChange } from '../components/gantt/gantt';
 import { Kanban, KanbanOptions } from '../components/kanban/kanban';
 import { FloatingActionButton, FloatingActionButtonOptions } from '../components/button/buttons';
 import { Cards, CardsOptions } from '../components/card/cards';
@@ -47,6 +53,8 @@ export type { PopupOptions, PopupResult } from '../components/popup/popup';
 export type { ToastOptions } from '../components/snackbar/toasts';
 
 export {
+  TinyNavbar,
+  NavbarAutoHide,
   OtpInput,
   MaskitoInput,
   RichTextarea,
@@ -54,6 +62,7 @@ export {
   Loading,
   Alert,
   Kanban,
+  Gantt,
   Autocomplete,
   FloatingActionButton,
   Cards,
@@ -99,12 +108,15 @@ export function toast(options: Partial<ToastOptions>): Toast {
 }
 
 export interface AutoInitOptions {
+  TinyNavbar?: Partial<TinyNavbarOptions>;
+  NavbarAutoHide?: Partial<NavbarAutoHideOptions>;
   OtpInput?: Partial<OtpInputOptions>;
   MaskitoInput?: Partial<MaskitoInputOptions>;
   RichTextarea?: Partial<RichTextareaOptions>;
   Loading?: Partial<LoadingOptions>;
   Alert?: Partial<AlertOptions>;
   Kanban?: Partial<KanbanOptions>;
+  Gantt?: Partial<GanttOptions>;
   Autocomplete?: Partial<AutocompleteOptions>;
   Cards?: Partial<CardsOptions>;
   Carousel?: Partial<CarouselOptions>;
@@ -140,12 +152,15 @@ export interface AutoInitOptions {
  */
 export function AutoInit(context: HTMLElement = document.body, options?: Partial<AutoInitOptions>) {
   const registry = {
+    TinyNavbar: context.querySelectorAll('.navbar-tiny:not(.no-autoinit)'),
+    NavbarAutoHide: context.querySelectorAll('.navbar-hide-on-scroll:not(.no-autoinit)'),
     OtpInput: context.querySelectorAll('input[data-otp]:not(.no-autoinit)'),
     MaskitoInput: context.querySelectorAll('input[data-maskito]:not([data-otp]):not(.no-autoinit)'),
     RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
     Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
     Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
+    Gantt: context.querySelectorAll('.gantt:not(.no-autoinit)'),
     Autocomplete: context.querySelectorAll('.autocomplete:not(.no-autoinit)'),
     Cards: context.querySelectorAll('.cards:not(.no-autoinit)'),
     Carousel: context.querySelectorAll('.carousel:not(.no-autoinit)'),
@@ -177,6 +192,8 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     FileInput: context.querySelectorAll('.file-field[data-file-picker="filepond"]:not(.no-autoinit)'),
     TomSelectField: context.querySelectorAll('select.tomselected:not(.no-autoinit)')
   };
+  TinyNavbar.init(registry.TinyNavbar, options?.TinyNavbar ?? {});
+  NavbarAutoHide.init(registry.NavbarAutoHide, options?.NavbarAutoHide ?? {});
   OtpInput.init(registry.OtpInput, options?.OtpInput ?? {});
   MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
   RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
@@ -184,6 +201,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
   Loading.init(registry.Loading, options?.Loading ?? {});
   Alert.init(registry.Alert, options?.Alert ?? {});
   Kanban.init(registry.Kanban, options?.Kanban ?? {});
+  Gantt.init(registry.Gantt, options?.Gantt ?? {});
   Cards.init(registry.Cards, options?.Cards ?? {});
   Carousel.init(registry.Carousel, options?.Carousel ?? {});
   Chips.init(registry.Chips, options?.Chips ?? {});

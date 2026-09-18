@@ -261,14 +261,11 @@ ul.staggered-list li { opacity: 0; }
   margin-top: 5rem;
   padding-top: 3rem;
   border-top: 1px dashed var(--md-sys-color-outline-variant);
-  p {
-    color: var(--md-sys-color-outline-light);
-  }
   a {
     color: var(--md-sys-color-primary);
   }
   .footer-copyright,
-  .footer-copyright a {
+  .footer-copyright a:not(.btn) {
     overflow: hidden;
     min-height: 50px;
     display: flex;
@@ -276,6 +273,11 @@ ul.staggered-list li { opacity: 0; }
     justify-content: space-between;
     padding: 10px 0px;
   }
+}
+
+// Theme-aware default that still allows paragraph text-color utilities.
+:where(.page-footer p) {
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .page-footer ul {

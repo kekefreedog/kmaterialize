@@ -1,6 +1,7 @@
 .editor:has(> .editor-workspace) {
   --editor-height: 680px;
   --editor-code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: left;
   color: var(--md-sys-color-on-surface);
   background: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-outline-variant);
@@ -21,7 +22,7 @@
   display: block; flex: 1; min-width: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 16px;
   border: 0; border-radius: 0; box-shadow: none; outline: none; resize: none; box-sizing: border-box;
   background: transparent; color: var(--md-sys-color-on-surface); caret-color: var(--md-sys-color-primary);
-  font: 13px/24px var(--editor-code-font); letter-spacing: normal; tab-size: 4; white-space: pre; overflow: auto;
+  font: 13px/24px var(--editor-code-font); text-align: left; letter-spacing: normal; tab-size: 4; white-space: pre; overflow: auto;
 }
 .editor-source::selection { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
 .editor-tokens { display: flex; flex-direction: column; min-height: 0; min-width: 0; border-top: 1px solid var(--md-sys-color-outline-variant); }
@@ -149,3 +150,31 @@
 .editor-spreadsheet .editor-input-pane { grid-template-rows: minmax(230px, 1fr) minmax(200px, 1fr); }
 // Generated results are read-only, but use the normal worksheet text color.
 .editor-sheet-preview .jss_worksheet > tbody > tr > td.readonly { color: var(--jss_content_color, #000); }
+
+// Fit an allocated parent height, including a Popup tab panel. The default
+// editor keeps its fixed desktop height and stacked mobile layout.
+.editor.editor-fill {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+
+  > .editor-workspace {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .editor-input-pane {
+    height: auto;
+    grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+
+  .editor-preview-pane { height: auto; }
+  .editor-tokens { overflow: auto; }
+}
+
+@media (max-width: 700px) {
+  .editor.editor-fill > .editor-workspace {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+}

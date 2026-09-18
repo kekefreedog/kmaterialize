@@ -205,8 +205,7 @@ describe('Cards', () => {
     const expectSizedCardLayout = ({
       card,
       expectedHeight,
-      maxImageHeight,
-      maxContentHeight,
+
       sizeName
     }) => {
       const cardImage = card.querySelector('.card-image');
@@ -222,14 +221,11 @@ describe('Cards', () => {
         expectedHeight,
         `${sizeName} card should be ${expectedHeight}px high`
       );
-      expect(imageRect.height).toBeLessThan(
-        maxImageHeight + 1,
-        `${sizeName} image should be <= ${maxImageHeight}px high`
-      );
-      expect(contentRect.height).toBeLessThan(
-        maxContentHeight + 1,
-        `${sizeName} content should be <= ${maxContentHeight}px high`
-      );
+      expect(imageRect.height).toEqual(180, `${sizeName} image should have a consistent crop height`);
+      expect(contentRect.top).toEqual(imageRect.bottom, 'content should follow the image');
+      expect(contentRect.bottom).toEqual(actionRect.top, 'content should use the space above the actions');
+      expect(getComputedStyle(cardContent).overflowY).toBe('auto', 'long content must remain reachable');
+      expect(getComputedStyle(cardImage.querySelector('img')).objectFit).toBe('cover');
       expect(actionRect.bottom).toEqual(
         cardRect.bottom,
         `${sizeName} action should be at bottom of card`
@@ -240,8 +236,6 @@ describe('Cards', () => {
       expectSizedCardLayout({
         card: document.querySelector('.card.small'),
         expectedHeight: 300,
-        maxImageHeight: 180,
-        maxContentHeight: 120,
         sizeName: 'small'
       });
     });
@@ -250,8 +244,6 @@ describe('Cards', () => {
       expectSizedCardLayout({
         card: document.querySelector('.card.medium'),
         expectedHeight: 400,
-        maxImageHeight: 240,
-        maxContentHeight: 160,
         sizeName: 'medium'
       });
     });
@@ -260,8 +252,6 @@ describe('Cards', () => {
       expectSizedCardLayout({
         card: document.querySelector('.card.large'),
         expectedHeight: 500,
-        maxImageHeight: 300,
-        maxContentHeight: 200,
         sizeName: 'large'
       });
     });

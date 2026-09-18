@@ -97,6 +97,56 @@
   }
 }
 
+// Clip edge-to-edge content to the popup's own border radius.
+.swal2-popup.popup:has(> .swal2-html-container.popup-content-fill) {
+  overflow: hidden;
+}
+
+// Let embedded layouts occupy the full popup content width.
+.swal2-popup.popup .swal2-html-container.popup-content-fill {
+  margin: 0;
+  padding: 0;
+
+  > .tabs-fill {
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+
+// Full-height content must receive the remaining space rather than sharing
+// equal grid tracks with the title and close button.
+.swal2-container.popup-container.swal2-grow-fullscreen:has(> .popup > .popup-content-fill) {
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+
+  > .swal2-popup.popup {
+    // SweetAlert2 sets display:grid inline when opening the dialog.
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 0;
+
+    > * { flex-shrink: 0; }
+
+    > .swal2-html-container.popup-content-fill {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    > .swal2-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 0;
+    }
+
+    > .swal2-title { padding-inline: 3rem; }
+    > .swal2-actions { margin-bottom: 1.25em; }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .popup-container .swal2-popup.popup,
   .popup-container .swal2-popup.popup * {

@@ -1,10 +1,12 @@
 .breadcrumb-wrapper {
   display: flex;
   align-items: center;
+  min-height: 48px;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
   white-space: nowrap;
+  padding-block: 4px;
 
   // Support both direct breadcrumbs and an optional inner wrapper.
   > * { flex-shrink: 0; }
@@ -17,6 +19,28 @@
   display: inline-flex;
   vertical-align: middle;
   align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--md-sys-color-on-surface-variant);
+
+  &:last-child,
+  &[aria-current='page'] {
+    color: var(--md-sys-color-on-surface);
+    font-weight: 500;
+  }
+
+  &:any-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
 
   i { font-size: 24px; }
 
@@ -31,7 +55,10 @@
 
   &:before {
     content: '\E5CC';
-    opacity: 0.6;
+    opacity: 0.45;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-inline-start: 2px;
     font-family: 'Material Symbols Outlined', 'Material Symbols Rounded', 'Material Symbols Sharp', 'Material Icons';
   }
 
@@ -39,3 +66,25 @@
     display: none;
   }
 }
+
+// Follow the navbar's foreground, including explicit color utilities.
+.navbar .breadcrumb {
+  color: color-mix(in srgb, currentColor 78%, transparent);
+
+  &:last-child,
+  &[aria-current='page'],
+  &:any-link:hover { color: inherit; }
+}
+
+// Navbar icons normally take the full bar height. Breadcrumb icons instead
+// align with the text and separator, even inside a scrollable wrapper.
+.breadcrumb > i,
+.navbar .breadcrumb > i,
+.navbar .nav-wrapper .breadcrumb > i {
+  flex-shrink: 0;
+  height: auto;
+  line-height: 1;
+  margin: 0;
+}
+
+[dir='rtl'] .breadcrumb:before { transform: rotate(180deg); }

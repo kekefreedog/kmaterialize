@@ -154,4 +154,65 @@ describe('Popup', function () {
       await result;
     }
   });
+
+  for (const titleText of ['', 'Welcome Mail']) {
+    it(`fills a fullscreen popup with bottom tabs ${titleText ? 'with' : 'without'} a title`, async function () {
+      const { el, result } = await open({
+        grow: 'fullscreen',
+        titleText,
+        showConfirmButton: false,
+        showCloseButton: true,
+        customClass: { htmlContainer: 'popup-content-fill' },
+        html: `<div class="tabs-fill" data-tab-position="bottom">
+          <ul class="tabs tabs-fixed-width">
+            <li class="tab"><a class="active" href="#popup-layout-first">First</a></li>
+            <li class="tab"><a href="#popup-layout-second">Second</a></li>
+          </ul>
+          <div id="popup-layout-first" class="tabs-fill-panel"><div style="height: 1600px">Long content</div></div>
+          <div id="popup-layout-second" class="tabs-fill-panel">Editor</div>
+        </div>`
+      });
+      const navigation = el.querySelector('.tabs');
+      const tabs = M.Tabs.init(navigation, { duration: 0 });
+      try {
+        const popup = el.getBoundingClientRect();
+        const content = el.querySelector('.swal2-html-container').getBoundingClientRect();
+        const bar = navigation.getBoundingClientRect();
+        const title = el.querySelector('.swal2-title').getBoundingClientRect();
+        expect(popup.bottom).toBeLessThanOrEqual(window.innerHeight);
+        expect(content.top - (titleText ? title.bottom : popup.top)).toBeLessThan(3);
+        expect(Math.abs(content.bottom - bar.bottom)).toBeLessThan(2);
+        expect(Math.abs(popup.bottom - bar.bottom)).toBeLessThan(3);
+        expect(Math.abs(content.left - popup.left)).toBeLessThan(3);
+        const first = el.querySelector('#popup-layout-first');
+        expect(first.scrollHeight).toBeGreaterThan(first.clientHeight);
+        expect(first.getBoundingClientRect().bottom).toBeLessThanOrEqual(bar.top + 1);
+        first.scrollTop = 200;
+        expect(first.scrollTop).toBe(200);
+        tabs.select('popup-layout-second');
+        const second = el.querySelector('#popup-layout-second').getBoundingClientRect();
+        expect(Math.abs(second.top - content.top)).toBeLessThan(2);
+        expect(Math.abs(second.bottom - bar.top)).toBeLessThan(2);
+        expect(Math.abs(el.getBoundingClientRect().height - popup.height)).toBeLessThan(2);
+        el.querySelector('.tabs-fill').dataset.tabPosition = 'top';
+        expect(Math.abs(navigation.getBoundingClientRect().top - content.top)).toBeLessThan(2);
+      } finally {
+        tabs.destroy();
+        el.querySelector('.swal2-close').click();
+        expect((await result).isDismissed).toBeTrue();
+      }
+    });
+  }
+
+  it('keeps ordinary fill-content popups at their requested size', async function () {
+    const { el } = await open({
+      width: 640,
+      customClass: { htmlContainer: 'popup-content-fill' },
+      html: '<div class="tabs-fill" style="height: 400px">Content</div>'
+    });
+    expect(el.querySelector('.tabs-fill').getBoundingClientRect().height).toBe(400);
+    expect(el.getBoundingClientRect().width).toBeLessThanOrEqual(640);
+    expect(el.querySelector('.swal2-confirm').getBoundingClientRect().height).toBeGreaterThan(0);
+    expect(getComputedStyle(el).overflow).toBe('hidden');
+  });
 });

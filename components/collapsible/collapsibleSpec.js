@@ -234,7 +234,8 @@ describe('Collapsible Plugin:', () => {
           'because accordion bodies not visible after being opened.'
         );
         done();
-      }, 300);
+      // The popout margin transition takes 350ms; check its settled position.
+      }, 400);
     });
   });
 });

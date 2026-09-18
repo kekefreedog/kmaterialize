@@ -1,0 +1,97 @@
+// Use the same event markup for alternating and single-column timelines.
+@mixin single-column {
+  > .timeline-event {
+    grid-template-columns: var(--timeline-badge-size, 40px) minmax(0, 1fr);
+    column-gap: var(--timeline-gap, 16px);
+
+    &::before, &::after {
+      inset-inline-start: calc((var(--timeline-badge-size, 40px) - var(--timeline-line-width, 2px)) / 2);
+    }
+
+    > .timeline-content,
+    &:nth-child(even) > .timeline-content { grid-column: 2; }
+    > .timeline-badge { grid-column: 1; }
+  }
+}
+
+.timeline {
+  position: relative;
+  container-type: inline-size;
+  container-name: materialize-timeline;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+
+  > .timeline-event {
+    --_timeline-marker-radius: calc(var(--timeline-badge-size, 40px) / 2);
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) calc(var(--timeline-badge-size, 40px) + var(--timeline-gap, 16px) * 2) minmax(0, 1fr);
+    align-items: center;
+    min-height: var(--timeline-badge-size, 40px);
+    padding-block: var(--timeline-event-spacing, 12px);
+    list-style: none;
+
+    &:has(> .timeline-badge:empty) { --_timeline-marker-radius: 8px; }
+
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      inset-inline-start: calc(50% - var(--timeline-line-width, 2px) / 2);
+      width: var(--timeline-line-width, 2px);
+      height: max(0px, calc(50% - var(--_timeline-marker-radius) - var(--timeline-marker-gap, 12px)));
+      background-color: var(--timeline-line-color, var(--md-sys-color-outline-variant));
+      pointer-events: none;
+    }
+
+    &::before { inset-block-start: 0; }
+    &::after { inset-block-end: 0; }
+    &:first-child::before, &:last-child::after { display: none; }
+
+    > .timeline-content {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+      width: 100%;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    &:nth-child(even) > .timeline-content { grid-column: 3; }
+
+    > .timeline-badge {
+      position: relative;
+      z-index: 1;
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--timeline-badge-size, 40px);
+      height: var(--timeline-badge-size, 40px);
+      border-radius: 50%;
+      line-height: 1;
+
+      &:empty { width: 16px; height: 16px; }
+      > i { font-size: 20px; line-height: 1; }
+    }
+  }
+
+  &.timeline-left { @include single-column; }
+}
+
+// Low specificity allows the existing background/text color utilities to win.
+:where(.timeline > .timeline-event > .timeline-badge) {
+  color: var(--md-sys-color-on-primary);
+  background-color: var(--md-sys-color-primary);
+}
+
+// Respond to the available space, including timelines inside narrow panels.
+@container materialize-timeline (max-width: 600px) {
+  .timeline { @include single-column; }
+}
+
+@media only screen and (max-width: 600px) {
+  .timeline { @include single-column; }
+}
