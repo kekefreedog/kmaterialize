@@ -1,72 +1,122 @@
 import { Component, BaseOptions, InitElements, MElement } from '../../src/component';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface PasswordInputOptions extends BaseOptions {}
+export interface PasswordInputOptions extends BaseOptions {
+    /** Accessible name when the password is hidden. */
+    showLabel: string;
+    /** Accessible name when the password is visible. */
+    hideLabel: string;
+}
 
-const _defaults: PasswordInputOptions = {};
+type PasswordInputElement = HTMLInputElement & { M_PasswordInput?: PasswordInput };
 
-// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Password.ts
-// Show/hide toggle for a password input - no third-party dependency, just
-// Materialize's own .prefix/.suffix icon-slot convention (see
-// components/textfield/_input-fields.scss), so unlike the other new form
-// enhancements in this batch this one needs no peer-loader/dynamic import.
+const _defaults: PasswordInputOptions = {
+    showLabel: 'Show password',
+    hideLabel: 'Hide password'
+};
+
+/**
+ * Show or hide a password with an accessible suffix button.
+ * Existing data-password-toggle-icon wrappers remain supported.
+ */
 export class PasswordInput extends Component<PasswordInputOptions> {
-  declare el: HTMLInputElement;
-  private _suffixEl: HTMLElement | null;
+    declare el: PasswordInputElement;
+    private _suffixEl: HTMLElement | null;
+    private _stateObserver: MutationObserver;
+    private _originalAttributes: Map<string, string | null> = new Map();
 
-  constructor(el: HTMLInputElement, options: Partial<PasswordInputOptions>) {
-    super(el, options, PasswordInput);
-    (this.el as any).M_PasswordInput = this;
+    constructor(el: HTMLInputElement, options: Partial<PasswordInputOptions>) {
+        super(el, options, PasswordInput);
+        this.el.M_PasswordInput = this;
+        this.options = { ...PasswordInput.defaults, ...options };
+        this._suffixEl = this.el.parentElement?.querySelector<HTMLElement>('[data-password-toggle-icon]') ?? null;
 
-    this.options = {
-      ...PasswordInput.defaults,
-      ...options
+        if (this._suffixEl) {
+            for (const name of ['type', 'role', 'tabindex', 'aria-label', 'aria-pressed', 'aria-controls', 'aria-disabled', 'disabled'])
+                this._originalAttributes.set(name, this._suffixEl.getAttribute(name));
+
+            if (this._suffixEl instanceof HTMLButtonElement) {
+                this._suffixEl.type = 'button';
+            } else {
+                this._suffixEl.setAttribute('role', 'button');
+                this._suffixEl.tabIndex = 0;
+            }
+
+            if (this.el.id) this._suffixEl.setAttribute('aria-controls', this.el.id);
+        }
+
+        // Read the actual input type, including an initially visible password.
+        this._syncState();
+        this._suffixEl?.addEventListener('click', this._handleToggleClick);
+        this._suffixEl?.addEventListener('keydown', this._handleToggleKeydown);
+        this._stateObserver = new MutationObserver(() => this._syncState());
+        this._stateObserver.observe(this.el, { attributes: true, attributeFilter: ['type', 'disabled'] });
+        for (let parent = this.el.parentElement; parent; parent = parent.parentElement) {
+            if (parent instanceof HTMLFieldSetElement)
+                this._stateObserver.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
+        }
+    }
+
+    static get defaults(): PasswordInputOptions {
+        return _defaults;
+    }
+
+    static init(el: HTMLInputElement, options?: Partial<PasswordInputOptions>): PasswordInput;
+    static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<PasswordInputOptions>): PasswordInput[];
+    static init(
+        els: HTMLInputElement | InitElements<HTMLInputElement | MElement>,
+        options: Partial<PasswordInputOptions> = {}
+    ): PasswordInput | PasswordInput[] {
+        return super.init(els, options, PasswordInput);
+    }
+
+    static getInstance(el: HTMLInputElement): PasswordInput {
+        return (el as PasswordInputElement).M_PasswordInput!;
+    }
+
+    /** Remove listeners and restore the supplied button attributes. */
+    destroy() {
+        this._stateObserver.disconnect();
+        this._suffixEl?.removeEventListener('click', this._handleToggleClick);
+        this._suffixEl?.removeEventListener('keydown', this._handleToggleKeydown);
+        for (const [name, value] of this._originalAttributes) {
+            if (value === null) this._suffixEl?.removeAttribute(name);
+            else this._suffixEl?.setAttribute(name, value);
+        }
+        this.el.M_PasswordInput = undefined;
+    }
+
+    /** Toggle without submitting the form or changing its value or selection. */
+    toggle() {
+        if (this.el.matches(':disabled')) return;
+        const start = this.el.selectionStart;
+        const end = this.el.selectionEnd;
+        const direction = this.el.selectionDirection;
+        this.el.type = this.el.type === 'password' ? 'text' : 'password';
+        if (start !== null && end !== null) this.el.setSelectionRange(start, end, direction ?? undefined);
+        this._syncState();
+    }
+
+    private _syncState() {
+        const visible = this.el.type === 'text';
+        const disabled = this.el.matches(':disabled');
+        this.el.dataset.passwordVisible = visible ? '1' : '0';
+        this._suffixEl?.setAttribute('aria-label', visible ? this.options.hideLabel : this.options.showLabel);
+        this._suffixEl?.setAttribute('aria-pressed', String(visible));
+        this._suffixEl?.setAttribute('aria-disabled', String(disabled));
+        if (this._suffixEl instanceof HTMLButtonElement) this._suffixEl.disabled = disabled;
+        const icon = this._suffixEl?.querySelector('i');
+        if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+    }
+
+    private _handleToggleClick = (event: MouseEvent) => {
+        event.preventDefault();
+        this.toggle();
     };
 
-    this._suffixEl = this.el.parentElement?.querySelector<HTMLElement>('[data-password-toggle-icon]') ?? null;
-    if (!this.el.dataset.passwordVisible) this.el.dataset.passwordVisible = '0';
-    this._setupEventHandlers();
-  }
-
-  static get defaults(): PasswordInputOptions {
-    return _defaults;
-  }
-
-  static init(el: HTMLInputElement, options?: Partial<PasswordInputOptions>): PasswordInput;
-  static init(
-    els: InitElements<HTMLInputElement | MElement>,
-    options?: Partial<PasswordInputOptions>
-  ): PasswordInput[];
-  static init(
-    els: HTMLInputElement | InitElements<HTMLInputElement | MElement>,
-    options: Partial<PasswordInputOptions> = {}
-  ): PasswordInput | PasswordInput[] {
-    return super.init(els, options, PasswordInput);
-  }
-
-  static getInstance(el: HTMLInputElement): PasswordInput {
-    return (el as any).M_PasswordInput;
-  }
-
-  destroy() {
-    this._removeEventHandlers();
-    (this.el as any).M_PasswordInput = undefined;
-  }
-
-  _setupEventHandlers() {
-    this._suffixEl?.addEventListener('click', this._handleToggleClick);
-  }
-
-  _removeEventHandlers() {
-    this._suffixEl?.removeEventListener('click', this._handleToggleClick);
-  }
-
-  _handleToggleClick = () => {
-    const visible = this.el.dataset.passwordVisible === '1';
-    this.el.type = visible ? 'password' : 'text';
-    this.el.dataset.passwordVisible = visible ? '0' : '1';
-
-    const iconEl = this._suffixEl?.querySelector('i');
-    if (iconEl) iconEl.textContent = visible ? 'visibility' : 'visibility_off';
-  };
+    private _handleToggleKeydown = (event: KeyboardEvent) => {
+        // Native buttons already dispatch clicks for Enter and Space.
+        if (this._suffixEl instanceof HTMLButtonElement || !['Enter', ' '].includes(event.key)) return;
+        event.preventDefault();
+        this.toggle();
+    };
 }
