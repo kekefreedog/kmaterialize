@@ -215,4 +215,107 @@ describe('Popup', function () {
     expect(el.querySelector('.swal2-confirm').getBoundingClientRect().height).toBeGreaterThan(0);
     expect(getComputedStyle(el).overflow).toBe('hidden');
   });
+  async function waitUntil(predicate) {
+    for (let attempt = 0; attempt < 200; attempt++) {
+      if (predicate()) return;
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    throw new Error('Timed out waiting for stepper state');
+  }
+
+  it('waits for custom input, validates safely, and returns ordered step results', async function () {
+    const input = document.createElement('input');
+    input.type = 'text';
+    const next = jasmine.createSpy('next').and.returnValue('rendered');
+    const result = M.Popup.steps({ title: 'Interactive', steps: [
+      { title: 'Assets', run: () => 'ready' },
+      { title: 'Input', run: ({ waitForConfirmation }) => waitForConfirmation({
+        content: input,
+        confirmButtonText: 'Continue',
+        readValue: () => {
+          if (!input.value.trim()) throw new Error('<strong>Enter a title</strong>');
+          return input.value.trim();
+        }
+      }) },
+      { title: 'Render', run: next }
+    ] });
+    await waitUntil(() => document.querySelector('[data-state="waiting"]'));
+    expect(next).not.toHaveBeenCalled();
+    expect(document.querySelector('progress').value).toBe(1);
+    expect(document.querySelector('.popup-stepper-list').hasAttribute('aria-busy')).toBeFalse();
+    await M.Popup.clickConfirm();
+    await waitUntil(() => !document.querySelector('.popup-stepper-validation').hidden);
+    expect(document.querySelector('.popup-stepper-validation').textContent).toBe('<strong>Enter a title</strong>');
+    expect(document.querySelector('.popup-stepper-validation strong')).toBeNull();
+    input.value = 'Review cut';
+    await M.Popup.clickConfirm();
+    await waitUntil(() => document.querySelector('progress').value === 3);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(input.isConnected).toBeFalse();
+    await M.Popup.clickConfirm();
+    expect((await result).value).toEqual(['ready', 'Review cut', 'rendered']);
+  });
+
+  it('prevents duplicate async confirmation and retains a custom final result', async function () {
+    const content = document.createElement('div');
+    content.textContent = 'Custom result';
+    let resolveValue;
+    const read = jasmine.createSpy('read').and.callFake(() => new Promise(resolve => { resolveValue = resolve; }));
+    const result = M.Popup.steps({ title: 'Review', steps: [{ title: 'Approve', run: ({ waitForConfirmation }) =>
+      waitForConfirmation({ content, readValue: read })
+    }] });
+    await waitUntil(() => document.querySelector('[data-state="waiting"]'));
+    await M.Popup.clickConfirm();
+    await M.Popup.clickConfirm();
+    expect(read).toHaveBeenCalledTimes(1);
+    resolveValue('approved');
+    await waitUntil(() => document.querySelector('progress').value === 1);
+    expect(content.isConnected).toBeTrue();
+    expect(document.querySelector('.swal2-confirm').disabled).toBeFalse();
+    await M.Popup.clickConfirm();
+    expect((await result).value).toEqual(['approved']);
+  });
+
+  it('aborts a pending interaction and ignores late validation after replacement', async function () {
+    let signal, resolveValue;
+    const next = jasmine.createSpy('next');
+    const result = M.Popup.steps({ title: 'Cancel', steps: [{ title: 'Input', run: context => {
+      signal = context.signal;
+      return context.waitForConfirmation({ content: document.createElement('input'),
+        readValue: () => new Promise(resolve => { resolveValue = resolve; }) });
+    } }, { title: 'Next', run: next }] });
+    await waitUntil(() => document.querySelector('[data-state="waiting"]'));
+    await M.Popup.clickConfirm();
+    await waitUntil(() => !document.querySelector('.swal2-cancel').disabled);
+    document.querySelector('.swal2-cancel').click();
+    expect((await result).isConfirmed).toBeFalse();
+    expect(signal.aborted).toBeTrue();
+    const replacement = await open({ titleText: 'Replacement' });
+    resolveValue('too late');
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(next).not.toHaveBeenCalled();
+    expect(replacement.el.querySelector('.swal2-title').textContent).toBe('Replacement');
+    replacement.el.querySelector('.swal2-confirm').click();
+    await replacement.result;
+  });
+
+  it('retries failed work without repeating completed user interaction', async function () {
+    const read = jasmine.createSpy('read').and.returnValue('title');
+    let attempts = 0;
+    const result = M.Popup.steps({ title: 'Retry', steps: [
+      { title: 'Input', run: ({ waitForConfirmation }) => waitForConfirmation({
+        content: document.createElement('input'), readValue: read
+      }) },
+      { title: 'Work', run: () => { if (attempts++ === 0) throw new Error('Try again'); return 'ready'; } }
+    ] });
+    await waitUntil(() => document.querySelector('[data-state="waiting"]'));
+    await M.Popup.clickConfirm();
+    await waitUntil(() => document.querySelector('[data-state="error"]'));
+    await M.Popup.clickConfirm();
+    await waitUntil(() => document.querySelector('progress').value === 2);
+    expect(read).toHaveBeenCalledTimes(1);
+    await M.Popup.clickConfirm();
+    expect((await result).value).toEqual(['title', 'ready']);
+  });
+
 });

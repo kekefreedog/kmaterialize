@@ -1,0 +1,91 @@
+// Match the documentation's compact code blocks and Atom One Dark palette.
+.card.code-card {
+    --code-card-background: #282c34;
+    --code-card-color: #abb2bf;
+    --code-card-border-color: #8888;
+    --code-card-font-size: 0.85rem;
+    --code-card-padding: 1em;
+
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    margin: 1em 0;
+    overflow: hidden;
+    font: var(--code-card-font-size)/1.25 monospace, monospace;
+    background: var(--code-card-background);
+    color: var(--code-card-color);
+    border: 1px solid var(--code-card-border-color);
+    // The standard .card supplies the 12px border radius.
+    box-shadow: none;
+
+    .code-card-status, .code-card-copy {
+        position: absolute;
+        z-index: 2;
+        color: var(--md-sys-color-on-surface-variant, #abb2bf);
+    }
+
+    .code-card-status {
+        top: 15px;
+        right: 45px;
+        font: 14px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        pointer-events: none;
+    }
+
+    .code-card-copy {
+        top: 6px;
+        right: 6px;
+
+        > .btn {
+            --button-icon: 24px;
+            color: inherit;
+        }
+    }
+    .code-card-copy[hidden] { display: none; }
+    .code-card-copy > .btn:focus-visible, .code-card-body:focus-visible {
+        outline: 2px solid var(--md-sys-color-primary, #61aeee);
+        outline-offset: -2px;
+    }
+
+    pre.code-card-body {
+        display: block;
+        margin: 0;
+        padding: 0;
+        max-height: var(--code-card-max-height, none);
+        overflow: auto;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
+        text-align: start;
+        direction: ltr;
+        white-space: pre;
+    }
+    pre.code-card-body, pre.code-card-body > code {
+        font: inherit;
+        text-shadow: none;
+    }
+    pre.code-card-body > code {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        margin: 0;
+        padding: var(--code-card-padding);
+        border: 0;
+        background: transparent;
+        color: inherit;
+        white-space: inherit;
+    }
+
+    .token { background: transparent; text-shadow: none; }
+    .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #5c6370; font-style: italic; }
+    .token.punctuation, .token.operator, .token.property { color: var(--code-card-color); }
+    .token.keyword, .token.atrule { color: #c678dd; }
+    .token.tag, .token.selector, .token.deleted { color: #e06c75; }
+    .token.function, .token.function-variable, .token.url { color: #61aeee; }
+    .token.class-name, .token.builtin { color: #e6c07b; }
+    .token.attr-name, .token.number, .token.constant, .token.variable, .token.builtin-variable { color: #d19a66; }
+    .token.string, .token.string-property, .token.attr-value, .token.regex, .token.inserted { color: #98c379; }
+    .token.boolean, .token.entity { color: #56b6c2; }
+    .token.important, .token.bold { font-weight: bold; }
+    .token.italic { font-style: italic; }
+}

@@ -49,6 +49,10 @@
         animation: popup-stepper-spin 1s linear infinite;
       }
     }
+    &[data-state='waiting'] .popup-stepper-marker {
+      background: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+    }
     &[data-state='complete'] .popup-stepper-marker {
       background: var(--md-sys-color-primary);
       color: var(--md-sys-color-on-primary);
@@ -70,6 +74,9 @@
     color: var(--md-sys-color-on-surface-variant);
     font-weight: 600;
   }
+  .popup-stepper-content:not(:empty) { margin-top: 16px; }
+  .popup-stepper-validation { color: var(--md-sys-color-error); }
+  .popup-stepper-content .input-field { margin-block: 16px 8px; }
   .popup-stepper-state { display: block; font-size: .75rem; }
   .popup-stepper-status { font-size: .875rem; color: var(--md-sys-color-on-surface-variant); }
 }

@@ -5,6 +5,8 @@ export type { NavbarAutoHideOptions } from '../components/appbar/navbar-auto-hid
 import { OtpInput, type OtpInputOptions } from '../components/otp-input/otp-input';
 import { MaskitoInput, type MaskitoInputOptions } from '../components/maskito-input/maskito-input';
 import { RichTextarea, type RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
+import { CodeCard, type CodeCardOptions } from '../components/code-card/code-card';
+export type { CodeCardOptions } from '../components/code-card/code-card';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Autocomplete, AutocompleteOptions } from '../components/search/autocomplete';
 import { Popup } from '../components/popup/popup';
@@ -58,6 +60,7 @@ export {
   OtpInput,
   MaskitoInput,
   RichTextarea,
+  CodeCard,
   Popup,
   Loading,
   Alert,
@@ -113,6 +116,7 @@ export interface AutoInitOptions {
   OtpInput?: Partial<OtpInputOptions>;
   MaskitoInput?: Partial<MaskitoInputOptions>;
   RichTextarea?: Partial<RichTextareaOptions>;
+  CodeCard?: Partial<CodeCardOptions>;
   Loading?: Partial<LoadingOptions>;
   Alert?: Partial<AlertOptions>;
   Kanban?: Partial<KanbanOptions>;
@@ -157,6 +161,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
     OtpInput: context.querySelectorAll('input[data-otp]:not(.no-autoinit)'),
     MaskitoInput: context.querySelectorAll('input[data-maskito]:not([data-otp]):not(.no-autoinit)'),
     RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
+    CodeCard: context.querySelectorAll('.code-card:not(.no-autoinit)'),
     Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
     Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
     Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
@@ -197,6 +202,7 @@ export function AutoInit(context: HTMLElement = document.body, options?: Partial
   OtpInput.init(registry.OtpInput, options?.OtpInput ?? {});
   MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
   RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
+  CodeCard.init(registry.CodeCard, options?.CodeCard ?? {});
   Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
   Loading.init(registry.Loading, options?.Loading ?? {});
   Alert.init(registry.Alert, options?.Alert ?? {});
@@ -259,7 +265,7 @@ export { default as CrazyLoading, LoadingScreenBtn } from '../components/extensi
 
 export { initNavbarScroll } from '../components/appbar/navbar-scroll';
 
-export type { PopupStep, PopupStepContext, PopupStepsOptions } from '../components/popup/popup-stepper';
+export type { PopupStep, PopupStepContext, PopupStepConfirmationOptions, PopupStepsOptions } from '../components/popup/popup-stepper';
 
 export type { RangeOptions } from '../components/slider/range';
 

@@ -2,7 +2,8 @@
 
 /* Style Placeholders */
 ::placeholder {
-  color: var(--md-sys-color-on-surface-variant);
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 75%, transparent);
+  opacity: 1;
 }
 
 /* Text inputs */
