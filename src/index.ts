@@ -32,7 +32,7 @@ import { Tabs, TabsOptions } from '../components/tabs/tabs';
 import { Timepicker, TimepickerOptions } from '../components/timepicker/timepicker';
 import { Toast, ToastOptions } from '../components/snackbar/toasts';
 import { Tooltip, TooltipOptions } from '../components/tooltip/tooltip';
-import { Range } from '../components/slider/range';
+import { Range, RangeInterval } from '../components/slider/range';
 import { Toolbar, ToolbarOptions } from '../components/toolbar/toolbar';
 import { PasswordInput, PasswordInputOptions } from '../components/password-input/password-input';
 import { NumberInput, NumberInputOptions } from '../components/number-input/number-input';
@@ -91,6 +91,7 @@ export {
   Tooltip,
   Waves,
   Range,
+  RangeInterval,
   Toolbar,
   PasswordInput,
   NumberInput,
@@ -267,7 +268,7 @@ export { initNavbarScroll } from '../components/appbar/navbar-scroll';
 
 export type { PopupStep, PopupStepContext, PopupStepConfirmationOptions, PopupStepsOptions } from '../components/popup/popup-stepper';
 
-export type { RangeOptions } from '../components/slider/range';
+export type { RangeOptions, RangeIntervalOptions } from '../components/slider/range';
 
 export type { RichTextareaOptions } from '../components/rich-textarea/rich-textarea';
 

@@ -243,6 +243,8 @@ interface RichTextareaOptions extends BaseOptions$1 {
     toolbar?: false | Array<ToolbarItem | ToolbarItem[]>;
     formats?: string[];
     placeholder?: string;
+    /** Default font stack for editor content; load any web fonts separately. */
+    fontFamily?: string;
     label?: string;
 }
 /** Quill enhancement of a native textarea, including form value synchronization. */
@@ -290,6 +292,49 @@ declare class RichTextarea extends Component<RichTextareaOptions> {
     private _onBlur;
     private _onReset;
     destroy(): void;
+}
+
+/** Display source code with optional syntax highlighting and clipboard controls. */
+interface CodeCardOptions extends BaseOptions$1 {
+    code: string;
+    language: string;
+    title: string;
+    copy: boolean;
+    highlight: boolean;
+    copyLabel: string;
+    copiedLabel: string;
+    errorLabel: string;
+}
+/** A themed code card. Source text is never executed or interpreted as markup. */
+declare class CodeCard extends Component<CodeCardOptions> {
+    ready: Promise<void>;
+    private _prism?;
+    private _originalNodes;
+    private _addedClasses;
+    private _code;
+    private _pre;
+    private _button;
+    private _status;
+    private _timer;
+    private _copying;
+    private _destroyed;
+    private _revision;
+    constructor(el: HTMLElement, options?: Partial<CodeCardOptions>);
+    static get defaults(): CodeCardOptions;
+    static init(el: HTMLElement, options?: Partial<CodeCardOptions>): CodeCard;
+    static init(els: InitElements<MElement>, options?: Partial<CodeCardOptions>): CodeCard[];
+    static getInstance(el: HTMLElement): CodeCard;
+    /** Update content, language, title, or the optional copy control. */
+    update(options: Partial<CodeCardOptions>): Promise<void>;
+    getCode(): string;
+    /** Copy the original source, preserving whitespace and excluding UI labels. */
+    copy(): Promise<boolean>;
+    /** Restore the authored markup and remove component-owned listeners. */
+    destroy(): void;
+    private _onCopy;
+    private _createElements;
+    private _setCopyFeedback;
+    private _render;
 }
 
 interface DropdownOptions extends BaseOptions$1 {
@@ -593,6 +638,13 @@ declare class Autocomplete extends Component<AutocompleteOptions> {
     selectOptions(ids: []): void;
 }
 
+interface PopupStepConfirmationOptions<T> {
+    /** Custom DOM content. Insert user-provided text using textContent. */
+    content: HTMLElement;
+    confirmButtonText?: string;
+    /** Read and validate the content. Throw an Error to stay on this step. */
+    readValue(): T | Promise<T>;
+}
 interface PopupStepContext<T = unknown> {
     /** Aborted when the popup closes. Pass this signal to fetch or other work. */
     signal: AbortSignal;
@@ -600,6 +652,8 @@ interface PopupStepContext<T = unknown> {
     results: readonly T[];
     /** Update the active step's plain-text progress message. */
     setMessage(message: string): void;
+    /** Pause for user confirmation. Rejected when the popup closes. */
+    waitForConfirmation<R>(options: PopupStepConfirmationOptions<R>): Promise<R>;
 }
 interface PopupStep<T = unknown> {
     title: string;
@@ -2572,6 +2626,10 @@ interface RangeOptions extends BaseOptions$1 {
     showValue: boolean;
     /** Show ticks at step intervals (dense intervals are thinned to at most 101). */
     showTicks: boolean;
+    /** Add one editable number field on the left of a single slider. */
+    showInput?: boolean;
+    /** Accessible name for the single slider's numeric field. */
+    inputLabel?: string;
     /** Optional plain-text value indicator and accessible value formatting. */
     formatValue?: (value: number) => string;
 }
@@ -2580,6 +2638,9 @@ declare class Range extends Component<RangeOptions> {
     el: HTMLInputElement;
     value: HTMLElement;
     thumb: HTMLElement;
+    private _control?;
+    private _numberField?;
+    private _editingNumber;
     private _ticks;
     private _tickValues;
     private _pointerDown;
@@ -2600,6 +2661,9 @@ declare class Range extends Component<RangeOptions> {
     private _buildTicks;
     /** Refresh after assigning input.value programmatically or changing layout/direction. */
     update: () => void;
+    private _createNumberField;
+    private _handleNumber;
+    private _handleNumberBlur;
     private _showValue;
     private _activate;
     private _handleInput;
@@ -2611,6 +2675,47 @@ declare class Range extends Component<RangeOptions> {
     destroy(): void;
     /** Initialize uninitialized ranges currently in the document. */
     static Init(): void;
+}
+interface RangeIntervalOptions extends RangeOptions {
+    /** Generate editable numeric in/out fields around the slider. */
+    showInputs: boolean;
+    /** Visible and accessible labels for the generated fields. */
+    startLabel: string;
+    endLabel: string;
+}
+/** Two native sliders sharing a track. The first input defines min, max and step. */
+declare class RangeInterval extends Component<RangeIntervalOptions> {
+    readonly start: HTMLInputElement;
+    readonly end: HTMLInputElement;
+    private _ranges;
+    private _control?;
+    private _fields;
+    private _editing?;
+    private _attributes;
+    private _resize?;
+    private _form;
+    private _resetTimer?;
+    private _disposed;
+    private _originalAttributes;
+    private _originalStyle;
+    constructor(el: HTMLElement, options?: Partial<RangeIntervalOptions>);
+    static get defaults(): RangeIntervalOptions;
+    static init(el: HTMLElement, options?: Partial<RangeIntervalOptions>): RangeInterval;
+    static init(els: InitElements<MElement>, options?: Partial<RangeIntervalOptions>): RangeInterval[];
+    static getInstance(el: HTMLElement): RangeInterval;
+    /** Read the numeric in/out values in ascending order. */
+    getValues(): [number, number];
+    /** Set both values, applying native bounds/step rounding. Does not dispatch input/change. */
+    setValues(start: number, end: number): void;
+    private _syncBounds;
+    /** Refresh after programmatic changes. The first input owns the shared bounds and step. */
+    update: () => void;
+    private _handleInput;
+    private _createFields;
+    private _handleField;
+    private _handleFieldBlur;
+    private _handleReset;
+    destroy(): void;
 }
 
 interface ToolbarOptions extends BaseOptions$1 {
@@ -2641,19 +2746,36 @@ declare class Toolbar extends Component<ToolbarOptions> {
 }
 
 interface PasswordInputOptions extends BaseOptions$1 {
+    /** Accessible name when the password is hidden. */
+    showLabel: string;
+    /** Accessible name when the password is visible. */
+    hideLabel: string;
 }
+type PasswordInputElement = HTMLInputElement & {
+    M_PasswordInput?: PasswordInput;
+};
+/**
+ * Show or hide a password with an accessible suffix button.
+ * Existing data-password-toggle-icon wrappers remain supported.
+ */
 declare class PasswordInput extends Component<PasswordInputOptions> {
-    el: HTMLInputElement;
+    el: PasswordInputElement;
     private _suffixEl;
+    private _stateObserver;
+    private _originalAttributes;
     constructor(el: HTMLInputElement, options: Partial<PasswordInputOptions>);
     static get defaults(): PasswordInputOptions;
     static init(el: HTMLInputElement, options?: Partial<PasswordInputOptions>): PasswordInput;
     static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<PasswordInputOptions>): PasswordInput[];
     static getInstance(el: HTMLInputElement): PasswordInput;
+    /** Remove listeners and restore the supplied button attributes. */
     destroy(): void;
-    _setupEventHandlers(): void;
-    _removeEventHandlers(): void;
-    _handleToggleClick: () => void;
+    /** Toggle without submitting the form or changing its value or selection. */
+    toggle(): void;
+    private _isCrazyButton;
+    private _syncState;
+    private _handleToggleClick;
+    private _handleToggleKeydown;
 }
 
 interface NumberInputOptions extends BaseOptions$1 {
@@ -4039,6 +4161,7 @@ interface AutoInitOptions {
     OtpInput?: Partial<OtpInputOptions>;
     MaskitoInput?: Partial<MaskitoInputOptions>;
     RichTextarea?: Partial<RichTextareaOptions>;
+    CodeCard?: Partial<CodeCardOptions>;
     Loading?: Partial<LoadingOptions>;
     Alert?: Partial<AlertOptions>;
     Kanban?: Partial<KanbanOptions>;
@@ -4077,5 +4200,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, GanttDependencyChange, GanttEditAction, GanttOptions, GanttProgressMeter, GanttTask, GanttTaskChange, GanttTone, GanttView, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, NavbarAutoHideOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepContext, PopupStepsOptions, RangeOptions, RichTextareaOptions, TinyNavbarOptions, TinyNavbarPosition, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, CodeCard, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RangeInterval, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, CodeCardOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, GanttDependencyChange, GanttEditAction, GanttOptions, GanttProgressMeter, GanttTask, GanttTaskChange, GanttTone, GanttView, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, NavbarAutoHideOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepConfirmationOptions, PopupStepContext, PopupStepsOptions, RangeIntervalOptions, RangeOptions, RichTextareaOptions, TinyNavbarOptions, TinyNavbarPosition, ToastOptions };

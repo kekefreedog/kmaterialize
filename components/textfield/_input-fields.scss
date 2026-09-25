@@ -167,6 +167,31 @@ textarea.materialize-textarea {
   .prefix ~ input:not([type=checkbox]):not([type=radio]), .prefix ~ textarea {
     padding-left: calc(12px + 24px + 16px);
   }
+  // Center the 40px password action within the 56px field.
+  :is(crazy-button, regular-btn).suffix[data-password-toggle-icon] {
+    top: 8px;
+    right: 4px;
+
+    > .btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: currentColor;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      &:hover:not(:disabled)::before { opacity: .08; }
+      &:active:not(:disabled)::before { opacity: .16; }
+    }
+  }
+
   .suffix ~ input:not([type=checkbox]):not([type=radio]), .suffix ~ textarea {
     padding-right: calc(12px + 24px + 16px);
   }
@@ -320,6 +345,12 @@ textarea {
     min-height: 3rem;
     box-sizing: border-box;
   }
+}
+
+// Outlined labels sit in the border, so the text needs equal vertical insets.
+.input-field.outlined textarea.materialize-textarea {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
 }
 
 // For textarea autoresize

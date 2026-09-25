@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Range interval browser regression checks</title>
+<link rel="stylesheet" href="../dist/css/materialize.css">
+<form id="form">
+  <div id="interval" class="range-interval" role="group" aria-label="Trim" style="width:300px">
+    <input type="range" name="in" aria-label="In" min="0" max="100" step="10" value="20">
+    <input type="range" name="out" aria-label="Out" min="0" max="100" step="10" value="80">
+  </div>
+</form>
+<pre id="result">PENDING</pre>
+<script src="../dist/js/materialize.js"></script>
+<script>
+(async () => {
+    const check = (value, message) => { if (!value) throw Error(message); };
+    const tick = () => new Promise(resolve => setTimeout(resolve, 80));
+    const group = document.querySelector('#interval');
+    const form = document.querySelector('#form');
+    let interval = M.RangeInterval.getInstance(group);
+    const [start, end] = group.querySelectorAll('input');
+    try {
+        check(interval, 'automatic initialization');
+        check(interval.getValues().join() === '20,80', 'initial values');
+        check(start.getAttribute('aria-valuemax') === '80' && end.getAttribute('aria-valuemin') === '20', 'dependent accessible bounds');
+        check(group.style.getPropertyValue('--range-start') === '66px', 'track start');
+        check(group.style.getPropertyValue('--range-end') === '234px', 'track end');
+        let observed;
+        group.addEventListener('input', () => { observed = interval.getValues().join(); });
+        start.value = '100';
+        start.dispatchEvent(new Event('input', {bubbles: true}));
+        check(observed === '80,80', 'in cannot cross out; observer sees constrained values');
+        end.value = '0';
+        end.dispatchEvent(new Event('change', {bubbles: true}));
+        check(end.value === '80', 'out cannot cross in');
+        interval.setValues(91, 19);
+        check(interval.getValues().join() === '20,90', 'setValues ordering and native step rounding');
+        const data = new FormData(form);
+        check(data.get('in') === '20' && data.get('out') === '90', 'both native form values');
+        interval.setValues(-10, 110);
+        check(interval.getValues().join() === '0,100', 'bounds clamp');
+        let invalid = false;
+        try { interval.setValues(NaN, 20); } catch (error) { invalid = error instanceof TypeError; }
+        check(invalid && interval.getValues().join() === '0,100', 'invalid values rejected without mutation');
+        form.reset(); await tick();
+        check(interval.getValues().join() === '20,80', 'reset restores defaults');
+        start.min = '-1'; start.max = '1'; start.step = 'any';
+        interval.setValues(-0.25, 0.75); await tick();
+        check(interval.getValues().join() === '-0.25,0.75' && end.step === 'any', 'continuous and shared bounds');
+        group.dir = 'rtl'; interval.update();
+        check(getComputedStyle(group).getPropertyValue('--range-direction').trim() === 'to left', 'RTL shared track');
+        check(parseFloat(M.Range.getInstance(start).thumb.style.left) > parseFloat(M.Range.getInstance(end).thumb.style.left), 'RTL handle labels');
+        group.style.width = '200px'; await tick(); interval.update();
+        check(group.style.getPropertyValue('--range-start') === '77.5px', 'resize geometry');
+        start.disabled = end.disabled = true; await tick();
+        check(getComputedStyle(group, '::before').opacity === '0.38', 'disabled shared track');
+        check(!new FormData(form).has('in'), 'disabled input omitted from form');
+        start.disabled = end.disabled = false;
+        interval = M.RangeInterval.init(group, {formatValue: value => `${value} seconds`});
+        check(group.querySelectorAll('.thumb').length === 2, 'reinit does not duplicate labels');
+        check(start.getAttribute('aria-valuetext').includes('seconds'), 'formatted accessible values');
+        M.Range.Init(); check(M.RangeInterval.getInstance(group) === interval, 'idempotent global initialization');
+        interval.destroy();
+        check(!group.querySelector('.thumb') && !group.querySelector('.range-ticks'), 'generated elements removed');
+        check(!start.hasAttribute('aria-valuemax') && !end.hasAttribute('aria-valuemin'), 'ARIA restored');
+        check(!group.style.getPropertyValue('--range-start'), 'managed style restored');
+        check(group.style.width === '200px', 'unrelated styles preserved');
+        check(end.min === '0' && end.max === '100' && end.step === '10', 'end attributes restored');
+        start.value = '1'; end.value = '0';
+        start.dispatchEvent(new Event('input', {bubbles: true}));
+        check(start.value === '1', 'destroy removes constraint listener');
+        start.min = '0'; start.max = '100'; start.step = '10';
+        interval = M.RangeInterval.init(group, {showInputs: true, startLabel: 'Start', endLabel: 'Finish'});
+        interval.setValues(20, 80);
+        const fields = group.parentElement.querySelectorAll('input[type="number"]');
+        check(fields.length === 2 && fields[0].value === '20' && fields[1].value === '80', 'generated numeric fields');
+        check(fields[0].getAttribute('aria-label') === 'Start', 'custom input label');
+        fields[0].value = '30'; fields[0].dispatchEvent(new Event('input', {bubbles: true}));
+        check(start.value === '30' && observed === '30,80', 'manual in value updates slider and event observers');
+        fields[1].value = '60'; fields[1].dispatchEvent(new Event('input', {bubbles: true}));
+        check(end.value === '60', 'manual out value updates slider');
+        fields[0].value = '90'; fields[0].dispatchEvent(new Event('input', {bubbles: true}));
+        check(start.value === '60' && fields[0].value === '90', 'clamped slider preserves draft');
+        fields[0].dispatchEvent(new Event('change', {bubbles: true}));
+        check(fields[0].value === '60', 'commit normalizes crossing');
+        fields[0].value = ''; fields[0].dispatchEvent(new Event('input', {bubbles: true}));
+        check(start.value === '60' && fields[0].value === '', 'empty draft does not move handle');
+        fields[0].dispatchEvent(new Event('blur'));
+        check(fields[0].value === '60', 'blur restores empty draft');
+        start.value = '40'; start.dispatchEvent(new Event('input', {bubbles: true}));
+        check(fields[0].value === '40', 'slider updates number field');
+        interval.setValues(10, 90);
+        check(fields[0].value === '10' && fields[1].value === '90', 'API synchronizes fields');
+        check(new FormData(form).getAll('in').length === 1, 'no duplicate submitted values');
+        form.reset(); await tick();
+        check(fields[0].value === '20' && fields[1].value === '80', 'reset synchronizes fields');
+        start.min = '-10'; start.max = '10'; start.step = '0.5'; interval.setValues(-5, 5);
+        fields[0].value = '-3.3'; fields[0].dispatchEvent(new Event('change', {bubbles: true}));
+        check(start.value === '-3.5' && fields[0].value === '-3.5', 'negative decimals snap to step');
+        start.disabled = true; await tick(); check(fields[0].disabled && !fields[1].disabled, 'disabled state synchronized');
+        start.disabled = false;
+        group.classList.add('range-outside');
+        check(getComputedStyle(group, '::after').borderLeftWidth === '2px', 'outside track end stops');
+        start.min = '0'; start.max = '100'; start.step = '1'; interval.setValues(0, 100);
+        const stops = getComputedStyle(group, '::after');
+        check(parseFloat(stops.left) + 1 === parseFloat(start.style.getPropertyValue('--range-progress')), 'minimum handle centered on end stop');
+        check(group.clientWidth - parseFloat(stops.right) - 1 === parseFloat(end.style.getPropertyValue('--range-progress')), 'maximum handle centered on end stop');
+        group.classList.add('range-compact'); interval.update();
+        check(group.style.getPropertyValue('--range-edge') === '8px', 'compact end stops match handle size');
+        group.classList.remove('range-compact'); interval.update();
+        interval = M.RangeInterval.init(group, {showInputs: true});
+        check(form.querySelectorAll('.range-control').length === 1 && form.querySelectorAll('input[type="number"]').length === 2, 'reinit replaces numeric fields');
+        interval.destroy();
+        check(group.parentElement === form && !form.querySelector('.range-control') && !form.querySelector('input[type="number"]'), 'destroy unwraps original slider');
+        group.classList.remove('range-outside');
+        document.querySelector('#result').textContent = 'PASS: auto-init, crossing, events, API, step rounding, form submission/reset, bounds, continuous, RTL, resize, disabled, formatting, reinit, cleanup, numeric editing, drafts, field synchronization, outside track';
+    } catch (error) {
+        document.querySelector('#result').textContent = 'FAIL: ' + error.stack;
+    }
+})();
+</script>
+</html>

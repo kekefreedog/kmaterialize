@@ -276,7 +276,7 @@ async function loadPeer(spec, importer) {
         `  before initializing this component, so window.${spec.globalName} is defined.`);
 }
 
-const _defaults$y = {
+const _defaults$z = {
     thousandsSeparator: ' ',
     radix: '.',
     mapToRadix: [',']
@@ -302,7 +302,7 @@ class NumberInput extends Component {
         this.ready = this._setup();
     }
     static get defaults() {
-        return _defaults$y;
+        return _defaults$z;
     }
     static init(els, options = {}) {
         return super.init(els, options, NumberInput);
@@ -928,6 +928,8 @@ class RichTextarea extends Component {
         const wrapper = document.createElement('div');
         this._wrapper = wrapper;
         wrapper.className = 'rich-textarea';
+        if (this.options.fontFamily)
+            wrapper.style.setProperty('--rich-textarea-font-family', this.options.fontFamily);
         const editor = document.createElement('div');
         const error = document.createElement('div');
         this._error = error;
@@ -1152,6 +1154,659 @@ class RichTextarea extends Component {
         if (RichTextarea.getInstance(this.el) === this)
             this.el['M_RichTextarea'] = undefined;
         this.quill = undefined;
+    }
+}
+
+/**
+ * Front
+ *
+ * Front TS scripts for your Crazy App.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+/**
+ * Kmcomponent
+ *
+ * Reactive web components using compiled Handlebars templates and SCSS styles.
+ * Supports light DOM projection or native slots inside an open shadow root.
+ *
+ * @package    kzarshenas/crazyphp
+ * @author     kekefreedog <kevin.zarshenas@gmail.com>
+ * @copyright  2022-2026 Kévin Zarshenas
+ */
+class Kmcomponent extends (typeof HTMLElement === "undefined" ? class {
+} : HTMLElement) {
+    /** Static Parameters
+     ******************************************************
+     */
+    /** @var properties Property schema, available before custom element registration */
+    static properties = {};
+    /** @var template Compiled HBS function, HTML string, or module export */
+    static template = "";
+    /** @var styles Compiled CSS, context function, or css-loader export */
+    static styles = "";
+    /** @var options Default rendering mode for instances of the component */
+    static options = { shadow: false };
+    /** Parameters
+     ******************************************************
+     */
+    /** @var renderRoot Query this element or shadow root in component hooks */
+    renderRoot;
+    /** @var updateComplete Resolves true after rendering, false if disconnected before the update */
+    updateComplete = Promise.resolve(false);
+    /** Private Parameters
+     ******************************************************
+     */
+    /** @var _values Current typed values, independent from the static schema */
+    _values = Object.create(null);
+    /** @var _initialized Whether defaults have been validated and copied */
+    _initialized = false;
+    /** @var _pending Whether a render microtask is already queued */
+    _pending = false;
+    /** @var _reflecting Prevent attribute reflection from feeding back into property updates */
+    _reflecting = false;
+    /** @var _template Optional template override for this instance */
+    _template;
+    /** @var _styles Optional stylesheet override for this instance */
+    _styles;
+    /** @var _cleanups Resources to release before rerendering or disconnecting */
+    _cleanups = [];
+    /** @var _observer Observer for light DOM child changes */
+    _observer = null;
+    /** @var _children Supplied child nodes in their projection order */
+    _children = [];
+    /** @var _ownedRoots Template roots, excluded when collecting supplied children */
+    _ownedRoots = new Set();
+    /** @var _slots Light DOM insertion points and their original fallback content */
+    _slots = [];
+    /** @var _parking Retained children without a matching light DOM slot */
+    _parking;
+    /**
+     * Constructor
+     *
+     * Choose the rendering root without reading attributes or supplied children.
+     * Subclass fields are initialized after this constructor returns.
+     *
+     * @param options Rendering options overriding the static defaults
+     */
+    constructor(options = {}) {
+        // Construct the native element before accessing the subclass configuration.
+        super();
+        // Constructor options take precedence over the component's static defaults.
+        const configuration = { ...this.component.options, ...options };
+        this.renderRoot = configuration.shadow ? this.attachShadow({ mode: "open" }) : this;
+        // Keep unmatched light DOM children alive without displaying them.
+        this._parking = this.ownerDocument.createDocumentFragment();
+    }
+    /** Methods | Events
+     ******************************************************
+     */
+    /**
+     * Post Render
+     *
+     * Called after the generated markup and projected children have been mounted.
+     * Override to install event handlers or widgets, paired with onCleanup().
+     *
+     * @return void
+     */
+    postRender() {
+        // Component subclasses can attach their behavior after rendering.
+    }
+    /**
+     * On Cleanup
+     *
+     * Register a resource disposer for the current rendered content.
+     *
+     * @param cleanup Callback executed before rerendering or disconnecting
+     * @return void
+     */
+    onCleanup(cleanup) {
+        this._cleanups.push(cleanup);
+    }
+    /** Public Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Property
+     *
+     * Read a typed value, initializing per-instance defaults when necessary.
+     *
+     * @param name Declared property name
+     * @return Current property value
+     * @throws TypeError When the property is not declared
+     */
+    getProperty(name) {
+        this.definition(name);
+        this.initialize();
+        return this._values[name];
+    }
+    /**
+     * Set Property
+     *
+     * Update a typed value and optionally reflect it to the mapped HTML attribute.
+     * Programmatic values must already match the declared type.
+     *
+     * @param name Declared property name
+     * @param value New typed value
+     * @return void
+     * @throws TypeError When the value is invalid or cannot be serialized
+     */
+    setProperty(name, value) {
+        const property = this.definition(name);
+        this.initialize();
+        if (!this.valid(value, property))
+            throw new TypeError(`Invalid component property: ${name}`);
+        const attribute = this.component.attributeName(name, property);
+        // Serialize before changing state: circular JSON must not partially update it.
+        const serialized = property.reflect && attribute !== null
+            ? property.type === "array" || property.type === "object" ? JSON.stringify(value)
+                : String(value)
+            : null;
+        const changed = !Object.is(this._values[name], value);
+        this._values[name] = value;
+        // Reflected writes must not trigger a second conversion or render request.
+        if (serialized !== null && attribute !== null) {
+            this._reflecting = true;
+            try {
+                if (this.getAttribute(attribute) !== serialized)
+                    this.setAttribute(attribute, serialized);
+            }
+            finally {
+                this._reflecting = false;
+            }
+        }
+        if (changed)
+            this.requestUpdate();
+    }
+    /** Public Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Set Html And Css
+     *
+     * Override the static assets for one instance, including constructor-based setup.
+     *
+     * @param html HTML string, compiled template, or module export
+     * @param css CSS string, context function, or css-loader export
+     * @return void
+     */
+    setHtmlAndCss(html, css) {
+        this._template = html;
+        this._styles = css;
+        this.requestUpdate();
+    }
+    /**
+     * Render
+     *
+     * Evaluate the template without mounting it or changing supplied children.
+     * Styles are mounted separately during the scheduled update.
+     *
+     * @return Rendered HTML
+     */
+    render() {
+        let template = this._template ?? this.component.template;
+        while (typeof template === "object")
+            template = template.default;
+        return typeof template === "function" ? template(this.prepareContext()) : template;
+    }
+    /**
+     * Request Update
+     *
+     * Batch synchronous changes into one render microtask.
+     * Changes made while disconnected are rendered on the next connection.
+     *
+     * @return Promise resolving whether the queued update rendered
+     */
+    requestUpdate() {
+        // Reuse the pending update so synchronous property changes render together.
+        if (this._pending)
+            return this.updateComplete;
+        this._pending = true;
+        this.updateComplete = Promise.resolve().then(() => {
+            // Release the queue before rendering so hooks can request a later update.
+            this._pending = false;
+            if (!this.isConnected)
+                return false;
+            this.update();
+            return true;
+        });
+        return this.updateComplete;
+    }
+    /** Protected Methods
+     ******************************************************
+     */
+    /**
+     * Prepare Context
+     *
+     * Build the template data using the existing attributes/name convention.
+     * Override to add component-specific context.
+     *
+     * @return Template context
+     */
+    prepareContext() {
+        this.initialize();
+        return { attributes: { ...this._values }, name: this.localName };
+    }
+    /** Private Methods | Properties
+     ******************************************************
+     */
+    /**
+     * Get Component
+     *
+     * Access declarations on the concrete subclass rather than instance fields.
+     *
+     * @return Component constructor
+     */
+    get component() {
+        return this.constructor;
+    }
+    /**
+     * Get Definition
+     *
+     * Resolve an own schema entry, rejecting undeclared property names.
+     *
+     * @param name Property name
+     * @return Property definition
+     */
+    definition(name) {
+        if (!Object.prototype.hasOwnProperty.call(this.component.properties, name)) {
+            throw new TypeError(`Unknown component property: ${name}`);
+        }
+        return this.component.properties[name];
+    }
+    /**
+     * Clone Default
+     *
+     * Copy JSON-compatible defaults recursively so instances do not share objects.
+     *
+     * @param value Default value to copy
+     * @return Independent copy of the value
+     */
+    clone(value) {
+        if (Array.isArray(value))
+            return value.map(item => this.clone(item));
+        if (value !== null && typeof value === "object") {
+            const result = {};
+            for (const key of Object.keys(value)) {
+                Object.defineProperty(result, key, {
+                    value: this.clone(value[key]),
+                    enumerable: true, configurable: true, writable: true,
+                });
+            }
+            return result;
+        }
+        return value;
+    }
+    /**
+     * Get Default Value
+     *
+     * Use the declared default or the empty value for the declared type.
+     *
+     * @param property Property definition
+     * @return Fresh default value
+     */
+    defaultValue(property) {
+        if (property.default !== undefined)
+            return this.clone(property.default);
+        switch (property.type) {
+            case "string": return "";
+            case "number": return 0;
+            case "boolean": return false;
+            case "array": return [];
+            case "object": return {};
+        }
+    }
+    /**
+     * Validate Value
+     *
+     * Check the runtime type and any allowed scalar values.
+     *
+     * @param value Value to validate
+     * @param property Property definition
+     * @return Whether the value matches the schema
+     */
+    valid(value, property) {
+        let matches;
+        switch (property.type) {
+            case "number":
+                matches = typeof value === "number" && Number.isFinite(value);
+                break;
+            case "array":
+                matches = Array.isArray(value);
+                break;
+            case "object":
+                matches = Object.prototype.toString.call(value) === "[object Object]";
+                break;
+            default: matches = typeof value === property.type;
+        }
+        return matches && (!property.select || property.select.includes(value));
+    }
+    /**
+     * Initialize Properties
+     *
+     * Validate the schema and create each instance's initial values once.
+     *
+     * @return void
+     * @throws TypeError When defaults or reflection options are inconsistent
+     */
+    initialize() {
+        if (this._initialized)
+            return;
+        for (const name of Object.keys(this.component.properties)) {
+            const property = this.definition(name);
+            const value = this.defaultValue(property);
+            if (!this.valid(value, property)) {
+                throw new TypeError(`Invalid default for component property: ${name}`);
+            }
+            if (property.reflect && property.attribute === false) {
+                throw new TypeError(`Reflected property must have an attribute: ${name}`);
+            }
+            this._values[name] = value;
+        }
+        this._initialized = true;
+    }
+    /**
+     * Convert Attribute
+     *
+     * Convert HTML strings to typed values. Invalid or removed attributes restore
+     * the declared default, including explicit false and zero values.
+     *
+     * @param value HTML attribute value, or null when removed
+     * @param property Property definition
+     * @return Converted value or default
+     */
+    fromAttribute(value, property) {
+        if (value === null)
+            return this.defaultValue(property);
+        let parsed = value;
+        switch (property.type) {
+            case "number":
+                parsed = value.trim() === "" ? NaN : Number(value);
+                break;
+            case "boolean": {
+                const normalized = value.trim().toLowerCase();
+                parsed = ["", "true", "1"].includes(normalized) ? true
+                    : ["false", "0"].includes(normalized) ? false : undefined;
+                break;
+            }
+            case "array":
+            case "object":
+                try {
+                    parsed = JSON.parse(value);
+                }
+                catch {
+                    parsed = undefined;
+                }
+                break;
+        }
+        return this.valid(parsed, property) ? parsed : this.defaultValue(property);
+    }
+    /** Private Methods | Rendering
+     ******************************************************
+     */
+    /**
+     * Get Style Text
+     *
+     * Normalize styles while retaining css-loader's CSS-aware serialization.
+     *
+     * @return CSS text
+     */
+    styleText() {
+        let styles = this._styles ?? this.component.styles;
+        while (typeof styles === "object" && "default" in styles)
+            styles = styles.default;
+        if (typeof styles === "function")
+            return styles(this.prepareContext());
+        if (typeof styles === "string")
+            return styles;
+        // css-loader exports a list with its own CSS-aware toString().
+        if (styles.toString !== Object.prototype.toString && styles.toString !== Array.prototype.toString) {
+            return styles.toString();
+        }
+        throw new TypeError("Component styles must be CSS text or a css-loader export.");
+    }
+    /**
+     * Update
+     *
+     * Prepare the new markup before replacing the current render.
+     * Retain supplied light DOM nodes and mount them into the new insertion points.
+     *
+     * @return void
+     */
+    update() {
+        this.initialize();
+        // Evaluate both assets before disturbing the currently mounted content.
+        const template = this.ownerDocument.createElement("template");
+        template.innerHTML = this.render();
+        const css = this.styleText();
+        if (css) {
+            const style = this.ownerDocument.createElement("style");
+            style.textContent = css;
+            template.content.prepend(style);
+        }
+        // Internal node moves must not be interpreted as new supplied children.
+        this._observer?.disconnect();
+        try {
+            this.cleanup();
+            if (this.renderRoot === this) {
+                // Save original nodes rather than cloning their markup and losing state.
+                this.collectChildren();
+                for (const node of this._children)
+                    this._parking.appendChild(node);
+                // A nested custom element owns its own slots.
+                this._slots = Array.from(template.content.querySelectorAll("slot"))
+                    .filter(slot => {
+                    for (let parent = slot.parentElement; parent; parent = parent.parentElement) {
+                        if (parent.localName.includes("-"))
+                            return false;
+                    }
+                    return true;
+                })
+                    .map(element => ({ element, fallback: Array.from(element.childNodes) }));
+                this._ownedRoots = new Set(template.content.childNodes);
+            }
+            // Native shadow slots project automatically; light DOM requires explicit moves.
+            this.renderRoot.replaceChildren(template.content);
+            if (this.renderRoot === this)
+                this.projectChildren();
+        }
+        finally {
+            this.observeChildren();
+        }
+        // Hooks see the complete render, including any supplied content.
+        this.postRender();
+    }
+    /**
+     * Cleanup
+     *
+     * Release resources in reverse registration order.
+     * Run every disposer even if one fails, then propagate the last error.
+     *
+     * @return void
+     */
+    cleanup() {
+        const callbacks = this._cleanups.splice(0).reverse();
+        let failure;
+        let failed = false;
+        for (const callback of callbacks) {
+            try {
+                callback();
+            }
+            catch (error) {
+                failed = true;
+                failure = error;
+            }
+        }
+        if (failed)
+            throw failure;
+    }
+    /** Private Methods | Children
+     ******************************************************
+     */
+    /**
+     * Collect Children
+     *
+     * Retain supplied nodes still owned by this component and discover newly
+     * appended host children. Removed nodes must not return on the next render.
+     *
+     * @return void
+     */
+    collectChildren() {
+        // Drop nodes removed or transferred out of this component by application code.
+        this._children = this._children.filter(node => this.contains(node) || node.parentNode === this._parking);
+        const added = Array.from(this.childNodes).filter(node => !this._ownedRoots.has(node));
+        // Re-appending a supplied node moves it to the end, as appendChild does.
+        this._children = this._children.filter(node => !added.includes(node));
+        this._children.push(...added);
+    }
+    /**
+     * Project Children
+     *
+     * Assign supplied nodes to the first matching light DOM slot.
+     * Restore fallback content for empty slots and retain unmatched nodes.
+     *
+     * @return void
+     */
+    projectChildren() {
+        // Group nodes by the first matching named or default slot.
+        const groups = new Map();
+        for (const node of this._children) {
+            const name = node.nodeType === 1 ? node.getAttribute("slot") ?? "" : "";
+            const slot = this._slots.find(slot => slot.element.name === name);
+            if (slot) {
+                const group = groups.get(slot.element) ?? [];
+                group.push(node);
+                groups.set(slot.element, group);
+            }
+            else if (node.parentNode !== this._parking) {
+                this._parking.appendChild(node);
+            }
+        }
+        // Avoid unnecessary moves, which would reconnect nested custom elements.
+        for (const slot of this._slots) {
+            const children = groups.get(slot.element) ?? slot.fallback;
+            if (children.length !== slot.element.childNodes.length
+                || children.some((node, index) => node !== slot.element.childNodes[index])) {
+                slot.element.replaceChildren(...children);
+            }
+        }
+    }
+    /**
+     * Observe Children
+     *
+     * Watch supplied child changes only in light DOM. Native shadow slots are
+     * managed by the browser. Pause observation while performing internal moves.
+     *
+     * @return void
+     */
+    observeChildren() {
+        if (this.renderRoot !== this || !this.isConnected)
+            return;
+        if (!this._observer) {
+            const Observer = this.ownerDocument.defaultView.MutationObserver;
+            this._observer = new Observer(() => {
+                this._observer.disconnect();
+                try {
+                    this.collectChildren();
+                    this.projectChildren();
+                }
+                finally {
+                    this.observeChildren();
+                }
+            });
+        }
+        // Also watch retained nodes: a changed slot name can make them visible again.
+        this._observer.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
+        this._observer.observe(this._parking, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
+    }
+    /** Methods | Callbacks
+     ******************************************************
+     */
+    /**
+     * Connected Callback
+     *
+     * Initialize values, resume child observation, and schedule rendering.
+     *
+     * @return void
+     */
+    connectedCallback() {
+        this.initialize();
+        this.observeChildren();
+        this.requestUpdate();
+    }
+    /**
+     * Disconnected Callback
+     *
+     * Stop child observation and release resources for the current render.
+     *
+     * @return void
+     */
+    disconnectedCallback() {
+        this._observer?.disconnect();
+        this.cleanup();
+    }
+    /**
+     * Attribute Changed Callback
+     *
+     * Keep typed values current even while detached, without reflection loops.
+     *
+     * @param name Changed HTML attribute name
+     * @param oldValue Previous attribute value
+     * @param newValue New attribute value, or null when removed
+     * @return void
+     */
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (this._reflecting || oldValue === newValue)
+            return;
+        this.initialize();
+        const key = Object.keys(this.component.properties).find(key => this.component.attributeName(key, this.definition(key)) === name);
+        if (key === undefined)
+            return;
+        const value = this.fromAttribute(newValue, this.definition(key));
+        if (!Object.is(this._values[key], value)) {
+            this._values[key] = value;
+            this.requestUpdate();
+        }
+    }
+    /** Static Methods
+     ******************************************************
+     */
+    /**
+     * Observed Attributes
+     *
+     * Derive observed attributes from the static schema at registration time.
+     * Duplicate mappings would make property updates ambiguous.
+     *
+     * @return Mapped HTML attribute names
+     */
+    static get observedAttributes() {
+        const names = Object.keys(this.properties)
+            .map(name => this.attributeName(name, this.properties[name]))
+            .filter((name) => name !== null);
+        if (new Set(names).size !== names.length) {
+            throw new TypeError("Component properties must use distinct attribute names.");
+        }
+        return names;
+    }
+    /**
+     * Get Attribute Name
+     *
+     * Resolve and validate an optional lowercase HTML attribute mapping.
+     *
+     * @param name Property name
+     * @param property Property definition
+     * @return Mapped name, or null for a property without an attribute
+     */
+    static attributeName(name, property) {
+        if (property.attribute === false)
+            return null;
+        const attribute = typeof property.attribute === "string" ? property.attribute : name.toLowerCase();
+        if (!attribute || /[\s\u0000"'>/=]/.test(attribute) || attribute !== attribute.toLowerCase()) {
+            throw new TypeError(`Invalid component attribute name: ${attribute}`);
+        }
+        return attribute;
     }
 }
 
@@ -1481,7 +2136,7 @@ class Utils {
     }
 }
 
-const _defaults$x = {
+const _defaults$y = {
     alignment: 'left',
     autoFocus: true,
     constrainWidth: true,
@@ -1534,7 +2189,7 @@ class Dropdown extends Component {
         this._setupEventHandlers();
     }
     static get defaults() {
-        return _defaults$x;
+        return _defaults$y;
     }
     /**
      * Initializes instances of Dropdown.
@@ -1986,6 +2641,432 @@ class Dropdown extends Component {
             this._placeDropdown();
         }
     };
+}
+
+/** Shared tooltip configuration for direct imports and lazy component tooltips. */
+function createTooltipWith(factory, fill, target, style, options = {}) {
+    // Dynamic imports of CommonJS builds can wrap Tippy in one or more
+    // default exports. Static ESM imports and browser globals are callable already.
+    let resolved = factory;
+    const seen = new Set();
+    while (resolved && typeof resolved === "object" && !seen.has(resolved)) {
+        seen.add(resolved);
+        const module = resolved;
+        fill ??= module.animateFill;
+        resolved = module.default;
+    }
+    if (typeof resolved !== "function") {
+        throw new TypeError('kmaterialize: "tippy.js" did not export a tooltip function.');
+    }
+    const create = resolved;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const instance = create(target, {
+        animateFill: !reducedMotion && !!fill,
+        arrow: false,
+        plugins: fill ? [fill] : [],
+        placement: "auto",
+        theme: style === "material" ? "materialize" : "",
+        allowHTML: false,
+        ...options,
+        ...(reducedMotion
+            ? { animateFill: false, animation: false, duration: 0 }
+            : {}),
+    });
+    // Escape dismisses a focused tooltip without moving keyboard focus.
+    const escape = (event) => {
+        if (event.key === "Escape")
+            instance.hide();
+    };
+    document.addEventListener("keydown", escape);
+    const destroy = instance.destroy.bind(instance);
+    instance.destroy = () => {
+        document.removeEventListener("keydown", escape);
+        destroy();
+    };
+    return instance;
+}
+
+let pending;
+/** Keep the optional tooltip peer out of the core bundle until a trigger needs it. */
+function loadTooltipPeer() {
+    if (!pending) {
+        pending = loadPeer({
+            specifier: 'tippy.js', globalName: 'tippy', feature: 'Classic tooltips',
+            cdnHint: '<script src="path/to/tippy-bundle.umd.min.js"></script>',
+        }, async () => {
+            const module = await import('tippy.js');
+            return { create: module.default, fill: module.animateFill };
+        }).then(peer => typeof peer === 'function'
+            ? { create: peer, fill: peer.animateFill }
+            : peer).catch(error => { pending = undefined; throw error; });
+    }
+    return pending;
+}
+
+const string$1 = (value = '', select) => ({ type: 'string', default: value, select });
+const boolean = () => ({ type: 'boolean', default: false, reflect: true });
+const escape$1 = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const sizes = { small: 'xs', normal: 'sm', large: 'md', 'extra-large': 'lg' };
+// Palette names from sass/_colors.scss take precedence over CSS named colors.
+const paletteColors = new Set([
+    'materialize-red', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
+    'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime',
+    'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blue-grey',
+    'grey', 'gold', 'black', 'white', 'transparent',
+]);
+/** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
+class CrazyButton extends Kmcomponent {
+    static properties = {
+        type: string$1('floating', ['floating', 'extended', 'icon', 'fab', 'extended-fab', 'rail']),
+        depth: string$1('flat', ['flat', 'outlined', '1', '2', '3', '4', '5']),
+        shape: string$1('round', ['round', 'box', 'square']),
+        size: string$1('large', ['small', 'normal', 'large', 'extra-large', 'xs', 'sm', 'md', 'lg', 'xl']),
+        wave: string$1('light', ['light', 'dark', 'false']),
+        'tooltip-style': string$1('classic', ['classic', 'material']),
+        'tooltip-position': string$1('top', ['top', 'right', 'bottom', 'left']),
+        cursor: string$1(),
+        label: string$1(), 'icon-class': string$1('material-icons'), 'icon-text': string$1(),
+        'icon-image': string$1(), 'icon-image-style': string$1(),
+        'icon-position': string$1('right', ['left', 'right']),
+        'color-primary': string$1(), 'color-secondary': string$1(),
+        'data-view': string$1(), 'aria-current': string$1(),
+        'aria-controls': string$1(), 'aria-pressed': string$1(),
+        href: string$1(), target: string$1('_self', ['_self', '_blank']),
+        variant: string$1('', ['', 'filled', 'tonal', 'outlined', 'elevated', 'text', 'standard']),
+        disabled: boolean(), toggle: boolean(), pressed: boolean(),
+        'icon-width': string$1('normal', ['normal', 'narrow', 'wide']),
+        'fab-color': string$1('primary', ['primary', 'secondary', 'tertiary']),
+        'fab-size': string$1('normal', ['small', 'normal', 'large']),
+        'menu-target': string$1(), split: boolean(), 'menu-label': string$1('More options'),
+        'aria-label': string$1(), 'button-type': string$1('button', ['button', 'submit', 'reset']),
+        name: string$1(), value: string$1(), form: string$1(), action: string$1(),
+    };
+    /** Resolves when the current render’s optional tooltip has initialized. */
+    tooltipReady = Promise.resolve();
+    getCurrentAttribute(name) { return this.getProperty(name); }
+    hasCurrentAttribute(name) { return Boolean(this.getProperty(name)); }
+    render() {
+        const a = this.prepareContext().attributes;
+        const rail = a.type === 'rail';
+        const iconOnly = ['floating', 'icon', 'fab'].includes(String(a.type));
+        const fab = ['fab', 'extended-fab'].includes(String(a.type));
+        const variant = a.variant || (a.depth === 'flat' ? 'text' : a.depth === 'outlined' ? 'outlined' : 'elevated');
+        const classes = rail ? 'btn btn-rail' : ['btn', 'btn-expressive', variant === 'standard' ? 'btn-icon-standard' : variant,
+            `btn-${sizes[String(a.size)] || a.size}`, a.shape !== 'round' ? 'btn-square' : '',
+            iconOnly ? 'btn-icon' : '', a.toggle ? 'btn-toggle' : '',
+            a['icon-width'] !== 'normal' ? `btn-icon-${a['icon-width']}` : '',
+            fab ? `btn-fab fab-${a['fab-color']} fab-${a['fab-size']}` : '',
+            a.type === 'extended-fab' ? 'btn-fab-extended' : '',
+            a.wave !== 'false' ? `waves-effect ${a.wave === 'light' ? 'waves-light' : ''}` : '',
+            /^[1-5]$/.test(String(a.depth)) ? `z-depth-${a.depth}` : '',
+        ].filter(Boolean).join(' ');
+        const icon = a['icon-image']
+            ? `<img src="${escape$1(a['icon-image'])}" alt="" style="${escape$1(a['icon-image-style'])}">`
+            : a['icon-text'] ? `<i class="${escape$1(a['icon-class'])}" aria-hidden="true">${escape$1(a['icon-text'])}</i>` : '';
+        const label = iconOnly ? '' : `<slot>${escape$1(a.label)}</slot>`;
+        const content = rail
+            ? `<span class="m3-rail-icon">${icon}</span><span>${label}</span>`
+            : a['icon-position'] === 'left' ? icon + label : label + icon;
+        const menu = a['menu-target'] && !a.split;
+        // A disabled link becomes a native disabled button, including keyboard behavior.
+        const link = a.href && !a.disabled;
+        const tag = link ? 'a' : 'button';
+        const attributes = link
+            ? `href="${escape$1(a.href)}" target="${escape$1(a.target)}"${a.target === '_blank' ? ' rel="noopener noreferrer"' : ''}`
+            : `type="${escape$1(a['button-type'])}" ${a.disabled ? 'disabled' : ''} name="${escape$1(a.name)}" value="${escape$1(a.value)}"${a.form ? ` form="${escape$1(a.form)}"` : ''}`;
+        const menuAttrs = `data-target="${escape$1(a['menu-target'])}" aria-haspopup="true" aria-expanded="false" aria-controls="${escape$1(a['menu-target'])}"`;
+        const button = `<${tag} part="button" class="${escape$1(classes)}${menu ? ' dropdown-trigger no-autoinit btn-menu-trigger' : ''}" ${attributes}
+      ${a['aria-label'] || iconOnly ? `aria-label="${escape$1(a['aria-label'] || a.label || a['icon-text'] || 'Button')}"` : ''}
+      ${a['data-view'] ? `data-view="${escape$1(a['data-view'])}"` : ''}
+      ${a['aria-current'] ? `aria-current="${escape$1(a['aria-current'])}"` : ''}
+      ${a.toggle ? `aria-pressed="${a.pressed}"` : a['aria-pressed'] ? `aria-pressed="${escape$1(a['aria-pressed'])}"` : ''}
+      ${a['aria-controls'] && !menu ? `aria-controls="${escape$1(a['aria-controls'])}"` : ''} ${menu ? menuAttrs : ''}>${content}</${tag}>`;
+        return a.split && a['menu-target']
+            ? `<span class="btn-split">${button}<button type="button" class="${escape$1(classes)} btn-icon btn-menu-trigger dropdown-trigger no-autoinit" ${menuAttrs} aria-label="${escape$1(a['menu-label'])}" ${a.disabled ? 'disabled' : ''}><i class="material-icons" aria-hidden="true">arrow_drop_down</i></button></span>`
+            : button;
+    }
+    postRender() {
+        const a = this.prepareContext().attributes;
+        const button = this.querySelector('[part="button"]');
+        for (const el of this.querySelectorAll('.btn')) {
+            // CSSOM validates the value and supports keywords, var(), and image URLs.
+            // Invalid/empty values fall back to the host cursor; disabled controls keep their default.
+            if (!a.disabled && a.cursor)
+                el.style.cursor = String(a.cursor);
+            this.applyColor(el, String(a['color-primary']), false);
+            this.applyColor(el, String(a['color-secondary']), true);
+        }
+        // Focus can flush styles: apply custom colors first so a rebuilt button
+        // does not transition from its default background when focus is restored.
+        if (this.restoreFocus) {
+            button.focus();
+            this.restoreFocus = false;
+        }
+        if (['floating', 'icon', 'fab'].includes(String(a.type)) && a.label) {
+            let tooltip;
+            let cancelled = false;
+            this.onCleanup(() => { cancelled = true; tooltip?.destroy(); });
+            this.tooltipReady = loadTooltipPeer().then(peer => {
+                if (cancelled)
+                    return;
+                tooltip = createTooltipWith(peer.create, peer.fill, button, a['tooltip-style'], {
+                    content: String(a.label), placement: a['tooltip-position'],
+                });
+            });
+        }
+        const click = () => {
+            if (this.getProperty('disabled'))
+                return;
+            if (this.getProperty('toggle')) {
+                const group = this.closest('[data-selection]');
+                if (group?.getAttribute('data-selection') === 'single') {
+                    group.querySelectorAll('crazy-button, regular-btn').forEach(peer => {
+                        if (peer.closest('[data-selection]') === group && peer.getProperty('toggle'))
+                            peer.setProperty('pressed', peer === this);
+                    });
+                }
+                else
+                    this.setProperty('pressed', !this.getProperty('pressed'));
+            }
+            this.dispatchEvent(new CustomEvent('buttonaction', { bubbles: true, composed: true, detail: {
+                    action: this.getProperty('action') || this.getProperty('label'),
+                    pressed: this.getProperty('toggle') ? String(this.getProperty('pressed')) : null,
+                } }));
+        };
+        button.addEventListener('click', click);
+        this.onCleanup(() => {
+            this.restoreFocus = document.activeElement === button;
+            button.removeEventListener('click', click);
+        });
+        const trigger = this.querySelector('.dropdown-trigger');
+        const menuTarget = String(a['menu-target'] ?? '');
+        const menu = trigger && menuTarget ? document.getElementById(menuTarget) : null;
+        if (trigger && menu && !a.disabled) {
+            const parent = menu.parentNode;
+            const next = menu.nextSibling;
+            const dropdown = Dropdown.init(trigger, {
+                alignment: 'right', constrainWidth: false, coverTrigger: false, closeOnClick: true,
+                onOpenStart: () => trigger.setAttribute('aria-expanded', 'true'),
+                onCloseEnd: () => trigger.setAttribute('aria-expanded', 'false'),
+            });
+            const keydown = (event) => { if (event.key === 'Enter')
+                event.preventDefault(); };
+            menu.addEventListener('keydown', keydown, true);
+            this.onCleanup(() => {
+                dropdown.destroy();
+                menu.removeEventListener('keydown', keydown, true);
+                // Dropdown may relocate external menu nodes; retain them across rerenders.
+                if (parent)
+                    parent.insertBefore(menu, next?.parentNode === parent ? next : null);
+            });
+        }
+    }
+    restoreFocus = false;
+    applyColor(element, color, foreground) {
+        color = color.trim();
+        if (!color || this.getProperty('disabled'))
+            return;
+        if (!paletteColors.has(color) && CSS.supports('color', color)) {
+            element.style.setProperty(foreground ? 'color' : 'background-color', color);
+            if (foreground)
+                element.style.borderColor = color;
+        }
+        else {
+            // Rodeo accepts Materialize palette classes, e.g. "blue lighten-5".
+            element.classList.add(...color.trim().split(/\s+/).map((token, index) => foreground ? index === 0 ? `${token}-text` : `text-${token}` : token));
+            if (foreground)
+                element.style.borderColor = 'currentColor';
+        }
+    }
+}
+if (typeof customElements !== 'undefined' && !customElements.get('crazy-button'))
+    customElements.define('crazy-button', CrazyButton);
+// Native customElements requires a separate constructor for an alias.
+if (typeof customElements !== 'undefined' && !customElements.get('regular-btn'))
+    customElements.define('regular-btn', class RegularBtn extends CrazyButton {
+    });
+
+const _defaults$x = {
+    code: "",
+    language: "plain",
+    title: "",
+    copy: true,
+    highlight: true,
+    copyLabel: "Copy code",
+    copiedLabel: "Copied!",
+    errorLabel: "Unable to copy",
+};
+/** A themed code card. Source text is never executed or interpreted as markup. */
+class CodeCard extends Component {
+    ready;
+    _prism;
+    _originalNodes;
+    _addedClasses;
+    _code;
+    _pre;
+    _button;
+    _status;
+    _timer;
+    _copying = false;
+    _destroyed = false;
+    _revision = 0;
+    constructor(el, options = {}) {
+        super(el, options, CodeCard);
+        const source = el.querySelector("pre > code, code");
+        const language = Array.from(source?.classList || []).find(name => name.startsWith("language-"))?.slice(9);
+        this.options = {
+            ...CodeCard.defaults,
+            code: source?.textContent || "",
+            language: el.dataset.codeLanguage || language || "plain",
+            title: el.dataset.codeTitle || "",
+            copy: el.dataset.codeCopy !== "false",
+            highlight: el.dataset.codeHighlight !== "false",
+            ...options,
+        };
+        this._originalNodes = Array.from(el.childNodes);
+        this._addedClasses = ["card", "code-card"].filter(name => !el.classList.contains(name));
+        el.classList.add(...this._addedClasses);
+        el["M_CodeCard"] = this;
+        this._createElements();
+        this._render();
+        this.ready = this.update({});
+    }
+    static get defaults() { return _defaults$x; }
+    static init(els, options = {}) {
+        return super.init(els, options, CodeCard);
+    }
+    static getInstance(el) { return el["M_CodeCard"]; }
+    /** Update content, language, title, or the optional copy control. */
+    async update(options) {
+        if (this._destroyed)
+            return;
+        this.options = { ...this.options, ...options };
+        this._revision++;
+        clearTimeout(this._timer);
+        this._setCopyFeedback("content_copy");
+        this._render();
+        if (this.options.highlight && !this._prism) {
+            this._prism = await loadPeer({
+                specifier: "prismjs",
+                globalName: "Prism",
+                feature: "CodeCard syntax highlighting",
+                cdnHint: '<script src="path/to/prism.js" data-manual></script> (include the language grammars you use)',
+            }, async () => {
+                const scope = window;
+                const created = !scope.Prism;
+                if (created)
+                    scope.Prism = { manual: true };
+                try {
+                    return await import('prismjs');
+                }
+                catch (error) {
+                    if (created)
+                        delete scope.Prism;
+                    throw error;
+                }
+            });
+        }
+        if (!this._destroyed)
+            this._render();
+    }
+    getCode() { return this.options.code; }
+    /** Copy the original source, preserving whitespace and excluding UI labels. */
+    async copy() {
+        if (this._destroyed || this._copying || !this.options.copy)
+            return false;
+        const revision = this._revision;
+        const restoreFocus = this._button.contains(document.activeElement);
+        this._copying = true;
+        this._button.setProperty("disabled", true);
+        clearTimeout(this._timer);
+        this._setCopyFeedback("content_copy");
+        let success = false;
+        try {
+            await navigator.clipboard.writeText(this.options.code);
+            success = true;
+        }
+        catch {
+            // Leave the source available for manual selection when clipboard access fails.
+        }
+        finally {
+            this._copying = false;
+        }
+        if (this._destroyed)
+            return success;
+        this._button.setProperty("disabled", false);
+        if (revision === this._revision) {
+            this._setCopyFeedback(success ? "check" : "error_outline", success ? this.options.copiedLabel : this.options.errorLabel);
+            this._timer = setTimeout(() => this._setCopyFeedback("content_copy"), 2000);
+        }
+        await this._button.updateComplete;
+        if (this._destroyed)
+            return success;
+        if (restoreFocus && document.activeElement === document.body && this.options.copy && this._button.isConnected)
+            this._button.querySelector("button")?.focus({ preventScroll: true });
+        this.el.dispatchEvent(new CustomEvent("codecopy", { bubbles: true, detail: { success } }));
+        return success;
+    }
+    /** Restore the authored markup and remove component-owned listeners. */
+    destroy() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
+        clearTimeout(this._timer);
+        this._button.removeEventListener("buttonaction", this._onCopy);
+        this.el.replaceChildren(...this._originalNodes);
+        this.el.classList.remove(...this._addedClasses);
+        delete this.el["M_CodeCard"];
+    }
+    _onCopy = () => { void this.copy(); };
+    _createElements() {
+        this._status = document.createElement("span");
+        this._status.className = "code-card-status";
+        this._status.setAttribute("role", "status");
+        this._button = new CrazyButton();
+        this._button.className = "code-card-copy";
+        this._button.setAttribute("type", "icon");
+        this._button.setAttribute("variant", "standard");
+        this._button.setAttribute("size", "xs");
+        this._button.addEventListener("buttonaction", this._onCopy);
+        this._pre = document.createElement("pre");
+        this._pre.className = "code-card-body";
+        this._pre.tabIndex = 0;
+        this._code = document.createElement("code");
+        this._pre.append(this._code);
+        this.el.replaceChildren(this._status, this._button, this._pre);
+    }
+    _setCopyFeedback(icon, message = "") {
+        this._status.textContent = message;
+        this._button.setAttribute("icon-text", icon);
+        this._button.setAttribute("aria-label", message || this.options.copyLabel);
+        this._button.title = message || this.options.copyLabel;
+    }
+    _render() {
+        const requested = this.options.language.trim().toLowerCase();
+        const aliases = { html: "markup", xml: "markup", js: "javascript", ts: "typescript", shell: "bash", text: "plain", plaintext: "plain" };
+        const language = /^[a-z0-9-]+$/.test(requested) ? aliases[requested] || requested : "plain";
+        const labels = { markup: "HTML", css: "CSS", javascript: "JavaScript", typescript: "TypeScript", php: "PHP", json: "JSON", yaml: "YAML", bash: "Shell", python: "Python", handlebars: "Handlebars", plain: "Plain text" };
+        this._pre.setAttribute("aria-label", this.options.title || (labels[language] || requested.toUpperCase()) + " code");
+        this._button.hidden = !this.options.copy;
+        this._code.className = "language-" + language;
+        let grammar = this._prism?.languages[language];
+        if (grammar && (language === "javascript" || language === "typescript")) {
+            // Match the documentation's class and browser-global colors without changing shared grammars.
+            const classes = grammar["class-name"];
+            grammar = {
+                ...grammar,
+                "class-name": [
+                    ...(Array.isArray(classes) ? classes : classes ? [classes] : []),
+                    { pattern: /\b[A-Z][\w$]*(?=\s*\.)/ },
+                ],
+                "builtin-variable": /\b(?:document|window|console|navigator|globalThis)\b/,
+            };
+        }
+        if (this.options.highlight && grammar)
+            this._code.innerHTML = this._prism.highlight(this.options.code, grammar, language);
+        else
+            this._code.textContent = this.options.code;
+    }
 }
 
 const _defaults$w = {
@@ -2526,10 +3607,12 @@ async function runPopupSteps(swal, options, fire) {
         state.textContent = 'Waiting';
         const message = document.createElement('p');
         message.textContent = step.description || '';
-        body.append(title, state, message);
+        const content = document.createElement('div');
+        content.className = 'popup-stepper-content';
+        body.append(title, state, message, content);
         row.append(marker, body);
         list.append(row);
-        return { row, marker, state, message };
+        return { row, marker, state, message, content };
     });
     const status = document.createElement('p');
     status.className = 'popup-stepper-status';
@@ -2540,6 +3623,8 @@ async function runPopupSteps(swal, options, fire) {
     let popup;
     let running = false;
     let complete = false;
+    let confirmation;
+    let activeStep;
     const alive = () => !controller.signal.aborted && popup === swal.getPopup();
     const run = async () => {
         if (running || complete || !alive())
@@ -2552,6 +3637,9 @@ async function runPopupSteps(swal, options, fire) {
                 const index = results.length;
                 const step = steps[index];
                 const view = rows[index];
+                const token = activeStep = Symbol();
+                const current = () => alive() && running && activeStep === token;
+                view.content.replaceChildren();
                 view.row.dataset.state = 'active';
                 view.row.setAttribute('aria-current', 'step');
                 view.marker.textContent = String(index + 1);
@@ -2562,8 +3650,73 @@ async function runPopupSteps(swal, options, fire) {
                     signal: controller.signal,
                     results: Object.freeze([...results]),
                     setMessage(message) {
-                        if (alive() && running && results.length === index)
+                        if (current())
                             view.message.textContent = message;
+                    },
+                    waitForConfirmation(request) {
+                        if (!current())
+                            return Promise.reject(new DOMException('Cancelled', 'AbortError'));
+                        if (confirmation)
+                            return Promise.reject(new Error('Await the current confirmation before requesting another.'));
+                        return new Promise((resolve, reject) => {
+                            let validating = false;
+                            const error = document.createElement('p');
+                            error.className = 'popup-stepper-validation';
+                            error.setAttribute('role', 'alert');
+                            error.hidden = true;
+                            view.content.replaceChildren(request.content, error);
+                            view.row.dataset.state = 'waiting';
+                            view.state.textContent = 'Waiting for you';
+                            status.textContent = `Step ${index + 1} of ${steps.length}: ${step.title}. Confirm to continue.`;
+                            list.removeAttribute('aria-busy');
+                            const cleanup = () => {
+                                controller.signal.removeEventListener('abort', abort);
+                                if (confirmation === pending)
+                                    confirmation = undefined;
+                            };
+                            const abort = () => {
+                                cleanup();
+                                reject(new DOMException('Cancelled', 'AbortError'));
+                            };
+                            const pending = {
+                                async submit() {
+                                    if (validating || !current())
+                                        return;
+                                    validating = true;
+                                    error.hidden = true;
+                                    swal.getConfirmButton()?.setAttribute('disabled', '');
+                                    try {
+                                        const value = await request.readValue();
+                                        if (!current())
+                                            return;
+                                        cleanup();
+                                        view.row.dataset.state = 'active';
+                                        view.state.textContent = 'In progress';
+                                        list.setAttribute('aria-busy', 'true');
+                                        swal.update({ showConfirmButton: false });
+                                        resolve(value);
+                                    }
+                                    catch (reason) {
+                                        if (!current())
+                                            return;
+                                        error.textContent = reason instanceof Error ? reason.message : String(reason);
+                                        error.hidden = false;
+                                        view.content.querySelector('[aria-invalid="true"], :invalid')?.focus();
+                                    }
+                                    finally {
+                                        validating = false;
+                                        if (alive())
+                                            swal.getConfirmButton()?.removeAttribute('disabled');
+                                    }
+                                }
+                            };
+                            confirmation = pending;
+                            controller.signal.addEventListener('abort', abort, { once: true });
+                            swal.update({ showConfirmButton: true, confirmButtonText: request.confirmButtonText || 'Continue' });
+                            const focusable = 'input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [tabindex="0"]';
+                            const focus = request.content.matches(focusable) ? request.content : view.content.querySelector(focusable);
+                            (focus || swal.getConfirmButton())?.focus();
+                        });
                     }
                 });
                 if (!alive())
@@ -2574,6 +3727,8 @@ async function runPopupSteps(swal, options, fire) {
                 view.row.removeAttribute('aria-current');
                 view.marker.textContent = '✓';
                 view.state.textContent = 'Complete';
+                if (index < steps.length - 1)
+                    view.content.replaceChildren();
             }
             if (!alive())
                 return;
@@ -2599,6 +3754,7 @@ async function runPopupSteps(swal, options, fire) {
             swal.getConfirmButton()?.focus();
         }
         finally {
+            activeStep = undefined;
             running = false;
             list.removeAttribute('aria-busy');
         }
@@ -2617,6 +3773,10 @@ async function runPopupSteps(swal, options, fire) {
             willClose() { controller.abort(); },
             didDestroy() { controller.abort(); },
             preConfirm() {
+                if (confirmation) {
+                    void confirmation.submit();
+                    return false;
+                }
                 if (complete)
                     return [...results];
                 void run();
@@ -7275,74 +8435,23 @@ class Forms {
      */
     static textareaAutoResize(e) {
         const textarea = e;
-        // if (!textarea) {
-        //   console.error('No textarea element found');
-        //   return;
-        // }
-        // Textarea Auto Resize
-        let hiddenDiv = document.querySelector('.hiddendiv');
-        if (!hiddenDiv) {
-            hiddenDiv = document.createElement('div');
-            hiddenDiv.classList.add('hiddendiv', 'common');
-            document.body.append(hiddenDiv);
-        }
+        // Hidden fields cannot be measured until their layout is available.
+        if (!textarea.getClientRects().length || !textarea.offsetWidth)
+            return;
         const style = getComputedStyle(textarea);
-        // Set font properties of hiddenDiv
-        const fontFamily = style.fontFamily; //textarea.css('font-family');
-        const fontSize = style.fontSize; //textarea.css('font-size');
-        const lineHeight = style.lineHeight; //textarea.css('line-height');
-        // Firefox can't handle padding shorthand.
-        const paddingTop = style.paddingTop; //getComputedStyle(textarea).css('padding-top');
-        const paddingRight = style.paddingRight; //textarea.css('padding-right');
-        const paddingBottom = style.paddingBottom; //textarea.css('padding-bottom');
-        const paddingLeft = style.paddingLeft; //textarea.css('padding-left');
-        if (fontSize)
-            hiddenDiv.style.fontSize = fontSize; //('font-size', fontSize);
-        if (fontFamily)
-            hiddenDiv.style.fontFamily = fontFamily; //css('font-family', fontFamily);
-        if (lineHeight)
-            hiddenDiv.style.lineHeight = lineHeight; //css('line-height', lineHeight);
-        if (paddingTop)
-            hiddenDiv.style.paddingTop = paddingTop; //ss('padding-top', paddingTop);
-        if (paddingRight)
-            hiddenDiv.style.paddingRight = paddingRight; //css('padding-right', paddingRight);
-        if (paddingBottom)
-            hiddenDiv.style.paddingBottom = paddingBottom; //css('padding-bottom', paddingBottom);
-        if (paddingLeft)
-            hiddenDiv.style.paddingLeft = paddingLeft; //css('padding-left', paddingLeft);
-        // Set original-height, if none
+        const border = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+        const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+        const borderBox = style.boxSizing === 'border-box';
         if (!textarea.hasAttribute('original-height'))
             textarea.setAttribute('original-height', textarea.getBoundingClientRect().height.toString());
-        if (textarea.getAttribute('wrap') === 'off') {
-            hiddenDiv.style.overflowWrap = 'normal'; // ('overflow-wrap', 'normal')
-            hiddenDiv.style.whiteSpace = 'pre'; //.css('white-space', 'pre');
-        }
-        hiddenDiv.innerText = textarea.value + '\n';
-        hiddenDiv.innerHTML = hiddenDiv.innerHTML.replace(/\n/g, '<br>');
-        // When textarea is hidden, width goes crazy.
-        // Approximate with half of window size
-        if (textarea.offsetWidth > 0 && textarea.offsetHeight > 0) {
-            hiddenDiv.style.width = textarea.getBoundingClientRect().width + 'px'; // ('width', textarea.width() + 'px');
-        }
-        else {
-            hiddenDiv.style.width = window.innerWidth / 2 + 'px'; //css('width', window.innerWidth / 2 + 'px');
-        }
-        // Resize if the new height is greater than the
-        // original height of the textarea
-        const originalHeight = parseInt(textarea.getAttribute('original-height'));
-        const prevLength = parseInt(textarea.getAttribute('previous-length'));
-        if (isNaN(originalHeight))
-            return;
-        if (originalHeight <= hiddenDiv.clientHeight) {
-            textarea.style.height = hiddenDiv.clientHeight + 'px'; //css('height', hiddenDiv.innerHeight() + 'px');
-        }
-        else if (textarea.value.length < prevLength) {
-            // In case the new height is less than original height, it
-            // means the textarea has less text than before
-            // So we set the height to the original one
-            textarea.style.height = originalHeight + 'px';
-        }
-        textarea.setAttribute('previous-length', (textarea.value || '').length.toString());
+        const originalHeight = parseFloat(textarea.getAttribute('original-height')) || 0;
+        const minimum = borderBox ? originalHeight : Math.max(0, originalHeight - border - padding);
+        // Measure the native control so wrapping, fonts and trailing newlines agree.
+        // Reset first to let a previously expanded textarea shrink after deletion.
+        textarea.style.height = '0px';
+        const height = textarea.scrollHeight + (borderBox ? border : -padding);
+        textarea.style.height = Math.ceil(Math.max(minimum, height)) + 'px';
+        textarea.setAttribute('previous-length', textarea.value.length.toString());
     }
     static Init() {
         initOutlinedNotches();
@@ -7393,6 +8502,7 @@ class Forms {
         textarea.setAttribute('original-height', textarea.getBoundingClientRect().height.toString());
         textarea.setAttribute('previous-length', (textarea.value || '').length.toString());
         Forms.textareaAutoResize(textarea);
+        textarea.addEventListener('input', (e) => Forms.textareaAutoResize(e.target));
         textarea.addEventListener('keyup', (e) => Forms.textareaAutoResize(e.target));
         textarea.addEventListener('keydown', (e) => Forms.textareaAutoResize(e.target));
     }
@@ -10154,11 +11264,75 @@ class Tooltip extends Component {
     }
 }
 
+/** Keep the decimal point stable without changing the submitted range value. */
+function formatRangeNumber(input) {
+    if (input.step === 'any')
+        return input.value;
+    const precision = (text) => {
+        const [coefficient, exponent = '0'] = text.toLowerCase().split('e');
+        if (!Number.isFinite(Number(text)))
+            return 0;
+        return Math.max(0, (coefficient.split('.')[1]?.length || 0) - Number(exponent));
+    };
+    const digits = Math.min(20, Math.max(precision(input.step || '1'), precision(input.min || '0')));
+    return input.valueAsNumber.toFixed(digits);
+}
+const rangeReadouts = new WeakMap();
+/** Decorative rolling display; the native number input remains the editable control. */
+function createRangeReadout(field) {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'range-control-number';
+    const readout = document.createElement('span');
+    readout.className = 'range-control-readout';
+    readout.setAttribute('aria-hidden', 'true');
+    rangeReadouts.set(field, readout);
+    wrapper.append(field, readout);
+    return wrapper;
+}
+function updateRangeReadout(field, value) {
+    field.value = value;
+    const readout = rangeReadouts.get(field);
+    if (!readout || readout.dataset.value === value)
+        return;
+    const previous = readout.dataset.value;
+    readout.dataset.value = value;
+    readout.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+    const strip = document.createElement('span');
+    strip.className = 'range-control-reel';
+    const animate = previous !== undefined && document.activeElement !== field && !field.disabled
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const increasing = Number(value) >= Number(previous);
+    const values = animate ? (increasing ? [previous, value] : [value, previous]) : [value];
+    values.forEach(text => {
+        const row = document.createElement('span');
+        row.textContent = text;
+        strip.append(row);
+    });
+    readout.replaceChildren(strip);
+    if (animate) {
+        const from = increasing ? 'translateY(0)' : 'translateY(-30px)';
+        const to = increasing ? 'translateY(-30px)' : 'translateY(0)';
+        strip.style.transform = to;
+        // Blur only the moving reel; each update settles back to a sharp number.
+        strip.animate([
+            { transform: from, filter: 'blur(0px)' },
+            { filter: 'blur(1.4px)', offset: .35 },
+            { transform: to, filter: 'blur(0px)' }
+        ], { duration: 140, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    }
+}
+function clearRangeReadout(field) {
+    rangeReadouts.get(field)?.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+    rangeReadouts.delete(field);
+}
 const _defaults$b = { showValue: true, showTicks: false };
 /** Material-styled native range input. */
 class Range extends Component {
     value;
     thumb;
+    _control;
+    _numberField;
+    _editingNumber = false;
     _ticks;
     _tickValues = [];
     _pointerDown = false;
@@ -10177,6 +11351,8 @@ class Range extends Component {
         this._originalProgress = el.style.getPropertyValue('--range-progress');
         this._originalPriority = el.style.getPropertyPriority('--range-progress');
         this._originalValueText = el.getAttribute('aria-valuetext');
+        if (!el.closest('.range-interval') && (this.options.showInput || el.hasAttribute('data-range-inputs')))
+            this._createNumberField();
         this.thumb = document.createElement('span');
         this.thumb.className = 'thumb';
         this.thumb.setAttribute('aria-hidden', 'true');
@@ -10282,8 +11458,53 @@ class Range extends Component {
             this._pointerDown = false;
             this.el.classList.remove('active');
         }
+        if (this._numberField) {
+            this._numberField.min = String(min);
+            this._numberField.max = String(max);
+            this._numberField.step = this.el.step || '1';
+            this._numberField.disabled = this.el.matches(':disabled');
+            if (!this._editingNumber)
+                updateRangeReadout(this._numberField, formatRangeNumber(this.el));
+        }
     };
-    _showValue() { return this.options.showValue && this.el.dataset.valueLabel !== 'false'; }
+    _createNumberField() {
+        this._control = document.createElement('div');
+        this._control.className = 'range-control range-control-single';
+        this._control.dataset.rangeVariant = this.el.dataset.rangeVariant || 'filled';
+        const track = document.createElement('div');
+        track.className = 'range-field range-control-track';
+        const label = document.createElement('label');
+        label.className = 'range-control-value';
+        const caption = document.createElement('span');
+        caption.textContent = this.options.inputLabel || this.el.getAttribute('aria-label') || this.el.labels?.[0]?.textContent?.trim() || 'Value';
+        this._numberField = document.createElement('input');
+        this._numberField.type = 'number';
+        this._numberField.setAttribute('aria-label', caption.textContent);
+        this._numberField.addEventListener('input', this._handleNumber);
+        this._numberField.addEventListener('change', this._handleNumber);
+        this._numberField.addEventListener('blur', this._handleNumberBlur);
+        label.append(caption, createRangeReadout(this._numberField));
+        this.el.before(this._control);
+        track.append(this.el);
+        this._control.append(label, track);
+    }
+    _handleNumber = (event) => {
+        event.stopPropagation();
+        if (this.el.matches(':disabled'))
+            return;
+        this._editingNumber = event.type === 'input';
+        if (Number.isFinite(this._numberField.valueAsNumber)) {
+            this.el.valueAsNumber = this._numberField.valueAsNumber;
+            this.el.dispatchEvent(new Event(event.type, { bubbles: true }));
+        }
+        else if (event.type === 'change')
+            this.update();
+        this._editingNumber = false;
+    };
+    _handleNumberBlur = () => { this._editingNumber = false; this.update(); };
+    _showValue() {
+        return !this.el.closest('.range-control') && this.options.showValue && this.el.dataset.valueLabel !== 'false';
+    }
     _activate() {
         if (!this.el.disabled && this._showValue())
             this.thumb.classList.add('active');
@@ -10328,6 +11549,15 @@ class Range extends Component {
         this._attributes.disconnect();
         this.thumb.remove();
         this._ticks.remove();
+        if (this._control) {
+            clearRangeReadout(this._numberField);
+            this._numberField.removeEventListener('input', this._handleNumber);
+            this._numberField.removeEventListener('change', this._handleNumber);
+            this._numberField.removeEventListener('blur', this._handleNumberBlur);
+            this._control.replaceWith(this.el);
+            this._control = undefined;
+            this._numberField = undefined;
+        }
         this.el.classList.remove('active');
         if (this._originalProgress)
             this.el.style.setProperty('--range-progress', this._originalProgress, this._originalPriority);
@@ -10343,11 +11573,226 @@ class Range extends Component {
     }
     /** Initialize uninitialized ranges currently in the document. */
     static Init() {
-        if (typeof document !== 'undefined')
-            document.querySelectorAll('input[type=range]').forEach(el => {
-                if (!Range.getInstance(el))
-                    Range.init(el);
-            });
+        if (typeof document === 'undefined')
+            return;
+        document.querySelectorAll('.range-interval:not(.no-autoinit)').forEach(el => {
+            if (!RangeInterval.getInstance(el))
+                RangeInterval.init(el);
+        });
+        document.querySelectorAll('input[type=range]').forEach(el => {
+            if (!Range.getInstance(el))
+                Range.init(el);
+        });
+    }
+}
+/** Two native sliders sharing a track. The first input defines min, max and step. */
+class RangeInterval extends Component {
+    start;
+    end;
+    _ranges;
+    _control;
+    _fields = [];
+    _editing;
+    _attributes;
+    _resize;
+    _form;
+    _resetTimer;
+    _disposed = false;
+    _originalAttributes;
+    _originalStyle;
+    constructor(el, options = {}) {
+        const inputs = el.querySelectorAll('input[type="range"]');
+        if (inputs.length !== 2 || Array.from(inputs).some(input => input.parentElement !== el))
+            throw new Error('RangeInterval requires exactly two direct range input children.');
+        super(el, options, RangeInterval);
+        this.start = inputs[0];
+        this.end = inputs[1];
+        this.options = { ...RangeInterval.defaults, ...options, showTicks: false };
+        this._originalStyle = el.getAttribute('style');
+        this._originalAttributes = new Map(Array.from(inputs, input => [input, new Map((input === this.end ? ['min', 'max', 'step', 'aria-valuemin', 'aria-valuemax'] : ['aria-valuemin', 'aria-valuemax']).map(name => [name, input.getAttribute(name)]))]));
+        el['M_RangeInterval'] = this;
+        this._syncBounds();
+        this._ranges = Array.from(inputs, input => Range.init(input, this.options));
+        // Capture clamps before the individual Range and application listeners read the value.
+        el.addEventListener('input', this._handleInput, true);
+        el.addEventListener('change', this._handleInput, true);
+        this._form = this.start.form;
+        this._form?.addEventListener('reset', this._handleReset);
+        this._attributes = new MutationObserver(this.update);
+        inputs.forEach(input => this._attributes.observe(input, {
+            attributes: true, attributeFilter: ['min', 'max', 'step', 'value', 'disabled', 'dir']
+        }));
+        if (typeof ResizeObserver !== 'undefined') {
+            this._resize = new ResizeObserver(this.update);
+            this._resize.observe(el);
+        }
+        window.addEventListener('resize', this.update);
+        if (this.options.showInputs || el.hasAttribute('data-range-inputs'))
+            this._createFields();
+        this.update();
+    }
+    static get defaults() {
+        return { ...Range.defaults, showInputs: false, startLabel: 'In', endLabel: 'Out' };
+    }
+    static init(els, options = {}) {
+        return super.init(els, options, RangeInterval);
+    }
+    static getInstance(el) { return el['M_RangeInterval']; }
+    /** Read the numeric in/out values in ascending order. */
+    getValues() { return [this.start.valueAsNumber, this.end.valueAsNumber]; }
+    /** Set both values, applying native bounds/step rounding. Does not dispatch input/change. */
+    setValues(start, end) {
+        if (!Number.isFinite(start) || !Number.isFinite(end))
+            throw new TypeError('RangeInterval values must be finite numbers.');
+        this._syncBounds();
+        this.start.valueAsNumber = Math.min(start, end);
+        this.end.valueAsNumber = Math.max(start, end);
+        this.update();
+    }
+    _syncBounds() {
+        for (const name of ['min', 'max', 'step']) {
+            const value = this.start.getAttribute(name);
+            if (this.end.getAttribute(name) === value)
+                continue;
+            if (value === null)
+                this.end.removeAttribute(name);
+            else
+                this.end.setAttribute(name, value);
+        }
+    }
+    /** Refresh after programmatic changes. The first input owns the shared bounds and step. */
+    update = () => {
+        if (this._disposed)
+            return;
+        this._syncBounds();
+        if (this.start.valueAsNumber > this.end.valueAsNumber) {
+            const start = this.start.value;
+            this.start.value = this.end.value;
+            this.end.value = start;
+        }
+        this._ranges.forEach(range => range.update());
+        const [start, end] = this.getValues();
+        const numeric = (value, fallback) => value.trim() && Number.isFinite(Number(value)) ? Number(value) : fallback;
+        const min = numeric(this.start.min, 0);
+        const max = Math.max(min, numeric(this.start.max, 100));
+        this.start.setAttribute('aria-valuemin', String(min));
+        this.start.setAttribute('aria-valuemax', String(end));
+        this.end.setAttribute('aria-valuemin', String(start));
+        this.end.setAttribute('aria-valuemax', String(max));
+        const handleSize = parseFloat(getComputedStyle(this.start).getPropertyValue('--range-handle-size')) || 20;
+        this.el.style.setProperty('--range-edge', `${handleSize / 2}px`);
+        this.el.style.setProperty('--range-start', this.start.style.getPropertyValue('--range-progress'));
+        this.el.style.setProperty('--range-end', this.end.style.getPropertyValue('--range-progress'));
+        // At the maximum the in handle must remain reachable when both handles coincide.
+        this.el.style.setProperty('--range-start-layer', start === max ? '2' : '1');
+        this._fields.forEach((field, index) => {
+            const input = index === 0 ? this.start : this.end;
+            field.min = String(index === 0 ? min : start);
+            field.max = String(index === 0 ? end : max);
+            field.step = this.start.step || '1';
+            field.disabled = input.matches(':disabled');
+            if (field !== this._editing)
+                updateRangeReadout(field, formatRangeNumber(input));
+        });
+    };
+    _handleInput = (event) => {
+        if (event.target !== this.start && event.target !== this.end)
+            return;
+        if (this.start.valueAsNumber > this.end.valueAsNumber) {
+            if (event.target === this.start)
+                this.start.value = this.end.value;
+            else
+                this.end.value = this.start.value;
+        }
+        this.update();
+    };
+    _createFields() {
+        this._control = document.createElement('div');
+        this._control.className = 'range-control';
+        this._control.dataset.rangeVariant = this.el.dataset.rangeVariant || 'filled';
+        // Keep the fields in the same directional context as the slider.
+        if (this.el.hasAttribute('dir'))
+            this._control.dir = this.el.dir;
+        this.el.before(this._control);
+        this._control.append(this.el);
+        [this.options.startLabel, this.options.endLabel].forEach((text, index) => {
+            const label = document.createElement('label');
+            label.className = 'range-control-value';
+            const caption = document.createElement('span');
+            caption.textContent = text;
+            const field = document.createElement('input');
+            field.type = 'number';
+            field.setAttribute('aria-label', text);
+            // The native ranges remain the only named/submitted values.
+            field.addEventListener('input', this._handleField);
+            field.addEventListener('change', this._handleField);
+            field.addEventListener('blur', this._handleFieldBlur);
+            label.append(caption, createRangeReadout(field));
+            this._fields.push(field);
+            if (index === 0)
+                this._control.prepend(label);
+            else
+                this._control.append(label);
+        });
+    }
+    _handleField = (event) => {
+        const field = event.currentTarget;
+        const input = this._fields.indexOf(field) === 0 ? this.start : this.end;
+        event.stopPropagation();
+        if (input.matches(':disabled'))
+            return;
+        // Allow empty/partial drafts and multi-digit typing; normalize on commit.
+        this._editing = event.type === 'input' ? field : undefined;
+        if (Number.isFinite(field.valueAsNumber)) {
+            input.valueAsNumber = field.valueAsNumber;
+            input.dispatchEvent(new Event(event.type, { bubbles: true }));
+        }
+        else if (event.type === 'change')
+            this.update();
+        this._editing = undefined;
+    };
+    _handleFieldBlur = () => { this._editing = undefined; this.update(); };
+    _handleReset = () => {
+        clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(this.update, 0);
+    };
+    destroy() {
+        this._disposed = true;
+        clearTimeout(this._resetTimer);
+        this._attributes.disconnect();
+        this._resize?.disconnect();
+        this._form?.removeEventListener('reset', this._handleReset);
+        window.removeEventListener('resize', this.update);
+        this.el.removeEventListener('input', this._handleInput, true);
+        this.el.removeEventListener('change', this._handleInput, true);
+        this._ranges.forEach(range => range.destroy());
+        this._fields.forEach(field => {
+            clearRangeReadout(field);
+            field.removeEventListener('input', this._handleField);
+            field.removeEventListener('change', this._handleField);
+            field.removeEventListener('blur', this._handleFieldBlur);
+        });
+        if (this._control) {
+            this._control.replaceWith(this.el);
+            this._control = undefined;
+        }
+        this._fields = [];
+        this._originalAttributes.forEach((attributes, input) => attributes.forEach((value, name) => {
+            if (value === null)
+                input.removeAttribute(name);
+            else
+                input.setAttribute(name, value);
+        }));
+        for (const name of ['--range-start', '--range-end', '--range-start-layer', '--range-edge']) {
+            const original = document.createElement('div');
+            original.setAttribute('style', this._originalStyle || '');
+            const value = original.style.getPropertyValue(name);
+            if (value)
+                this.el.style.setProperty(name, value, original.style.getPropertyPriority(name));
+            else
+                this.el.style.removeProperty(name);
+        }
+        this.el['M_RangeInterval'] = undefined;
     }
 }
 
@@ -10485,25 +11930,46 @@ class Toolbar extends Component {
     }
 }
 
-const _defaults$9 = {};
-// @implement /Users/kzarshenas/Sites/CrazyProject/CrazyPHP/src/Front/Library/Utility/Form/Password.ts
-// Show/hide toggle for a password input - no third-party dependency, just
-// Materialize's own .prefix/.suffix icon-slot convention (see
-// components/textfield/_input-fields.scss), so unlike the other new form
-// enhancements in this batch this one needs no peer-loader/dynamic import.
+const _defaults$9 = {
+    showLabel: 'Show password',
+    hideLabel: 'Hide password'
+};
+/**
+ * Show or hide a password with an accessible suffix button.
+ * Existing data-password-toggle-icon wrappers remain supported.
+ */
 class PasswordInput extends Component {
     _suffixEl;
+    _stateObserver;
+    _originalAttributes = new Map();
     constructor(el, options) {
         super(el, options, PasswordInput);
         this.el.M_PasswordInput = this;
-        this.options = {
-            ...PasswordInput.defaults,
-            ...options
-        };
+        this.options = { ...PasswordInput.defaults, ...options };
         this._suffixEl = this.el.parentElement?.querySelector('[data-password-toggle-icon]') ?? null;
-        if (!this.el.dataset.passwordVisible)
-            this.el.dataset.passwordVisible = '0';
-        this._setupEventHandlers();
+        if (this._suffixEl) {
+            for (const name of ['type', 'role', 'tabindex', 'aria-label', 'aria-pressed', 'aria-controls', 'aria-disabled', 'disabled', 'icon-text'])
+                this._originalAttributes.set(name, this._suffixEl.getAttribute(name));
+            if (this._suffixEl instanceof HTMLButtonElement) {
+                this._suffixEl.type = 'button';
+            }
+            else if (!this._isCrazyButton()) {
+                this._suffixEl.setAttribute('role', 'button');
+                this._suffixEl.tabIndex = 0;
+            }
+            if (this.el.id)
+                this._suffixEl.setAttribute('aria-controls', this.el.id);
+        }
+        // Read the actual input type, including an initially visible password.
+        this._syncState();
+        this._suffixEl?.addEventListener('click', this._handleToggleClick);
+        this._suffixEl?.addEventListener('keydown', this._handleToggleKeydown);
+        this._stateObserver = new MutationObserver(() => this._syncState());
+        this._stateObserver.observe(this.el, { attributes: true, attributeFilter: ['type', 'disabled'] });
+        for (let parent = this.el.parentElement; parent; parent = parent.parentElement) {
+            if (parent instanceof HTMLFieldSetElement)
+                this._stateObserver.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
+        }
     }
     static get defaults() {
         return _defaults$9;
@@ -10514,23 +11980,63 @@ class PasswordInput extends Component {
     static getInstance(el) {
         return el.M_PasswordInput;
     }
+    /** Remove listeners and restore the supplied button attributes. */
     destroy() {
-        this._removeEventHandlers();
+        this._stateObserver.disconnect();
+        this._suffixEl?.removeEventListener('click', this._handleToggleClick);
+        this._suffixEl?.removeEventListener('keydown', this._handleToggleKeydown);
+        for (const [name, value] of this._originalAttributes) {
+            if (value === null)
+                this._suffixEl?.removeAttribute(name);
+            else
+                this._suffixEl?.setAttribute(name, value);
+        }
         this.el.M_PasswordInput = undefined;
     }
-    _setupEventHandlers() {
-        this._suffixEl?.addEventListener('click', this._handleToggleClick);
+    /** Toggle without submitting the form or changing its value or selection. */
+    toggle() {
+        if (this.el.matches(':disabled'))
+            return;
+        const start = this.el.selectionStart;
+        const end = this.el.selectionEnd;
+        const direction = this.el.selectionDirection;
+        this.el.type = this.el.type === 'password' ? 'text' : 'password';
+        if (start !== null && end !== null)
+            this.el.setSelectionRange(start, end, direction ?? undefined);
+        this._syncState();
     }
-    _removeEventHandlers() {
-        this._suffixEl?.removeEventListener('click', this._handleToggleClick);
+    _isCrazyButton() {
+        return this._suffixEl?.matches('crazy-button, regular-btn') ?? false;
     }
-    _handleToggleClick = () => {
-        const visible = this.el.dataset.passwordVisible === '1';
-        this.el.type = visible ? 'password' : 'text';
-        this.el.dataset.passwordVisible = visible ? '0' : '1';
-        const iconEl = this._suffixEl?.querySelector('i');
-        if (iconEl)
-            iconEl.textContent = visible ? 'visibility' : 'visibility_off';
+    _syncState() {
+        const visible = this.el.type === 'text';
+        const disabled = this.el.matches(':disabled');
+        this.el.dataset.passwordVisible = visible ? '1' : '0';
+        this._suffixEl?.setAttribute('aria-label', visible ? this.options.hideLabel : this.options.showLabel);
+        this._suffixEl?.setAttribute('aria-pressed', String(visible));
+        this._suffixEl?.setAttribute('aria-disabled', String(disabled));
+        if (this._suffixEl instanceof HTMLButtonElement)
+            this._suffixEl.disabled = disabled;
+        if (this._isCrazyButton()) {
+            this._suffixEl?.toggleAttribute('disabled', disabled);
+            this._suffixEl?.setAttribute('icon-text', visible ? 'visibility_off' : 'visibility');
+        }
+        else {
+            const icon = this._suffixEl?.querySelector('i');
+            if (icon)
+                icon.textContent = visible ? 'visibility_off' : 'visibility';
+        }
+    }
+    _handleToggleClick = (event) => {
+        event.preventDefault();
+        this.toggle();
+    };
+    _handleToggleKeydown = (event) => {
+        // Native buttons already dispatch clicks for Enter and Space.
+        if (this._suffixEl instanceof HTMLButtonElement || this._isCrazyButton() || !['Enter', ' '].includes(event.key))
+            return;
+        event.preventDefault();
+        this.toggle();
     };
 }
 
@@ -13096,900 +14602,6 @@ class OrgChart {
     }
 }
 
-/**
- * Front
- *
- * Front TS scripts for your Crazy App.
- *
- * @package    kzarshenas/crazyphp
- * @author     kekefreedog <kevin.zarshenas@gmail.com>
- * @copyright  2022-2026 Kévin Zarshenas
- */
-/**
- * Kmcomponent
- *
- * Reactive web components using compiled Handlebars templates and SCSS styles.
- * Supports light DOM projection or native slots inside an open shadow root.
- *
- * @package    kzarshenas/crazyphp
- * @author     kekefreedog <kevin.zarshenas@gmail.com>
- * @copyright  2022-2026 Kévin Zarshenas
- */
-class Kmcomponent extends (typeof HTMLElement === "undefined" ? class {
-} : HTMLElement) {
-    /** Static Parameters
-     ******************************************************
-     */
-    /** @var properties Property schema, available before custom element registration */
-    static properties = {};
-    /** @var template Compiled HBS function, HTML string, or module export */
-    static template = "";
-    /** @var styles Compiled CSS, context function, or css-loader export */
-    static styles = "";
-    /** @var options Default rendering mode for instances of the component */
-    static options = { shadow: false };
-    /** Parameters
-     ******************************************************
-     */
-    /** @var renderRoot Query this element or shadow root in component hooks */
-    renderRoot;
-    /** @var updateComplete Resolves true after rendering, false if disconnected before the update */
-    updateComplete = Promise.resolve(false);
-    /** Private Parameters
-     ******************************************************
-     */
-    /** @var _values Current typed values, independent from the static schema */
-    _values = Object.create(null);
-    /** @var _initialized Whether defaults have been validated and copied */
-    _initialized = false;
-    /** @var _pending Whether a render microtask is already queued */
-    _pending = false;
-    /** @var _reflecting Prevent attribute reflection from feeding back into property updates */
-    _reflecting = false;
-    /** @var _template Optional template override for this instance */
-    _template;
-    /** @var _styles Optional stylesheet override for this instance */
-    _styles;
-    /** @var _cleanups Resources to release before rerendering or disconnecting */
-    _cleanups = [];
-    /** @var _observer Observer for light DOM child changes */
-    _observer = null;
-    /** @var _children Supplied child nodes in their projection order */
-    _children = [];
-    /** @var _ownedRoots Template roots, excluded when collecting supplied children */
-    _ownedRoots = new Set();
-    /** @var _slots Light DOM insertion points and their original fallback content */
-    _slots = [];
-    /** @var _parking Retained children without a matching light DOM slot */
-    _parking;
-    /**
-     * Constructor
-     *
-     * Choose the rendering root without reading attributes or supplied children.
-     * Subclass fields are initialized after this constructor returns.
-     *
-     * @param options Rendering options overriding the static defaults
-     */
-    constructor(options = {}) {
-        // Construct the native element before accessing the subclass configuration.
-        super();
-        // Constructor options take precedence over the component's static defaults.
-        const configuration = { ...this.component.options, ...options };
-        this.renderRoot = configuration.shadow ? this.attachShadow({ mode: "open" }) : this;
-        // Keep unmatched light DOM children alive without displaying them.
-        this._parking = this.ownerDocument.createDocumentFragment();
-    }
-    /** Methods | Events
-     ******************************************************
-     */
-    /**
-     * Post Render
-     *
-     * Called after the generated markup and projected children have been mounted.
-     * Override to install event handlers or widgets, paired with onCleanup().
-     *
-     * @return void
-     */
-    postRender() {
-        // Component subclasses can attach their behavior after rendering.
-    }
-    /**
-     * On Cleanup
-     *
-     * Register a resource disposer for the current rendered content.
-     *
-     * @param cleanup Callback executed before rerendering or disconnecting
-     * @return void
-     */
-    onCleanup(cleanup) {
-        this._cleanups.push(cleanup);
-    }
-    /** Public Methods | Properties
-     ******************************************************
-     */
-    /**
-     * Get Property
-     *
-     * Read a typed value, initializing per-instance defaults when necessary.
-     *
-     * @param name Declared property name
-     * @return Current property value
-     * @throws TypeError When the property is not declared
-     */
-    getProperty(name) {
-        this.definition(name);
-        this.initialize();
-        return this._values[name];
-    }
-    /**
-     * Set Property
-     *
-     * Update a typed value and optionally reflect it to the mapped HTML attribute.
-     * Programmatic values must already match the declared type.
-     *
-     * @param name Declared property name
-     * @param value New typed value
-     * @return void
-     * @throws TypeError When the value is invalid or cannot be serialized
-     */
-    setProperty(name, value) {
-        const property = this.definition(name);
-        this.initialize();
-        if (!this.valid(value, property))
-            throw new TypeError(`Invalid component property: ${name}`);
-        const attribute = this.component.attributeName(name, property);
-        // Serialize before changing state: circular JSON must not partially update it.
-        const serialized = property.reflect && attribute !== null
-            ? property.type === "array" || property.type === "object" ? JSON.stringify(value)
-                : String(value)
-            : null;
-        const changed = !Object.is(this._values[name], value);
-        this._values[name] = value;
-        // Reflected writes must not trigger a second conversion or render request.
-        if (serialized !== null && attribute !== null) {
-            this._reflecting = true;
-            try {
-                if (this.getAttribute(attribute) !== serialized)
-                    this.setAttribute(attribute, serialized);
-            }
-            finally {
-                this._reflecting = false;
-            }
-        }
-        if (changed)
-            this.requestUpdate();
-    }
-    /** Public Methods | Rendering
-     ******************************************************
-     */
-    /**
-     * Set Html And Css
-     *
-     * Override the static assets for one instance, including constructor-based setup.
-     *
-     * @param html HTML string, compiled template, or module export
-     * @param css CSS string, context function, or css-loader export
-     * @return void
-     */
-    setHtmlAndCss(html, css) {
-        this._template = html;
-        this._styles = css;
-        this.requestUpdate();
-    }
-    /**
-     * Render
-     *
-     * Evaluate the template without mounting it or changing supplied children.
-     * Styles are mounted separately during the scheduled update.
-     *
-     * @return Rendered HTML
-     */
-    render() {
-        let template = this._template ?? this.component.template;
-        while (typeof template === "object")
-            template = template.default;
-        return typeof template === "function" ? template(this.prepareContext()) : template;
-    }
-    /**
-     * Request Update
-     *
-     * Batch synchronous changes into one render microtask.
-     * Changes made while disconnected are rendered on the next connection.
-     *
-     * @return Promise resolving whether the queued update rendered
-     */
-    requestUpdate() {
-        // Reuse the pending update so synchronous property changes render together.
-        if (this._pending)
-            return this.updateComplete;
-        this._pending = true;
-        this.updateComplete = Promise.resolve().then(() => {
-            // Release the queue before rendering so hooks can request a later update.
-            this._pending = false;
-            if (!this.isConnected)
-                return false;
-            this.update();
-            return true;
-        });
-        return this.updateComplete;
-    }
-    /** Protected Methods
-     ******************************************************
-     */
-    /**
-     * Prepare Context
-     *
-     * Build the template data using the existing attributes/name convention.
-     * Override to add component-specific context.
-     *
-     * @return Template context
-     */
-    prepareContext() {
-        this.initialize();
-        return { attributes: { ...this._values }, name: this.localName };
-    }
-    /** Private Methods | Properties
-     ******************************************************
-     */
-    /**
-     * Get Component
-     *
-     * Access declarations on the concrete subclass rather than instance fields.
-     *
-     * @return Component constructor
-     */
-    get component() {
-        return this.constructor;
-    }
-    /**
-     * Get Definition
-     *
-     * Resolve an own schema entry, rejecting undeclared property names.
-     *
-     * @param name Property name
-     * @return Property definition
-     */
-    definition(name) {
-        if (!Object.prototype.hasOwnProperty.call(this.component.properties, name)) {
-            throw new TypeError(`Unknown component property: ${name}`);
-        }
-        return this.component.properties[name];
-    }
-    /**
-     * Clone Default
-     *
-     * Copy JSON-compatible defaults recursively so instances do not share objects.
-     *
-     * @param value Default value to copy
-     * @return Independent copy of the value
-     */
-    clone(value) {
-        if (Array.isArray(value))
-            return value.map(item => this.clone(item));
-        if (value !== null && typeof value === "object") {
-            const result = {};
-            for (const key of Object.keys(value)) {
-                Object.defineProperty(result, key, {
-                    value: this.clone(value[key]),
-                    enumerable: true, configurable: true, writable: true,
-                });
-            }
-            return result;
-        }
-        return value;
-    }
-    /**
-     * Get Default Value
-     *
-     * Use the declared default or the empty value for the declared type.
-     *
-     * @param property Property definition
-     * @return Fresh default value
-     */
-    defaultValue(property) {
-        if (property.default !== undefined)
-            return this.clone(property.default);
-        switch (property.type) {
-            case "string": return "";
-            case "number": return 0;
-            case "boolean": return false;
-            case "array": return [];
-            case "object": return {};
-        }
-    }
-    /**
-     * Validate Value
-     *
-     * Check the runtime type and any allowed scalar values.
-     *
-     * @param value Value to validate
-     * @param property Property definition
-     * @return Whether the value matches the schema
-     */
-    valid(value, property) {
-        let matches;
-        switch (property.type) {
-            case "number":
-                matches = typeof value === "number" && Number.isFinite(value);
-                break;
-            case "array":
-                matches = Array.isArray(value);
-                break;
-            case "object":
-                matches = Object.prototype.toString.call(value) === "[object Object]";
-                break;
-            default: matches = typeof value === property.type;
-        }
-        return matches && (!property.select || property.select.includes(value));
-    }
-    /**
-     * Initialize Properties
-     *
-     * Validate the schema and create each instance's initial values once.
-     *
-     * @return void
-     * @throws TypeError When defaults or reflection options are inconsistent
-     */
-    initialize() {
-        if (this._initialized)
-            return;
-        for (const name of Object.keys(this.component.properties)) {
-            const property = this.definition(name);
-            const value = this.defaultValue(property);
-            if (!this.valid(value, property)) {
-                throw new TypeError(`Invalid default for component property: ${name}`);
-            }
-            if (property.reflect && property.attribute === false) {
-                throw new TypeError(`Reflected property must have an attribute: ${name}`);
-            }
-            this._values[name] = value;
-        }
-        this._initialized = true;
-    }
-    /**
-     * Convert Attribute
-     *
-     * Convert HTML strings to typed values. Invalid or removed attributes restore
-     * the declared default, including explicit false and zero values.
-     *
-     * @param value HTML attribute value, or null when removed
-     * @param property Property definition
-     * @return Converted value or default
-     */
-    fromAttribute(value, property) {
-        if (value === null)
-            return this.defaultValue(property);
-        let parsed = value;
-        switch (property.type) {
-            case "number":
-                parsed = value.trim() === "" ? NaN : Number(value);
-                break;
-            case "boolean": {
-                const normalized = value.trim().toLowerCase();
-                parsed = ["", "true", "1"].includes(normalized) ? true
-                    : ["false", "0"].includes(normalized) ? false : undefined;
-                break;
-            }
-            case "array":
-            case "object":
-                try {
-                    parsed = JSON.parse(value);
-                }
-                catch {
-                    parsed = undefined;
-                }
-                break;
-        }
-        return this.valid(parsed, property) ? parsed : this.defaultValue(property);
-    }
-    /** Private Methods | Rendering
-     ******************************************************
-     */
-    /**
-     * Get Style Text
-     *
-     * Normalize styles while retaining css-loader's CSS-aware serialization.
-     *
-     * @return CSS text
-     */
-    styleText() {
-        let styles = this._styles ?? this.component.styles;
-        while (typeof styles === "object" && "default" in styles)
-            styles = styles.default;
-        if (typeof styles === "function")
-            return styles(this.prepareContext());
-        if (typeof styles === "string")
-            return styles;
-        // css-loader exports a list with its own CSS-aware toString().
-        if (styles.toString !== Object.prototype.toString && styles.toString !== Array.prototype.toString) {
-            return styles.toString();
-        }
-        throw new TypeError("Component styles must be CSS text or a css-loader export.");
-    }
-    /**
-     * Update
-     *
-     * Prepare the new markup before replacing the current render.
-     * Retain supplied light DOM nodes and mount them into the new insertion points.
-     *
-     * @return void
-     */
-    update() {
-        this.initialize();
-        // Evaluate both assets before disturbing the currently mounted content.
-        const template = this.ownerDocument.createElement("template");
-        template.innerHTML = this.render();
-        const css = this.styleText();
-        if (css) {
-            const style = this.ownerDocument.createElement("style");
-            style.textContent = css;
-            template.content.prepend(style);
-        }
-        // Internal node moves must not be interpreted as new supplied children.
-        this._observer?.disconnect();
-        try {
-            this.cleanup();
-            if (this.renderRoot === this) {
-                // Save original nodes rather than cloning their markup and losing state.
-                this.collectChildren();
-                for (const node of this._children)
-                    this._parking.appendChild(node);
-                // A nested custom element owns its own slots.
-                this._slots = Array.from(template.content.querySelectorAll("slot"))
-                    .filter(slot => {
-                    for (let parent = slot.parentElement; parent; parent = parent.parentElement) {
-                        if (parent.localName.includes("-"))
-                            return false;
-                    }
-                    return true;
-                })
-                    .map(element => ({ element, fallback: Array.from(element.childNodes) }));
-                this._ownedRoots = new Set(template.content.childNodes);
-            }
-            // Native shadow slots project automatically; light DOM requires explicit moves.
-            this.renderRoot.replaceChildren(template.content);
-            if (this.renderRoot === this)
-                this.projectChildren();
-        }
-        finally {
-            this.observeChildren();
-        }
-        // Hooks see the complete render, including any supplied content.
-        this.postRender();
-    }
-    /**
-     * Cleanup
-     *
-     * Release resources in reverse registration order.
-     * Run every disposer even if one fails, then propagate the last error.
-     *
-     * @return void
-     */
-    cleanup() {
-        const callbacks = this._cleanups.splice(0).reverse();
-        let failure;
-        let failed = false;
-        for (const callback of callbacks) {
-            try {
-                callback();
-            }
-            catch (error) {
-                failed = true;
-                failure = error;
-            }
-        }
-        if (failed)
-            throw failure;
-    }
-    /** Private Methods | Children
-     ******************************************************
-     */
-    /**
-     * Collect Children
-     *
-     * Retain supplied nodes still owned by this component and discover newly
-     * appended host children. Removed nodes must not return on the next render.
-     *
-     * @return void
-     */
-    collectChildren() {
-        // Drop nodes removed or transferred out of this component by application code.
-        this._children = this._children.filter(node => this.contains(node) || node.parentNode === this._parking);
-        const added = Array.from(this.childNodes).filter(node => !this._ownedRoots.has(node));
-        // Re-appending a supplied node moves it to the end, as appendChild does.
-        this._children = this._children.filter(node => !added.includes(node));
-        this._children.push(...added);
-    }
-    /**
-     * Project Children
-     *
-     * Assign supplied nodes to the first matching light DOM slot.
-     * Restore fallback content for empty slots and retain unmatched nodes.
-     *
-     * @return void
-     */
-    projectChildren() {
-        // Group nodes by the first matching named or default slot.
-        const groups = new Map();
-        for (const node of this._children) {
-            const name = node.nodeType === 1 ? node.getAttribute("slot") ?? "" : "";
-            const slot = this._slots.find(slot => slot.element.name === name);
-            if (slot) {
-                const group = groups.get(slot.element) ?? [];
-                group.push(node);
-                groups.set(slot.element, group);
-            }
-            else if (node.parentNode !== this._parking) {
-                this._parking.appendChild(node);
-            }
-        }
-        // Avoid unnecessary moves, which would reconnect nested custom elements.
-        for (const slot of this._slots) {
-            const children = groups.get(slot.element) ?? slot.fallback;
-            if (children.length !== slot.element.childNodes.length
-                || children.some((node, index) => node !== slot.element.childNodes[index])) {
-                slot.element.replaceChildren(...children);
-            }
-        }
-    }
-    /**
-     * Observe Children
-     *
-     * Watch supplied child changes only in light DOM. Native shadow slots are
-     * managed by the browser. Pause observation while performing internal moves.
-     *
-     * @return void
-     */
-    observeChildren() {
-        if (this.renderRoot !== this || !this.isConnected)
-            return;
-        if (!this._observer) {
-            const Observer = this.ownerDocument.defaultView.MutationObserver;
-            this._observer = new Observer(() => {
-                this._observer.disconnect();
-                try {
-                    this.collectChildren();
-                    this.projectChildren();
-                }
-                finally {
-                    this.observeChildren();
-                }
-            });
-        }
-        // Also watch retained nodes: a changed slot name can make them visible again.
-        this._observer.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
-        this._observer.observe(this._parking, { childList: true, subtree: true, attributes: true, attributeFilter: ["slot"] });
-    }
-    /** Methods | Callbacks
-     ******************************************************
-     */
-    /**
-     * Connected Callback
-     *
-     * Initialize values, resume child observation, and schedule rendering.
-     *
-     * @return void
-     */
-    connectedCallback() {
-        this.initialize();
-        this.observeChildren();
-        this.requestUpdate();
-    }
-    /**
-     * Disconnected Callback
-     *
-     * Stop child observation and release resources for the current render.
-     *
-     * @return void
-     */
-    disconnectedCallback() {
-        this._observer?.disconnect();
-        this.cleanup();
-    }
-    /**
-     * Attribute Changed Callback
-     *
-     * Keep typed values current even while detached, without reflection loops.
-     *
-     * @param name Changed HTML attribute name
-     * @param oldValue Previous attribute value
-     * @param newValue New attribute value, or null when removed
-     * @return void
-     */
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (this._reflecting || oldValue === newValue)
-            return;
-        this.initialize();
-        const key = Object.keys(this.component.properties).find(key => this.component.attributeName(key, this.definition(key)) === name);
-        if (key === undefined)
-            return;
-        const value = this.fromAttribute(newValue, this.definition(key));
-        if (!Object.is(this._values[key], value)) {
-            this._values[key] = value;
-            this.requestUpdate();
-        }
-    }
-    /** Static Methods
-     ******************************************************
-     */
-    /**
-     * Observed Attributes
-     *
-     * Derive observed attributes from the static schema at registration time.
-     * Duplicate mappings would make property updates ambiguous.
-     *
-     * @return Mapped HTML attribute names
-     */
-    static get observedAttributes() {
-        const names = Object.keys(this.properties)
-            .map(name => this.attributeName(name, this.properties[name]))
-            .filter((name) => name !== null);
-        if (new Set(names).size !== names.length) {
-            throw new TypeError("Component properties must use distinct attribute names.");
-        }
-        return names;
-    }
-    /**
-     * Get Attribute Name
-     *
-     * Resolve and validate an optional lowercase HTML attribute mapping.
-     *
-     * @param name Property name
-     * @param property Property definition
-     * @return Mapped name, or null for a property without an attribute
-     */
-    static attributeName(name, property) {
-        if (property.attribute === false)
-            return null;
-        const attribute = typeof property.attribute === "string" ? property.attribute : name.toLowerCase();
-        if (!attribute || /[\s\u0000"'>/=]/.test(attribute) || attribute !== attribute.toLowerCase()) {
-            throw new TypeError(`Invalid component attribute name: ${attribute}`);
-        }
-        return attribute;
-    }
-}
-
-/** Shared tooltip configuration for direct imports and lazy component tooltips. */
-function createTooltipWith(factory, fill, target, style, options = {}) {
-    // Dynamic imports of CommonJS builds can wrap Tippy in one or more
-    // default exports. Static ESM imports and browser globals are callable already.
-    let resolved = factory;
-    const seen = new Set();
-    while (resolved && typeof resolved === "object" && !seen.has(resolved)) {
-        seen.add(resolved);
-        const module = resolved;
-        fill ??= module.animateFill;
-        resolved = module.default;
-    }
-    if (typeof resolved !== "function") {
-        throw new TypeError('kmaterialize: "tippy.js" did not export a tooltip function.');
-    }
-    const create = resolved;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const instance = create(target, {
-        animateFill: !reducedMotion && !!fill,
-        arrow: false,
-        plugins: fill ? [fill] : [],
-        placement: "auto",
-        theme: style === "material" ? "materialize" : "",
-        allowHTML: false,
-        ...options,
-        ...(reducedMotion
-            ? { animateFill: false, animation: false, duration: 0 }
-            : {}),
-    });
-    // Escape dismisses a focused tooltip without moving keyboard focus.
-    const escape = (event) => {
-        if (event.key === "Escape")
-            instance.hide();
-    };
-    document.addEventListener("keydown", escape);
-    const destroy = instance.destroy.bind(instance);
-    instance.destroy = () => {
-        document.removeEventListener("keydown", escape);
-        destroy();
-    };
-    return instance;
-}
-
-let pending;
-/** Keep the optional tooltip peer out of the core bundle until a trigger needs it. */
-function loadTooltipPeer() {
-    if (!pending) {
-        pending = loadPeer({
-            specifier: 'tippy.js', globalName: 'tippy', feature: 'Classic tooltips',
-            cdnHint: '<script src="path/to/tippy-bundle.umd.min.js"></script>',
-        }, async () => {
-            const module = await import('tippy.js');
-            return { create: module.default, fill: module.animateFill };
-        }).then(peer => typeof peer === 'function'
-            ? { create: peer, fill: peer.animateFill }
-            : peer).catch(error => { pending = undefined; throw error; });
-    }
-    return pending;
-}
-
-const string$1 = (value = '', select) => ({ type: 'string', default: value, select });
-const boolean = () => ({ type: 'boolean', default: false, reflect: true });
-const escape$1 = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-const sizes = { small: 'xs', normal: 'sm', large: 'md', 'extra-large': 'lg' };
-// Palette names from sass/_colors.scss take precedence over CSS named colors.
-const paletteColors = new Set([
-    'materialize-red', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
-    'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime',
-    'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blue-grey',
-    'grey', 'gold', 'black', 'white', 'transparent',
-]);
-/** RegularBtn's attribute API, backed by the renamed Crazycomponent2 runtime. */
-class CrazyButton extends Kmcomponent {
-    static properties = {
-        type: string$1('floating', ['floating', 'extended', 'icon', 'fab', 'extended-fab', 'rail']),
-        depth: string$1('flat', ['flat', 'outlined', '1', '2', '3', '4', '5']),
-        shape: string$1('round', ['round', 'box', 'square']),
-        size: string$1('large', ['small', 'normal', 'large', 'extra-large', 'xs', 'sm', 'md', 'lg', 'xl']),
-        wave: string$1('light', ['light', 'dark', 'false']),
-        'tooltip-style': string$1('classic', ['classic', 'material']),
-        'tooltip-position': string$1('top', ['top', 'right', 'bottom', 'left']),
-        cursor: string$1(),
-        label: string$1(), 'icon-class': string$1('material-icons'), 'icon-text': string$1(),
-        'icon-image': string$1(), 'icon-image-style': string$1(),
-        'icon-position': string$1('right', ['left', 'right']),
-        'color-primary': string$1(), 'color-secondary': string$1(),
-        'data-view': string$1(), 'aria-current': string$1(),
-        href: string$1(), target: string$1('_self', ['_self', '_blank']),
-        variant: string$1('', ['', 'filled', 'tonal', 'outlined', 'elevated', 'text', 'standard']),
-        disabled: boolean(), toggle: boolean(), pressed: boolean(),
-        'icon-width': string$1('normal', ['normal', 'narrow', 'wide']),
-        'fab-color': string$1('primary', ['primary', 'secondary', 'tertiary']),
-        'fab-size': string$1('normal', ['small', 'normal', 'large']),
-        'menu-target': string$1(), split: boolean(), 'menu-label': string$1('More options'),
-        'aria-label': string$1(), 'button-type': string$1('button', ['button', 'submit', 'reset']),
-        name: string$1(), value: string$1(), form: string$1(), action: string$1(),
-    };
-    /** Resolves when the current render’s optional tooltip has initialized. */
-    tooltipReady = Promise.resolve();
-    getCurrentAttribute(name) { return this.getProperty(name); }
-    hasCurrentAttribute(name) { return Boolean(this.getProperty(name)); }
-    render() {
-        const a = this.prepareContext().attributes;
-        const rail = a.type === 'rail';
-        const iconOnly = ['floating', 'icon', 'fab'].includes(String(a.type));
-        const fab = ['fab', 'extended-fab'].includes(String(a.type));
-        const variant = a.variant || (a.depth === 'flat' ? 'text' : a.depth === 'outlined' ? 'outlined' : 'elevated');
-        const classes = rail ? 'btn btn-rail' : ['btn', 'btn-expressive', variant === 'standard' ? 'btn-icon-standard' : variant,
-            `btn-${sizes[String(a.size)] || a.size}`, a.shape !== 'round' ? 'btn-square' : '',
-            iconOnly ? 'btn-icon' : '', a.toggle ? 'btn-toggle' : '',
-            a['icon-width'] !== 'normal' ? `btn-icon-${a['icon-width']}` : '',
-            fab ? `btn-fab fab-${a['fab-color']} fab-${a['fab-size']}` : '',
-            a.type === 'extended-fab' ? 'btn-fab-extended' : '',
-            a.wave !== 'false' ? `waves-effect ${a.wave === 'light' ? 'waves-light' : ''}` : '',
-            /^[1-5]$/.test(String(a.depth)) ? `z-depth-${a.depth}` : '',
-        ].filter(Boolean).join(' ');
-        const icon = a['icon-image']
-            ? `<img src="${escape$1(a['icon-image'])}" alt="" style="${escape$1(a['icon-image-style'])}">`
-            : a['icon-text'] ? `<i class="${escape$1(a['icon-class'])}" aria-hidden="true">${escape$1(a['icon-text'])}</i>` : '';
-        const label = iconOnly ? '' : `<slot>${escape$1(a.label)}</slot>`;
-        const content = rail
-            ? `<span class="m3-rail-icon">${icon}</span><span>${label}</span>`
-            : a['icon-position'] === 'left' ? icon + label : label + icon;
-        const menu = a['menu-target'] && !a.split;
-        // A disabled link becomes a native disabled button, including keyboard behavior.
-        const link = a.href && !a.disabled;
-        const tag = link ? 'a' : 'button';
-        const attributes = link
-            ? `href="${escape$1(a.href)}" target="${escape$1(a.target)}"${a.target === '_blank' ? ' rel="noopener noreferrer"' : ''}`
-            : `type="${escape$1(a['button-type'])}" ${a.disabled ? 'disabled' : ''} name="${escape$1(a.name)}" value="${escape$1(a.value)}"${a.form ? ` form="${escape$1(a.form)}"` : ''}`;
-        const menuAttrs = `data-target="${escape$1(a['menu-target'])}" aria-haspopup="true" aria-expanded="false" aria-controls="${escape$1(a['menu-target'])}"`;
-        const button = `<${tag} part="button" class="${escape$1(classes)}${menu ? ' dropdown-trigger no-autoinit btn-menu-trigger' : ''}" ${attributes}
-      ${a['aria-label'] || iconOnly ? `aria-label="${escape$1(a['aria-label'] || a.label || a['icon-text'] || 'Button')}"` : ''}
-      ${a['data-view'] ? `data-view="${escape$1(a['data-view'])}"` : ''}
-      ${a['aria-current'] ? `aria-current="${escape$1(a['aria-current'])}"` : ''}
-      ${a.toggle ? `aria-pressed="${a.pressed}"` : ''} ${menu ? menuAttrs : ''}>${content}</${tag}>`;
-        return a.split && a['menu-target']
-            ? `<span class="btn-split">${button}<button type="button" class="${escape$1(classes)} btn-icon btn-menu-trigger dropdown-trigger no-autoinit" ${menuAttrs} aria-label="${escape$1(a['menu-label'])}" ${a.disabled ? 'disabled' : ''}><i class="material-icons" aria-hidden="true">arrow_drop_down</i></button></span>`
-            : button;
-    }
-    postRender() {
-        const a = this.prepareContext().attributes;
-        const button = this.querySelector('[part="button"]');
-        for (const el of this.querySelectorAll('.btn')) {
-            // CSSOM validates the value and supports keywords, var(), and image URLs.
-            // Invalid/empty values fall back to the host cursor; disabled controls keep their default.
-            if (!a.disabled && a.cursor)
-                el.style.cursor = String(a.cursor);
-            this.applyColor(el, String(a['color-primary']), false);
-            this.applyColor(el, String(a['color-secondary']), true);
-        }
-        // Focus can flush styles: apply custom colors first so a rebuilt button
-        // does not transition from its default background when focus is restored.
-        if (this.restoreFocus) {
-            button.focus();
-            this.restoreFocus = false;
-        }
-        if (['floating', 'icon', 'fab'].includes(String(a.type)) && a.label) {
-            let tooltip;
-            let cancelled = false;
-            this.onCleanup(() => { cancelled = true; tooltip?.destroy(); });
-            this.tooltipReady = loadTooltipPeer().then(peer => {
-                if (cancelled)
-                    return;
-                tooltip = createTooltipWith(peer.create, peer.fill, button, a['tooltip-style'], {
-                    content: String(a.label), placement: a['tooltip-position'],
-                });
-            });
-        }
-        const click = () => {
-            if (this.getProperty('disabled'))
-                return;
-            if (this.getProperty('toggle')) {
-                const group = this.closest('[data-selection]');
-                if (group?.getAttribute('data-selection') === 'single') {
-                    group.querySelectorAll('crazy-button, regular-btn').forEach(peer => {
-                        if (peer.closest('[data-selection]') === group && peer.getProperty('toggle'))
-                            peer.setProperty('pressed', peer === this);
-                    });
-                }
-                else
-                    this.setProperty('pressed', !this.getProperty('pressed'));
-            }
-            this.dispatchEvent(new CustomEvent('buttonaction', { bubbles: true, composed: true, detail: {
-                    action: this.getProperty('action') || this.getProperty('label'),
-                    pressed: this.getProperty('toggle') ? String(this.getProperty('pressed')) : null,
-                } }));
-        };
-        button.addEventListener('click', click);
-        this.onCleanup(() => {
-            this.restoreFocus = document.activeElement === button;
-            button.removeEventListener('click', click);
-        });
-        const trigger = this.querySelector('.dropdown-trigger');
-        const menuTarget = String(a['menu-target'] ?? '');
-        const menu = trigger && menuTarget ? document.getElementById(menuTarget) : null;
-        if (trigger && menu && !a.disabled) {
-            const parent = menu.parentNode;
-            const next = menu.nextSibling;
-            const dropdown = Dropdown.init(trigger, {
-                alignment: 'right', constrainWidth: false, coverTrigger: false, closeOnClick: true,
-                onOpenStart: () => trigger.setAttribute('aria-expanded', 'true'),
-                onCloseEnd: () => trigger.setAttribute('aria-expanded', 'false'),
-            });
-            const keydown = (event) => { if (event.key === 'Enter')
-                event.preventDefault(); };
-            menu.addEventListener('keydown', keydown, true);
-            this.onCleanup(() => {
-                dropdown.destroy();
-                menu.removeEventListener('keydown', keydown, true);
-                // Dropdown may relocate external menu nodes; retain them across rerenders.
-                if (parent)
-                    parent.insertBefore(menu, next?.parentNode === parent ? next : null);
-            });
-        }
-    }
-    restoreFocus = false;
-    applyColor(element, color, foreground) {
-        color = color.trim();
-        if (!color || this.getProperty('disabled'))
-            return;
-        if (!paletteColors.has(color) && CSS.supports('color', color)) {
-            element.style.setProperty(foreground ? 'color' : 'background-color', color);
-            if (foreground)
-                element.style.borderColor = color;
-        }
-        else {
-            // Rodeo accepts Materialize palette classes, e.g. "blue lighten-5".
-            element.classList.add(...color.trim().split(/\s+/).map((token, index) => foreground ? index === 0 ? `${token}-text` : `text-${token}` : token));
-            if (foreground)
-                element.style.borderColor = 'currentColor';
-        }
-    }
-}
-if (typeof customElements !== 'undefined' && !customElements.get('crazy-button'))
-    customElements.define('crazy-button', CrazyButton);
-// Native customElements requires a separate constructor for an alias.
-if (typeof customElements !== 'undefined' && !customElements.get('regular-btn'))
-    customElements.define('regular-btn', class RegularBtn extends CrazyButton {
-    });
-
 const string = (value = '', select) => ({ type: 'string', default: value, select });
 const escape = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 /** Reactive Loading wrapper. Styles and behavior belong to the existing Loading component. */
@@ -15514,6 +16126,7 @@ function AutoInit(context = document.body, options) {
         OtpInput: context.querySelectorAll('input[data-otp]:not(.no-autoinit)'),
         MaskitoInput: context.querySelectorAll('input[data-maskito]:not([data-otp]):not(.no-autoinit)'),
         RichTextarea: context.querySelectorAll('textarea[data-editor="quill"]:not(.no-autoinit)'),
+        CodeCard: context.querySelectorAll('.code-card:not(.no-autoinit)'),
         Loading: context.querySelectorAll('.loading:not(.no-autoinit)'),
         Alert: context.querySelectorAll('.alert:not(.no-autoinit)'),
         Kanban: context.querySelectorAll('.kanban-board:not(.no-autoinit)'),
@@ -15554,6 +16167,7 @@ function AutoInit(context = document.body, options) {
     OtpInput.init(registry.OtpInput, options?.OtpInput ?? {});
     MaskitoInput.init(registry.MaskitoInput, options?.MaskitoInput ?? {});
     RichTextarea.init(registry.RichTextarea, options?.RichTextarea ?? {});
+    CodeCard.init(registry.CodeCard, options?.CodeCard ?? {});
     Autocomplete.init(registry.Autocomplete, options?.Autocomplete ?? {});
     Loading.init(registry.Loading, options?.Loading ?? {});
     Alert.init(registry.Alert, options?.Alert ?? {});
@@ -15598,4 +16212,4 @@ Waves.Init();
 Range.Init();
 Cards.Init();
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, CodeCard, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RangeInterval, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };

@@ -150,3 +150,208 @@ input[type='range'] + .thumb {
   input[type='range']::-moz-range-thumb { border: 1px solid CanvasText; }
   input[type='range'] + .thumb { border: 1px solid CanvasText; }
 }
+
+/// Two-handle interval. Native inputs retain focus, keyboard, touch and form behavior.
+.range-interval {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    isolation: isolate;
+
+    --range-direction: to right;
+    --range-outer-color: var(--range-muted-color, var(--md-sys-color-surface-variant));
+    --range-inner-color: var(--md-sys-color-primary);
+    &:dir(rtl) { --range-direction: to left; }
+
+    &::before {
+        content: '';
+        grid-area: 1 / 1;
+        align-self: center;
+        height: var(--range-track-height, 4px);
+        border-radius: 999px;
+        background: linear-gradient(var(--range-direction),
+            var(--range-outer-color) 0 var(--range-start),
+            var(--range-inner-color) var(--range-start) var(--range-end),
+            var(--range-outer-color) var(--range-end) 100%);
+    }
+    &:has(input:disabled)::before { opacity: .38; }
+    &.range-compact { --range-track-height: 2px; }
+    &.range-expressive { --range-track-height: 12px; }
+
+    > input[type='range'] {
+        grid-area: 1 / 1;
+        pointer-events: none;
+        z-index: var(--range-start-layer, 1);
+
+        ~ input[type='range'] { z-index: 1; }
+        &:focus-visible { z-index: 2; }
+
+        &::-webkit-slider-runnable-track { background: transparent; }
+        &::-moz-range-track { background: transparent; }
+        &::-webkit-slider-thumb { pointer-events: auto; }
+        &::-moz-range-thumb { pointer-events: auto; }
+        &:disabled::-webkit-slider-thumb { pointer-events: none; }
+        &:disabled::-moz-range-thumb { pointer-events: none; }
+    }
+
+    // Interval steps use native snapping; single-value ranges provide tick marks.
+    > .range-ticks { display: none; }
+}
+
+/// Size variants preserve the native 48px interaction area.
+.range-field.range-compact input[type='range'],
+.range-interval.range-compact > input[type='range'] {
+    --range-track-height: 2px;
+    --range-handle-size: 16px;
+}
+.range-field.range-expressive input[type='range'],
+.range-interval.range-expressive > input[type='range'] {
+    --range-track-height: 12px;
+    --range-handle-size: 24px;
+}
+
+@media (forced-colors: active) {
+    .range-interval::before { background: CanvasText; }
+}
+
+/// Highlight the two outside segments, with visible end stops.
+.range-interval.range-outside {
+    --range-outer-color: var(--md-sys-color-primary);
+    --range-inner-color: var(--range-muted-color, var(--md-sys-color-surface-variant));
+
+    &::before { clip-path: inset(0 var(--range-edge, 10px)); }
+    &::after {
+        content: '';
+        position: absolute;
+        inset-inline: calc(var(--range-edge, 10px) - 1px);
+        top: 50%;
+        height: 16px;
+        transform: translateY(-50%);
+        border-inline: 2px solid var(--md-sys-color-primary);
+        pointer-events: none;
+    }
+    &:has(input:disabled)::after { opacity: .38; }
+}
+
+/// Editable values use the flat, segmented appearance of number controls.
+.range-control {
+    --range-muted-color: color-mix(in srgb, var(--md-sys-color-on-surface) 24%, transparent);
+    display: grid;
+    grid-template-columns: minmax(0, 4.5rem) minmax(0, 1fr) minmax(0, 4.5rem);
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--md-sys-color-outline);
+    border-radius: 0;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+    min-width: 0;
+
+    &.range-control-single { grid-template-columns: minmax(0, 4.5rem) minmax(0, 1fr); }
+    &:focus-within {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: -2px;
+    }
+    &[data-range-variant='outlined'] {
+        border: 1px solid var(--md-sys-color-outline);
+        border-radius: 4px;
+        background: var(--md-sys-color-surface);
+    }
+    &[data-range-variant='rounded'] {
+        border: 1px solid var(--md-sys-color-outline);
+        border-radius: 16px;
+    }
+
+    > .range-interval,
+    > .range-control-track {
+        margin-inline: 16px;
+        align-self: center;
+        min-width: 0;
+
+        > input[type='range'] { height: 56px; margin-block: 0; }
+    }
+    > .range-control-value {
+        position: static;
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: center;
+        min-width: 0;
+        min-height: 56px;
+        margin: 0;
+        padding: 4px;
+        box-sizing: border-box;
+        border-radius: inherit;
+        background: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+        font-size: 10px;
+        line-height: 1.2;
+        text-align: center;
+        transform: none;
+
+        &:first-child { border-start-end-radius: 0; border-end-end-radius: 0; }
+        &:last-child { border-start-start-radius: 0; border-end-start-radius: 0; }
+        > span { overflow-wrap: anywhere; }
+        > .range-control-number > input[type='number'] {
+            appearance: textfield;
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
+            height: 30px;
+            margin: 0;
+            padding: 0 2px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: inherit;
+            box-shadow: none;
+            font: inherit;
+            font-size: 16px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+
+            &::-webkit-inner-spin-button,
+            &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            &:focus {
+                color: inherit;
+                -webkit-text-fill-color: currentColor;
+            }
+            &:focus-visible { outline: 2px solid var(--md-sys-color-primary); }
+            &:disabled { opacity: .38; }
+        }
+    }
+}
+
+@media (forced-colors: active) {
+    .range-interval.range-outside::after { border-color: CanvasText; }
+    .range-control { border-color: CanvasText; }
+}
+
+/// Fixed viewport for the centered film-roll readout. Focus reveals the real input.
+.range-control-number {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 30px;
+    min-width: 0;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+
+    &:focus-within > .range-control-readout { visibility: hidden; }
+    &:has(input:disabled) > .range-control-readout { opacity: .38; }
+}
+.range-control-readout {
+    position: absolute;
+    inset: 0 2px;
+    overflow: hidden;
+    pointer-events: none;
+    white-space: nowrap;
+    direction: ltr;
+}
+.range-control-reel {
+    display: block;
+    > span { display: block; height: 30px; line-height: 30px; }
+}

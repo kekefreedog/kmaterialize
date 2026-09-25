@@ -9,6 +9,8 @@ export interface RichTextareaOptions extends BaseOptions {
   toolbar?: false | Array<ToolbarItem | ToolbarItem[]>;
   formats?: string[];
   placeholder?: string;
+  /** Default font stack for editor content; load any web fonts separately. */
+  fontFamily?: string;
   label?: string;
 }
 let sequence = 0;
@@ -80,6 +82,7 @@ export class RichTextarea extends Component<RichTextareaOptions> {
     const wrapper = document.createElement('div');
     this._wrapper = wrapper;
     wrapper.className = 'rich-textarea';
+    if (this.options.fontFamily) wrapper.style.setProperty('--rich-textarea-font-family', this.options.fontFamily);
     const editor = document.createElement('div');
     const error = document.createElement('div');
     this._error = error;

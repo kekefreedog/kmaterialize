@@ -33,6 +33,7 @@ export default class CrazyButton extends Kmcomponent {
     'icon-position': string('right', ['left', 'right']),
     'color-primary': string(), 'color-secondary': string(),
     'data-view': string(), 'aria-current': string(),
+    'aria-controls': string(), 'aria-pressed': string(),
     href: string(), target: string('_self', ['_self', '_blank']),
     variant: string('', ['', 'filled', 'tonal', 'outlined', 'elevated', 'text', 'standard']),
     disabled: boolean(), toggle: boolean(), pressed: boolean(),
@@ -84,7 +85,8 @@ export default class CrazyButton extends Kmcomponent {
       ${a['aria-label'] || iconOnly ? `aria-label="${escape(a['aria-label'] || a.label || a['icon-text'] || 'Button')}"` : ''}
       ${a['data-view'] ? `data-view="${escape(a['data-view'])}"` : ''}
       ${a['aria-current'] ? `aria-current="${escape(a['aria-current'])}"` : ''}
-      ${a.toggle ? `aria-pressed="${a.pressed}"` : ''} ${menu ? menuAttrs : ''}>${content}</${tag}>`;
+      ${a.toggle ? `aria-pressed="${a.pressed}"` : a['aria-pressed'] ? `aria-pressed="${escape(a['aria-pressed'])}"` : ''}
+      ${a['aria-controls'] && !menu ? `aria-controls="${escape(a['aria-controls'])}"` : ''} ${menu ? menuAttrs : ''}>${content}</${tag}>`;
     return a.split && a['menu-target']
       ? `<span class="btn-split">${button}<button type="button" class="${escape(classes)} btn-icon btn-menu-trigger dropdown-trigger no-autoinit" ${menuAttrs} aria-label="${escape(a['menu-label'])}" ${a.disabled ? 'disabled' : ''}><i class="material-icons" aria-hidden="true">arrow_drop_down</i></button></span>`
       : button;

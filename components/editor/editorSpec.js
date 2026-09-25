@@ -273,7 +273,9 @@ describe('Editor Handlebars workspace', function () {
       script.onload = () => resolve(); script.onerror = () => reject(new Error('Failed to load Prism'));
       document.head.append(script);
     });
-    await load('prism.js'); await load('components/prism-markup-templating.js'); await load('components/prism-handlebars.js');
+    // Preserve the Prism instance already used by other components and the peer cache.
+    if (!window.Prism) await load('prism.js');
+    await load('components/prism-markup-templating.js'); await load('components/prism-handlebars.js');
     const template = '<h1>{{name}}</h1>\n<style>h1 { color: red; }</style>\n' + 'x'.repeat(200);
     await start({ template, data: { name: 'Ada' }, highlight: true });
     const input = host.querySelector('textarea'), mirror = host.querySelector('.editor-highlight');

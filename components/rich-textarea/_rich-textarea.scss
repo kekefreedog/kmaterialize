@@ -65,16 +65,28 @@
     button:hover .ql-fill, button.ql-active .ql-fill { fill: currentColor; }
     a { color: var(--md-sys-color-primary); }
   }
-  .ql-container.ql-snow { height: auto; border: 0; font-family: inherit; font-size: 1rem; }
+  .ql-container.ql-snow {
+    height: auto;
+    border: 0;
+    border-radius: 0 0 11px 11px;
+    font-family: inherit;
+    font-size: 1rem;
+    &:first-child { border-radius: 11px; }
+  }
   .ql-editor {
     min-height: var(--rich-textarea-min-height);
     max-height: var(--rich-textarea-max-height, 480px);
     padding: 16px;
     line-height: 1.6;
+    font-family: var(--rich-textarea-font-family, inherit);
     color: inherit;
+    // Keep the editor surface inside the rounded border without clipping toolbar popups.
+    background: transparent;
+    border-radius: inherit;
     overflow-wrap: anywhere;
     outline: none;
     &.ql-blank::before { left: 16px; right: 16px; color: var(--md-sys-color-on-surface-variant); font-style: normal; }
+    strong, b { font-weight: 800; }
     blockquote { border-color: var(--md-sys-color-outline); }
   }
   .ql-tooltip {

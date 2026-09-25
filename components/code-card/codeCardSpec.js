@@ -89,6 +89,17 @@ describe("CodeCard", function(){
     });
 
     it("highlights JavaScript while preserving the source text", async function(){
+        // Load this test's peer explicitly instead of depending on Editor test order.
+        if(!window.Prism){
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.dataset.manual = "";
+                script.src = "/__spec__/node_modules/prismjs/prism.js";
+                script.onload = resolve;
+                script.onerror = () => reject(new Error("Failed to load Prism"));
+                document.head.append(script);
+            });
+        }
         instance = M.CodeCard.init(host);
         await instance.ready;
         expect(host.querySelectorAll(".token").length).toBeGreaterThan(0);

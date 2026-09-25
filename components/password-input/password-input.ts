@@ -31,12 +31,12 @@ export class PasswordInput extends Component<PasswordInputOptions> {
         this._suffixEl = this.el.parentElement?.querySelector<HTMLElement>('[data-password-toggle-icon]') ?? null;
 
         if (this._suffixEl) {
-            for (const name of ['type', 'role', 'tabindex', 'aria-label', 'aria-pressed', 'aria-controls', 'aria-disabled', 'disabled'])
+            for (const name of ['type', 'role', 'tabindex', 'aria-label', 'aria-pressed', 'aria-controls', 'aria-disabled', 'disabled', 'icon-text'])
                 this._originalAttributes.set(name, this._suffixEl.getAttribute(name));
 
             if (this._suffixEl instanceof HTMLButtonElement) {
                 this._suffixEl.type = 'button';
-            } else {
+            } else if (!this._isCrazyButton()) {
                 this._suffixEl.setAttribute('role', 'button');
                 this._suffixEl.tabIndex = 0;
             }
@@ -96,6 +96,10 @@ export class PasswordInput extends Component<PasswordInputOptions> {
         this._syncState();
     }
 
+    private _isCrazyButton(): boolean {
+        return this._suffixEl?.matches('crazy-button, regular-btn') ?? false;
+    }
+
     private _syncState() {
         const visible = this.el.type === 'text';
         const disabled = this.el.matches(':disabled');
@@ -104,8 +108,13 @@ export class PasswordInput extends Component<PasswordInputOptions> {
         this._suffixEl?.setAttribute('aria-pressed', String(visible));
         this._suffixEl?.setAttribute('aria-disabled', String(disabled));
         if (this._suffixEl instanceof HTMLButtonElement) this._suffixEl.disabled = disabled;
-        const icon = this._suffixEl?.querySelector('i');
-        if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+        if (this._isCrazyButton()) {
+            this._suffixEl?.toggleAttribute('disabled', disabled);
+            this._suffixEl?.setAttribute('icon-text', visible ? 'visibility_off' : 'visibility');
+        } else {
+            const icon = this._suffixEl?.querySelector('i');
+            if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+        }
     }
 
     private _handleToggleClick = (event: MouseEvent) => {
@@ -115,7 +124,7 @@ export class PasswordInput extends Component<PasswordInputOptions> {
 
     private _handleToggleKeydown = (event: KeyboardEvent) => {
         // Native buttons already dispatch clicks for Enter and Space.
-        if (this._suffixEl instanceof HTMLButtonElement || !['Enter', ' '].includes(event.key)) return;
+        if (this._suffixEl instanceof HTMLButtonElement || this._isCrazyButton() || !['Enter', ' '].includes(event.key)) return;
         event.preventDefault();
         this.toggle();
     };
