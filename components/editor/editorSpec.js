@@ -430,4 +430,93 @@ describe('Editor Handlebars workspace', function () {
       parent.replaceWith(host);
     }
   });
+  describe('token drag scrolling', function () {
+    let input, bounds, transfer, frames, clock, nextFrame;
+    async function begin(helper = false) {
+      await start({ template: ('long line '.repeat(30) + '\n').repeat(100), data: { name: 'Ada' }, helpers: { greet: value => value }, templateSelect: false, sourceSelect: false });
+      input = host.querySelector('.editor-source');
+      input.scrollTop = 240;
+      input.scrollLeft = 50;
+      bounds = input.getBoundingClientRect();
+      frames = new Map(); clock = performance.now(); nextFrame = 0;
+      spyOn(window, 'requestAnimationFrame').and.callFake(callback => { frames.set(++nextFrame, callback); return nextFrame; });
+      spyOn(window, 'cancelAnimationFrame').and.callFake(id => frames.delete(id));
+      transfer = new DataTransfer();
+      host.querySelector(helper ? '[data-editor-helper="greet"]' : '[aria-label="Insert name"]').dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: transfer }));
+    }
+    function over(y) {
+      input.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer, clientX: bounds.left + 60, clientY: y }));
+    }
+    function tick(count = 1) {
+      for (let i = 0; i < count; i++) {
+        clock += 16;
+        const pending = [...frames.values()]; frames.clear();
+        pending.forEach(callback => callback(clock));
+      }
+    }
+    it('freezes entry at the bottom and rejects native scroll jumps and pointer jitter', async function () {
+      await begin();
+      over(bounds.bottom - 4); tick(20);
+      expect(input.scrollTop).toBe(240);
+      over(bounds.bottom - 3); tick(20);
+      expect(input.scrollTop).toBe(240);
+      input.scrollTop = 900; input.scrollLeft = 200;
+      input.dispatchEvent(new Event('scroll'));
+      expect(input.scrollTop).toBe(240);
+      expect(input.scrollLeft).toBe(50);
+    });
+    it('scrolls gradually only after downward movement inside and stops away from the edge', async function () {
+      await begin();
+      over(bounds.top + bounds.height / 2);
+      over(bounds.bottom - 2);
+      expect(input.scrollTop).toBe(240);
+      tick();
+      expect(input.scrollTop).toBeGreaterThan(240);
+      expect(input.scrollTop).toBeLessThanOrEqual(244);
+      tick(15);
+      expect(input.scrollTop).toBeLessThan(290);
+      over(bounds.top + bounds.height / 2);
+      const stopped = input.scrollTop; tick(20);
+      expect(input.scrollTop).toBe(stopped);
+    });
+    it('accumulates slow scrolling at the beginning of the edge zone', async function () {
+      await begin();
+      over(bounds.top + bounds.height / 2); over(bounds.bottom - 31); tick(20);
+      expect(input.scrollTop).toBeGreaterThan(240);
+      expect(input.scrollTop).toBeLessThan(244);
+    });
+    it('supports gentle upward scrolling for helper drags too', async function () {
+      await begin(true);
+      over(bounds.top + 2); tick(10);
+      expect(input.scrollTop).toBe(240);
+      over(bounds.top + bounds.height / 2);
+      over(bounds.top + 2); tick(10);
+      expect(input.scrollTop).toBeLessThan(240);
+      expect(input.scrollTop).toBeGreaterThan(210);
+    });
+    it('resets the entry gate on leaving and reentering', async function () {
+      await begin();
+      over(bounds.top + bounds.height / 2); over(bounds.bottom - 2); tick(10);
+      input.dispatchEvent(new DragEvent('dragleave'));
+      const stopped = input.scrollTop; tick(10);
+      expect(input.scrollTop).toBe(stopped);
+      over(bounds.bottom - 2); tick(10);
+      expect(input.scrollTop).toBe(stopped);
+    });
+    for (const end of ['drop', 'dragend', 'Escape', 'destroy']) {
+      it(`releases scrolling and cancels animation on ${end}`, async function () {
+        await begin();
+        over(bounds.top + bounds.height / 2); over(bounds.bottom - 2);
+        if (end === 'destroy') editor.destroy();
+        else if (end === 'Escape') document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        else document.dispatchEvent(new DragEvent(end));
+        expect(frames.size).toBe(0);
+        if (end !== 'destroy') {
+          input.scrollTop = 400; input.dispatchEvent(new Event('scroll'));
+          expect(input.scrollTop).toBe(400);
+        }
+      });
+    }
+  });
+
 });

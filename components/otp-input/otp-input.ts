@@ -6,6 +6,8 @@ export interface OtpInputOptions extends BaseOptions {
   /** Number of editable slots (1–32); inferred when pattern is supplied. */
   length?: number;
   characters?: 'digits' | 'alphanumeric';
+  /** Horizontal alignment of the code within its container. Defaults to center. */
+  align?: 'left' | 'center' | 'right';
   /** # = digit, A = ASCII letter, * = alphanumeric; backslash escapes literals. */
   pattern?: string;
   /** Maskito processing and overwrite behavior. The slot pattern owns the mask. */
@@ -40,6 +42,7 @@ export class OtpInput extends Component<OtpInputOptions> {
   constructor(el: HTMLInputElement, options: Partial<OtpInputOptions> = {}) {
     if (!['text', 'tel', 'password'].includes(el.type)) throw new TypeError('OtpInput requires a text, tel, or password input.');
     const settings = { ...OtpInput.defaults, ...OtpInput._markup(el), ...options };
+    if (!['left', 'center', 'right'].includes(settings.align!)) throw new TypeError('Unknown OTP alignment.');
     if (!['digits', 'alphanumeric'].includes(settings.characters!)) throw new TypeError('Unknown OTP character set.');
     if (!Number.isInteger(settings.groupSize) || settings.groupSize! < 0 || settings.groupSize! > 32) throw new TypeError('OTP groupSize must be an integer between 0 and 32.');
     if (settings.length !== undefined && (!Number.isInteger(settings.length) || settings.length < 1 || settings.length > 32)) throw new TypeError('OTP length must be an integer between 1 and 32.');
@@ -65,7 +68,7 @@ export class OtpInput extends Component<OtpInputOptions> {
     this._hadClass = el.classList.contains('otp-input-native');
     this.ready = this._setup().catch(error => { this.destroy(); throw error; });
   }
-  static get defaults(): OtpInputOptions { return { characters: 'digits', groupSize: 0 }; }
+  static get defaults(): OtpInputOptions { return { characters: 'digits', groupSize: 0, align: 'center' }; }
   static init(el: HTMLInputElement, options?: Partial<OtpInputOptions>): OtpInput;
   static init(els: InitElements<HTMLInputElement | MElement>, options?: Partial<OtpInputOptions>): OtpInput[];
   static init(els: HTMLInputElement | InitElements<HTMLInputElement | MElement>, options: Partial<OtpInputOptions> = {}): OtpInput | OtpInput[] {
@@ -74,6 +77,7 @@ export class OtpInput extends Component<OtpInputOptions> {
   static getInstance(el: HTMLInputElement): OtpInput { return el['M_OtpInput']; }
   private static _markup(el: HTMLInputElement): Partial<OtpInputOptions> {
     return {
+      ...(el.dataset.otpAlign !== undefined ? { align: el.dataset.otpAlign as OtpInputOptions['align'] } : {}),
       ...(el.dataset.otpLength !== undefined ? { length: Number(el.dataset.otpLength) } : {}),
       ...(el.dataset.otpPattern !== undefined ? { pattern: el.dataset.otpPattern } : {}),
       ...(el.dataset.otpGroupSize !== undefined ? { groupSize: Number(el.dataset.otpGroupSize) } : {}),
@@ -102,6 +106,7 @@ export class OtpInput extends Component<OtpInputOptions> {
     const wrapper = this._wrapper = document.createElement('div');
     wrapper.className = 'otp-input';
     wrapper.dir = 'ltr';
+    wrapper.dataset.otpAlign = this.options.align;
     const cells = document.createElement('div');
     cells.className = 'otp-input-slots';
     cells.setAttribute('aria-hidden', 'true');

@@ -128,3 +128,50 @@
     border-radius: 4px;
   }
 }
+
+// A semantic group needs its own layout; floating text-field labels do not apply.
+fieldset.radio-group {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 16px 12px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 4px;
+
+  > legend {
+    padding: 0 4px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  > p:not(.supporting-text) { margin: 0; }
+
+  label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--md-sys-color-on-surface);
+    cursor: pointer;
+  }
+
+  input[type="radio"] + span {
+    height: auto;
+    min-height: 24px;
+    padding-left: 28px;
+    line-height: 24px;
+    &::before, &::after { margin: 4px 0; }
+  }
+
+  input:focus-visible + span {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  &.error {
+    background: transparent;
+    border-color: var(--md-sys-color-error);
+    > legend { color: var(--md-sys-color-error); }
+  }
+}

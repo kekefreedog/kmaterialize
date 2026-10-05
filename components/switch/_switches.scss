@@ -39,7 +39,7 @@
   &:checked + .lever {
     &:before, &:after {
       top: var(--gap-on);
-      left: calc(var(--track-width) - var(--size-on) - var(--gap-on) - 2 * var(--border-width));
+      inset-inline-start: calc(var(--track-width) - var(--size-on) - var(--gap-on) - 2 * var(--border-width));
       width: var(--size-on);
       height: var(--size-on);
     }
@@ -66,6 +66,7 @@
   margin-right: 10px;
   transition: background 0.3s ease;
   vertical-align: middle;
+  touch-action: pan-y;
   margin: 0 16px;
 
   // DOT
@@ -77,10 +78,10 @@
     height: var(--size-off);
     border-radius: 50%;
 
-    left: var(--gap-off);
+    inset-inline-start: var(--gap-off);
     top: var(--gap-off);
 
-    transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease;
+    transition: inset-inline-start 0.3s ease, top .3s ease, width .3s ease, height .3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease;
   }
 
   // NOT CHECKED [DOT]
@@ -150,7 +151,54 @@ input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
   color: var(--md-sys-color-primary);
 }
 
-.switch.switch-with-icon label input[type="checkbox"]:focus-visible + .lever {
+.switch label input[type="checkbox"]:focus-visible + .lever {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 4px;
+}
+
+/// Preview the pointer position while the native checked state waits for release.
+.switch label input[type="checkbox"] + .lever.is-dragging {
+  --switch-drag-size: calc(var(--size-off) + (var(--size-on) - var(--size-off)) * var(--switch-drag-progress));
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-surface-variant));
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-outline));
+  transition: none;
+
+  &::before,
+  &::after {
+    width: var(--switch-drag-size);
+    height: var(--switch-drag-size);
+    top: calc((var(--track-height) - var(--switch-drag-size)) / 2 - var(--border-width));
+    inset-inline-start: calc(var(--track-height) / 2 - var(--border-width) + (var(--track-width) - var(--track-height)) * var(--switch-drag-progress) - var(--switch-drag-size) / 2);
+    transition: none;
+  }
+
+  &::after {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface) var(--switch-drag-percent), var(--md-sys-color-outline));
+  }
+}
+
+// Keep the drag halo equally visible for plain and icon thumbs, on either side.
+.switch label input[type="checkbox"]:not(:disabled) + .lever.is-dragging::before {
+  width: var(--size-on);
+  height: var(--size-on);
+  top: var(--gap-on);
+  inset-inline-start: calc(var(--track-height) / 2 - var(--border-width) + (var(--track-width) - var(--track-height)) * var(--switch-drag-progress) - var(--size-on) / 2);
+  transform: scale(2.4);
+  background-color: color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
+  pointer-events: none;
+}
+
+.switch.switch-with-icon label input[type="checkbox"] + .lever.is-dragging::after {
+  content: var(--switch-icon-off, "\e5cd");
+  color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-surface));
+}
+
+.switch.switch-with-icon label input[type="checkbox"] + .lever.is-dragging.is-drag-on::after {
+  content: var(--switch-icon-on, "\e5ca");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch label .lever,
+  .switch label .lever::before,
+  .switch label .lever::after { transition: none; }
 }

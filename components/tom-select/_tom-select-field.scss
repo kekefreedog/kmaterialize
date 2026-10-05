@@ -254,3 +254,13 @@ div.suffix.suffix-tomselect {
   z-index: 2;
   top: 30px;
 }
+
+// Keep the enhanced control and its label in the parent field's error state.
+.input-field.error > .ts-wrapper > .ts-control,
+.input-field.outlined.error > .ts-wrapper > .ts-control {
+  border-color: var(--md-sys-color-error) !important;
+}
+.input-field.error > select.tomselected + .ts-wrapper + label,
+.input-field.error > select.tomselected + .ts-wrapper.focus + label {
+  color: var(--md-sys-color-error);
+}

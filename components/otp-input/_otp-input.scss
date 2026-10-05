@@ -6,6 +6,11 @@
   width: max-content;
   max-width: 100%;
   margin-block: 8px;
+  margin-left: auto;
+  margin-right: auto;
+
+  &[data-otp-align='left'] { margin-left: 0; margin-right: auto; }
+  &[data-otp-align='right'] { margin-left: auto; margin-right: 0; }
   border-radius: var(--otp-slot-radius);
 
   // One native control preserves selection, password semantics, autofill and form validation.
@@ -61,12 +66,21 @@
 // Standard text-field markup: input, label, supporting text. Keep the label
 // above the entire code so it never overlaps an individual slot or separator.
 .input-field:has(> .otp-input) {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-block: 24px;
-  > .otp-input { margin: 0; }
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr);
+  justify-items: start;
+  &:has(> .otp-input[data-otp-align='left']) { grid-template-columns: 0 minmax(0, max-content) minmax(0, 1fr); }
+  &:has(> .otp-input[data-otp-align='right']) { grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 0; }
+  > .otp-input {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    &[data-otp-align] { margin: 0; }
+  }
   > label {
+    grid-column: 2;
+    grid-row: 1;
+    max-width: 100%;
     position: static;
     order: -1;
     transform: none;
@@ -76,7 +90,7 @@
     line-height: 1.4;
     background: transparent;
   }
-  > .supporting-text { display: block; padding-inline: 0; }
+  > .supporting-text { grid-column: 2; grid-row: 3; max-width: 100%; padding-inline: 0; }
   &:focus-within > label { color: var(--input-color); }
   &:has(input:disabled) > label { opacity: .38; }
   &.error, &:has(input[aria-invalid='true']), &:has(.otp-input[data-invalid]), &:has(input:user-invalid) {

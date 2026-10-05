@@ -1,4 +1,32 @@
-.range-field { position: relative; min-width: 0; }
+.range-field {
+  position: relative;
+  min-width: 0;
+
+  // Keep supporting messages close without reducing the slider's interaction area.
+  &:has(> .supporting-text),
+  &:has(+ .supporting-text) {
+    > input[type='range'] { margin-bottom: 0; }
+  }
+
+  > .supporting-text,
+  + .supporting-text { margin-top: 0; }
+}
+
+.range-field-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+
+  > label { min-width: 0; }
+  > output {
+    flex-shrink: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 
 input[type='range'] {
   --range-active-color: var(--md-sys-color-primary);

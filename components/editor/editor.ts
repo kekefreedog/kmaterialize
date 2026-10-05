@@ -72,6 +72,8 @@ export class Editor {
   private prism?: typeof Prism;
   private dropCaret = make('span', 'editor-drop-caret');
   private dragPoint?: { x: number; y: number };
+  private _dragScroll?: { top: number; left: number; anchorY?: number; direction: number; speed: number };
+  private _dragScrollFrame?: number;
   private helpers: EditorHelpers;
   private undoStack: EditorEdit[] = [];
   private redoStack: EditorEdit[] = [];
@@ -310,7 +312,16 @@ export class Editor {
         this.lastTyping = undefined;
       }
     }, { signal });
-    this.source.addEventListener('scroll', () => { this.lines.scrollTop = this.source.scrollTop; this.syncHighlight(); if (this.dragPoint) this.showDropCaret(); }, { signal });
+    this.source.addEventListener('scroll', () => {
+      // Native textarea drag scrolling must not bypass the controlled edge scroll.
+      if (this._dragScroll) {
+        this.source.scrollTop = this._dragScroll.top;
+        this.source.scrollLeft = this._dragScroll.left;
+      }
+      this.lines.scrollTop = this.source.scrollTop;
+      this.syncHighlight();
+      if (this.dragPoint) this.showDropCaret();
+    }, { signal });
     this.selector.addEventListener('change', () => { void this.setSource(this.selector.value || this.activeSource.id).catch(() => {}); }, { signal });
     this.templateSelector.addEventListener('change', () => { void this.selectTemplate(this.templateSelector.value || this.activeTemplate.id).catch(() => {}); }, { signal });
     this.search.addEventListener('input', () => this.renderTokens(), { signal });
@@ -327,6 +338,7 @@ export class Editor {
         event.dataTransfer.setData(helperMime, helper.dataset.editorHelper!);
         event.dataTransfer.setData('text/plain', `{{${helper.dataset.editorHelper} }}`);
         event.dataTransfer.effectAllowed = 'copy';
+        this._startDragScroll();
         return;
       }
       if (!token || token.disabled || !event.dataTransfer) return;
@@ -334,19 +346,22 @@ export class Editor {
       event.dataTransfer.setData(tokenMime, JSON.stringify(path));
       event.dataTransfer.setData('text/plain', this.expression(path));
       event.dataTransfer.effectAllowed = 'copy';
+      this._startDragScroll();
+    }, { signal });
+    this.source.addEventListener('dragenter', event => {
+      if (!this.source.readOnly && event.dataTransfer?.types.some(type => type === tokenMime || type === helperMime)) this._startDragScroll();
     }, { signal });
     this.source.addEventListener('dragover', event => {
       if (!this.source.readOnly && event.dataTransfer?.types.some(type => type === tokenMime || type === helperMime)) {
         event.preventDefault(); event.dataTransfer.dropEffect = 'copy';
         code.classList.add('is-drop-target');
         this.dragPoint = { x: event.clientX, y: event.clientY };
-        const bounds = this.source.getBoundingClientRect();
-        if (event.clientY < bounds.top + 20) this.source.scrollTop -= 16;
-        else if (event.clientY > bounds.bottom - 20) this.source.scrollTop += 16;
+        this._updateDragScroll(event.clientX, event.clientY);
         this.showDropCaret();
       }
     }, { signal });
     const clearDrop = () => {
+      this._stopDragScroll();
       this.spreadsheetView?.clearDropCarets();
       code.classList.remove('is-drop-target');
       this.dropCaret.hidden = true;
@@ -380,6 +395,57 @@ export class Editor {
     this.resizeObserver.observe(this.source);
     this.updateLines();
     this.renderTokens();
+  }
+
+  /** Freeze native scrolling until movement inside the source requests edge scrolling. */
+  private _startDragScroll(): void {
+    if (this._dragScroll || this.spreadsheetView || this.source.readOnly) return;
+    const state = this._dragScroll = {
+      top: this.source.scrollTop, left: this.source.scrollLeft, anchorY: undefined as number | undefined,
+      direction: 0, speed: 0
+    };
+    let previous = performance.now();
+    const step = (time: number) => {
+      if (this._dragScroll !== state) return;
+      const elapsed = Math.min(32, Math.max(0, time - previous));
+      previous = time;
+      // Retain fractional pixels so slow movement also works on high-refresh displays.
+      state.top = Math.max(0, Math.min(this.source.scrollHeight - this.source.clientHeight, state.top + state.speed * elapsed / 1000));
+      this.source.scrollTop = state.top;
+      this.source.scrollLeft = state.left;
+      if (this.dragPoint) this.showDropCaret();
+      this._dragScrollFrame = requestAnimationFrame(step);
+    };
+    this._dragScrollFrame = requestAnimationFrame(step);
+  }
+
+  private _updateDragScroll(x: number, y: number): void {
+    this._startDragScroll();
+    const state = this._dragScroll;
+    if (!state) return;
+    const bounds = this.source.getBoundingClientRect();
+    if (x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom) {
+      state.speed = state.direction = 0;
+      state.anchorY = undefined;
+      return;
+    }
+    // The first point establishes entry; small pointer jitter does not enable scrolling.
+    if (state.anchorY === undefined) state.anchorY = y;
+    const movement = y - state.anchorY;
+    if (Math.abs(movement) >= 6) {
+      state.direction = Math.sign(movement);
+      state.anchorY = y;
+    }
+    const edge = Math.min(32, bounds.height / 4);
+    const depth = state.direction < 0 ? bounds.top + edge - y : y - (bounds.bottom - edge);
+    state.speed = edge > 0 && state.direction && depth > 0
+      ? state.direction * 120 * Math.min(1, depth / edge) : 0;
+  }
+
+  private _stopDragScroll(): void {
+    if (this._dragScrollFrame !== undefined) cancelAnimationFrame(this._dragScrollFrame);
+    this._dragScrollFrame = undefined;
+    this._dragScroll = undefined;
   }
 
   private expression(path: string[]): string {
@@ -932,6 +998,7 @@ export class Editor {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true; this.version++;
+    this._stopDragScroll();
     this.templateRequest?.abort(); this.dataRequest?.abort();
     this.listRequests.forEach(request => request.abort()); this.listRequests.clear();
     this.spreadsheetView?.destroy();

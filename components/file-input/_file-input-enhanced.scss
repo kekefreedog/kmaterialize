@@ -33,6 +33,10 @@
     font-size: 1rem;
   }
 
+  &:has(> .supporting-text) .filepond--root {
+    margin-bottom: 0;
+  }
+
   .filepond--panel-root {
     border-radius: 12px;
     background-color: var(--md-sys-color-surface-variant);

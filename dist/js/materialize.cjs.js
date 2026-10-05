@@ -648,6 +648,8 @@ class OtpInput extends Component {
         if (!['text', 'tel', 'password'].includes(el.type))
             throw new TypeError('OtpInput requires a text, tel, or password input.');
         const settings = { ...OtpInput.defaults, ...OtpInput._markup(el), ...options };
+        if (!['left', 'center', 'right'].includes(settings.align))
+            throw new TypeError('Unknown OTP alignment.');
         if (!['digits', 'alphanumeric'].includes(settings.characters))
             throw new TypeError('Unknown OTP character set.');
         if (!Number.isInteger(settings.groupSize) || settings.groupSize < 0 || settings.groupSize > 32)
@@ -682,13 +684,14 @@ class OtpInput extends Component {
         this._hadClass = el.classList.contains('otp-input-native');
         this.ready = this._setup().catch(error => { this.destroy(); throw error; });
     }
-    static get defaults() { return { characters: 'digits', groupSize: 0 }; }
+    static get defaults() { return { characters: 'digits', groupSize: 0, align: 'center' }; }
     static init(els, options = {}) {
         return super.init(els, options, OtpInput);
     }
     static getInstance(el) { return el['M_OtpInput']; }
     static _markup(el) {
         return {
+            ...(el.dataset.otpAlign !== undefined ? { align: el.dataset.otpAlign } : {}),
             ...(el.dataset.otpLength !== undefined ? { length: Number(el.dataset.otpLength) } : {}),
             ...(el.dataset.otpPattern !== undefined ? { pattern: el.dataset.otpPattern } : {}),
             ...(el.dataset.otpGroupSize !== undefined ? { groupSize: Number(el.dataset.otpGroupSize) } : {}),
@@ -724,6 +727,7 @@ class OtpInput extends Component {
         const wrapper = this._wrapper = document.createElement('div');
         wrapper.className = 'otp-input';
         wrapper.dir = 'ltr';
+        wrapper.dataset.otpAlign = this.options.align;
         const cells = document.createElement('div');
         cells.className = 'otp-input-slots';
         cells.setAttribute('aria-hidden', 'true');
@@ -8237,11 +8241,11 @@ class Datepicker extends Component {
 }
 
 /** Opt-in copy action for explicitly authored text-field buttons. */
-let initialized = false;
+let initialized$1 = false;
 function initInputCopyButtons() {
-    if (typeof document === 'undefined' || initialized)
+    if (typeof document === 'undefined' || initialized$1)
         return;
-    initialized = true;
+    initialized$1 = true;
     const pending = new WeakSet();
     const feedback = new WeakMap();
     document.addEventListener('click', async (event) => {
@@ -8311,6 +8315,25 @@ function initOutlinedNotches() {
         return;
     const start = () => {
         const selector = '.input-field.outlined, .input-field.outlined > .select-wrapper';
+        // Delegate label activation so dynamically inserted fields work immediately.
+        document.addEventListener('click', event => {
+            if (event.defaultPrevented || !(event.target instanceof Element))
+                return;
+            const label = event.target.closest('label');
+            if (!label?.parentElement?.matches(selector))
+                return;
+            if (event.target.closest('a, button, input, select, textarea, [contenteditable]'))
+                return;
+            const input = label.previousElementSibling;
+            if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement))
+                return;
+            if (input.matches(':disabled, [type=hidden], [type=checkbox], [type=radio]'))
+                return;
+            // Respect explicitly associated controls, including enhanced select labels.
+            if (label.hasAttribute('for') && label.control !== input)
+                return;
+            input.focus();
+        });
         const entries = new Map();
         const position = (field) => {
             const entry = entries.get(field);
@@ -8399,6 +8422,148 @@ function initOutlinedNotches() {
         start();
 }
 
+/** Continuous pointer dragging for native-checkbox Material switches. */
+let initialized = false;
+/** Install delegated behavior once, including switches inserted later. */
+function initSwitchDragging() {
+    if (typeof document === "undefined" || initialized)
+        return;
+    initialized = true;
+    let gesture = null;
+    let suppressedClick = null;
+    const setProgress = (clientX) => {
+        const progress = Math.max(0, Math.min(1, Number(gesture.checked) + (clientX - gesture.startX) * gesture.direction / gesture.travel));
+        gesture.progress = progress;
+        gesture.lever.style.setProperty("--switch-drag-progress", String(progress));
+        gesture.lever.style.setProperty("--switch-drag-percent", `${progress * 100}%`);
+        gesture.lever.classList.add("is-dragging");
+        gesture.lever.classList.toggle("is-drag-on", progress >= 0.5);
+    };
+    const finish = (commit, canceled = false) => {
+        if (!gesture)
+            return;
+        const current = gesture;
+        gesture = null;
+        document.removeEventListener("pointermove", move, true);
+        document.removeEventListener("pointerup", release, true);
+        document.removeEventListener("pointercancel", cancel, true);
+        document.removeEventListener("keydown", keydown, true);
+        document.removeEventListener("reset", reset, true);
+        current.lever.removeEventListener("lostpointercapture", cancel);
+        window.removeEventListener("blur", cancel);
+        window.removeEventListener("resize", cancel);
+        if (current.dragging || current.canceled || canceled)
+            suppressedClick = { input: current.input, lever: current.lever, until: Date.now() + 500 };
+        current.lever.classList.remove("is-dragging", "is-drag-on");
+        current.lever.style.removeProperty("--switch-drag-progress");
+        current.lever.style.removeProperty("--switch-drag-percent");
+        if (current.lever.hasPointerCapture(current.pointerId))
+            current.lever.releasePointerCapture(current.pointerId);
+        // Native activation preserves canceled clicks, input/change events, and form behavior.
+        if (commit && current.dragging && !current.canceled && current.input.isConnected &&
+            !current.input.matches(":disabled") && current.input.checked === current.checked &&
+            current.input.checked !== (current.progress >= 0.5))
+            current.input.click();
+    };
+    const move = (event) => {
+        if (!gesture || event.pointerId !== gesture.pointerId || gesture.canceled)
+            return;
+        if (!gesture.input.isConnected || !gesture.lever.isConnected ||
+            gesture.input.matches(":disabled") || gesture.input.checked !== gesture.checked) {
+            finish(false, true);
+            return;
+        }
+        if (!gesture.dragging) {
+            const dx = Math.abs(event.clientX - gesture.startX);
+            const dy = Math.abs(event.clientY - gesture.startY);
+            if (Math.max(dx, dy) < 4)
+                return;
+            if (dy > dx) {
+                gesture.canceled = true;
+                return;
+            }
+            gesture.dragging = true;
+            gesture.input.focus({ preventScroll: true });
+            try {
+                gesture.lever.setPointerCapture(event.pointerId);
+            }
+            catch {
+                // Synthetic pointers may not own capture; document listeners still clean up.
+            }
+        }
+        event.preventDefault();
+        setProgress(event.clientX);
+    };
+    const release = (event) => {
+        if (!gesture || event.pointerId !== gesture.pointerId)
+            return;
+        if (gesture.dragging && !gesture.canceled)
+            setProgress(event.clientX);
+        finish(true);
+    };
+    const cancel = (event) => {
+        if (event instanceof PointerEvent && gesture && event.pointerId !== gesture.pointerId)
+            return;
+        finish(false, true);
+    };
+    const keydown = (event) => {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            finish(false, true);
+        }
+    };
+    const reset = (event) => {
+        if (event.target === gesture?.input.form)
+            finish(false, true);
+    };
+    document.addEventListener("pointerdown", event => {
+        if (!event.isPrimary || event.button !== 0)
+            return;
+        finish(false, true);
+        suppressedClick = null;
+        if (event.defaultPrevented || !(event.target instanceof Element))
+            return;
+        const lever = event.target.closest(".switch label .lever");
+        const input = lever?.previousElementSibling;
+        if (!lever || !(input instanceof HTMLInputElement) || input.type !== "checkbox" || input.matches(":disabled"))
+            return;
+        const rect = lever.getBoundingClientRect();
+        const travel = rect.width - rect.height;
+        if (travel <= 0)
+            return;
+        gesture = {
+            input, lever, pointerId: event.pointerId,
+            startX: event.clientX, startY: event.clientY,
+            checked: input.checked, travel,
+            direction: getComputedStyle(lever).direction === "rtl" ? -1 : 1,
+            progress: Number(input.checked), dragging: false, canceled: false,
+        };
+        document.addEventListener("pointermove", move, { capture: true, passive: false });
+        document.addEventListener("pointerup", release, true);
+        document.addEventListener("pointercancel", cancel, true);
+        document.addEventListener("keydown", keydown, true);
+        document.addEventListener("reset", reset, true);
+        lever.addEventListener("lostpointercapture", cancel);
+        window.addEventListener("blur", cancel);
+        window.addEventListener("resize", cancel);
+    });
+    document.addEventListener("click", event => {
+        // Ignore only the pointer click following a drag. Keyboard and native .click() stay intact.
+        if (!suppressedClick || event.detail === 0)
+            return;
+        const { input, lever, until } = suppressedClick;
+        if (Date.now() > until) {
+            suppressedClick = null;
+            return;
+        }
+        if (event.target === input || event.composedPath().includes(lever)) {
+            suppressedClick = null;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    }, true);
+}
+
 class Forms {
     /**
      * Checks if the label has validation and apply
@@ -8458,6 +8623,7 @@ class Forms {
     static Init() {
         initOutlinedNotches();
         initInputCopyButtons();
+        initSwitchDragging();
         if (typeof document !== 'undefined')
             document?.addEventListener('DOMContentLoaded', () => {
                 document.addEventListener('change', (e) => {
@@ -12648,6 +12814,12 @@ class TomSelectField extends Component {
             };
         }
         this.tomSelect = new TomSelect(this.el, settings);
+        // Preserve authored validation context on the control that receives focus.
+        for (const name of ['aria-invalid', 'aria-describedby', 'aria-errormessage']) {
+            const value = this.el.getAttribute(name);
+            if (value !== null)
+                this.tomSelect.control_input.setAttribute(name, value);
+        }
         if (dataset.depends) {
             this._dependsOnEl = document.querySelector(dataset.depends);
             this._dependsOnEl?.addEventListener('change', this._handleDependencyChange);
@@ -15008,6 +15180,8 @@ class Editor {
     prism;
     dropCaret = make('span', 'editor-drop-caret');
     dragPoint;
+    _dragScroll;
+    _dragScrollFrame;
     helpers;
     undoStack = [];
     redoStack = [];
@@ -15296,8 +15470,17 @@ class Editor {
                 this.lastTyping = undefined;
             }
         }, { signal });
-        this.source.addEventListener('scroll', () => { this.lines.scrollTop = this.source.scrollTop; this.syncHighlight(); if (this.dragPoint)
-            this.showDropCaret(); }, { signal });
+        this.source.addEventListener('scroll', () => {
+            // Native textarea drag scrolling must not bypass the controlled edge scroll.
+            if (this._dragScroll) {
+                this.source.scrollTop = this._dragScroll.top;
+                this.source.scrollLeft = this._dragScroll.left;
+            }
+            this.lines.scrollTop = this.source.scrollTop;
+            this.syncHighlight();
+            if (this.dragPoint)
+                this.showDropCaret();
+        }, { signal });
         this.selector.addEventListener('change', () => { void this.setSource(this.selector.value || this.activeSource.id).catch(() => { }); }, { signal });
         this.templateSelector.addEventListener('change', () => { void this.selectTemplate(this.templateSelector.value || this.activeTemplate.id).catch(() => { }); }, { signal });
         this.search.addEventListener('input', () => this.renderTokens(), { signal });
@@ -15316,6 +15499,7 @@ class Editor {
                 event.dataTransfer.setData(helperMime, helper.dataset.editorHelper);
                 event.dataTransfer.setData('text/plain', `{{${helper.dataset.editorHelper} }}`);
                 event.dataTransfer.effectAllowed = 'copy';
+                this._startDragScroll();
                 return;
             }
             if (!token || token.disabled || !event.dataTransfer)
@@ -15324,6 +15508,11 @@ class Editor {
             event.dataTransfer.setData(tokenMime, JSON.stringify(path));
             event.dataTransfer.setData('text/plain', this.expression(path));
             event.dataTransfer.effectAllowed = 'copy';
+            this._startDragScroll();
+        }, { signal });
+        this.source.addEventListener('dragenter', event => {
+            if (!this.source.readOnly && event.dataTransfer?.types.some(type => type === tokenMime || type === helperMime))
+                this._startDragScroll();
         }, { signal });
         this.source.addEventListener('dragover', event => {
             if (!this.source.readOnly && event.dataTransfer?.types.some(type => type === tokenMime || type === helperMime)) {
@@ -15331,15 +15520,12 @@ class Editor {
                 event.dataTransfer.dropEffect = 'copy';
                 code.classList.add('is-drop-target');
                 this.dragPoint = { x: event.clientX, y: event.clientY };
-                const bounds = this.source.getBoundingClientRect();
-                if (event.clientY < bounds.top + 20)
-                    this.source.scrollTop -= 16;
-                else if (event.clientY > bounds.bottom - 20)
-                    this.source.scrollTop += 16;
+                this._updateDragScroll(event.clientX, event.clientY);
                 this.showDropCaret();
             }
         }, { signal });
         const clearDrop = () => {
+            this._stopDragScroll();
             this.spreadsheetView?.clearDropCarets();
             code.classList.remove('is-drop-target');
             this.dropCaret.hidden = true;
@@ -15385,6 +15571,60 @@ class Editor {
         this.resizeObserver.observe(this.source);
         this.updateLines();
         this.renderTokens();
+    }
+    /** Freeze native scrolling until movement inside the source requests edge scrolling. */
+    _startDragScroll() {
+        if (this._dragScroll || this.spreadsheetView || this.source.readOnly)
+            return;
+        const state = this._dragScroll = {
+            top: this.source.scrollTop, left: this.source.scrollLeft, anchorY: undefined,
+            direction: 0, speed: 0
+        };
+        let previous = performance.now();
+        const step = (time) => {
+            if (this._dragScroll !== state)
+                return;
+            const elapsed = Math.min(32, Math.max(0, time - previous));
+            previous = time;
+            // Retain fractional pixels so slow movement also works on high-refresh displays.
+            state.top = Math.max(0, Math.min(this.source.scrollHeight - this.source.clientHeight, state.top + state.speed * elapsed / 1000));
+            this.source.scrollTop = state.top;
+            this.source.scrollLeft = state.left;
+            if (this.dragPoint)
+                this.showDropCaret();
+            this._dragScrollFrame = requestAnimationFrame(step);
+        };
+        this._dragScrollFrame = requestAnimationFrame(step);
+    }
+    _updateDragScroll(x, y) {
+        this._startDragScroll();
+        const state = this._dragScroll;
+        if (!state)
+            return;
+        const bounds = this.source.getBoundingClientRect();
+        if (x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom) {
+            state.speed = state.direction = 0;
+            state.anchorY = undefined;
+            return;
+        }
+        // The first point establishes entry; small pointer jitter does not enable scrolling.
+        if (state.anchorY === undefined)
+            state.anchorY = y;
+        const movement = y - state.anchorY;
+        if (Math.abs(movement) >= 6) {
+            state.direction = Math.sign(movement);
+            state.anchorY = y;
+        }
+        const edge = Math.min(32, bounds.height / 4);
+        const depth = state.direction < 0 ? bounds.top + edge - y : y - (bounds.bottom - edge);
+        state.speed = edge > 0 && state.direction && depth > 0
+            ? state.direction * 120 * Math.min(1, depth / edge) : 0;
+    }
+    _stopDragScroll() {
+        if (this._dragScrollFrame !== undefined)
+            cancelAnimationFrame(this._dragScrollFrame);
+        this._dragScrollFrame = undefined;
+        this._dragScroll = undefined;
     }
     expression(path) {
         // Segment literals preserve dotted keys and numeric array indices.
@@ -16086,6 +16326,7 @@ class Editor {
             return;
         this.destroyed = true;
         this.version++;
+        this._stopDragScroll();
         this.templateRequest?.abort();
         this.dataRequest?.abort();
         this.listRequests.forEach(request => request.abort());

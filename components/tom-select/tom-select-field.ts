@@ -166,6 +166,11 @@ export class TomSelectField extends Component<TomSelectFieldOptions> {
     }
 
     this.tomSelect = new TomSelect(this.el, settings);
+    // Preserve authored validation context on the control that receives focus.
+    for (const name of ['aria-invalid', 'aria-describedby', 'aria-errormessage']) {
+      const value = this.el.getAttribute(name);
+      if (value !== null) this.tomSelect.control_input.setAttribute(name, value);
+    }
 
     if (dataset.depends) {
       this._dependsOnEl = document.querySelector<HTMLElement>(dataset.depends);

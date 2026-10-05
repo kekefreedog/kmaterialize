@@ -12,6 +12,7 @@ const check=(ok,message)=>{if(!ok)throw Error(message)};
  let calls=0,events=0,inputs=0;
  el.addEventListener('otpcomplete',e=>{events++;check(e.detail.value===el.value,'event value');});el.addEventListener('input',()=>inputs++);
  let field=M.OtpInput.init(el,{length:6,onComplete:()=>calls++});await field.ready;
+ check(field.options.align==='center'&&el.parentElement.dataset.otpAlign==='center','default centered alignment');
  check(field.isComplete()&&field.getValue()==='012345','initial leading zero');check(calls===0&&events===0,'initialization silent');
  check(form.querySelectorAll('input').length===1&&document.querySelectorAll('.otp-input-slot').length===6,'one native input and six decorative slots');
  check(el.labels[0].textContent==='Code'&&el.getAttribute('aria-describedby')==='help','native labels and descriptions');
@@ -41,7 +42,19 @@ const check=(ok,message)=>{if(!ok)throw Error(message)};
  el.type='text';await tick();check(el.parentElement.querySelector('.otp-input-slot').textContent==='1','native reveal');
  check(document.querySelectorAll('.otp-input').length===1,'reinit single wrapper');field.destroy();
  const early=M.OtpInput.init(el,{length:4});early.destroy();await early.ready;check(!el.closest('.otp-input')&&!M.OtpInput.getInstance(el),'destroy before ready');
- for(const options of [{length:0},{length:33},{length:4,pattern:'######'},{pattern:'\\'},{groupSize:-1}]) {let error=false;try{M.OtpInput.init(el,options)}catch{error=true}check(error,'reject invalid options '+JSON.stringify(options));}
+ for(const align of ['left','center','right']) {
+  el.dataset.otpAlign=align;
+  const aligned=M.OtpInput.init(el);await aligned.ready;
+  check(aligned.options.align===align&&el.parentElement.dataset.otpAlign===align,'markup alignment '+align);
+  const box=el.parentElement.getBoundingClientRect(),container=el.parentElement.parentElement.getBoundingClientRect();
+  check(align==='left'?Math.abs(box.left-container.left)<2:align==='right'?Math.abs(box.right-container.right)<2:Math.abs((box.left+box.right)-(container.left+container.right))<2,'visual alignment '+align);
+  const label=el.labels[0].getBoundingClientRect(),first=el.parentElement.querySelector('.otp-input-slot').getBoundingClientRect();
+  check(Math.abs(label.left-first.left)<2,'label starts at first slot '+align);
+  aligned.destroy();
+ }
+ el.dataset.otpAlign='left';const overridden=M.OtpInput.init(el,{align:'right'});await overridden.ready;
+ check(overridden.options.align==='right'&&el.parentElement.dataset.otpAlign==='right','explicit alignment overrides markup');overridden.destroy();delete el.dataset.otpAlign;
+ for(const options of [{align:'invalid'},{length:0},{length:33},{length:4,pattern:'######'},{pattern:'\\'},{groupSize:-1}]) {let error=false;try{M.OtpInput.init(el,options)}catch{error=true}check(error,'reject invalid options '+JSON.stringify(options));}
  M.AutoInit(document.querySelector('#auto'));const autoEl=document.querySelector('#auto input'),auto=M.OtpInput.getInstance(autoEl);await auto.ready;
  check(auto.options.length===4&&!!M.MaskitoInput.getInstance(autoEl)&&!M.NumberInput.getInstance(autoEl),'AutoInit owns one masking engine');auto.destroy();
  log.push('pattern masks/processors, PIN reveal, cleanup/reinit, early destroy, invalid options and AutoInit');

@@ -1,5 +1,6 @@
 import { initInputCopyButtons } from './input-copy';
 import { initOutlinedNotches } from './outlined-notch';
+import { initSwitchDragging } from '../switch/switch-drag';
 import { Utils } from '../../src/utils';
 
 export class Forms {
@@ -67,6 +68,7 @@ export class Forms {
   static Init() {
     initOutlinedNotches();
     initInputCopyButtons();
+    initSwitchDragging();
     if (typeof document !== 'undefined')
       document?.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('change', (e: KeyboardEvent) => {

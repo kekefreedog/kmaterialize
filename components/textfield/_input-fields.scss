@@ -43,6 +43,28 @@ textarea.materialize-textarea {
   color: var(--md-sys-color-error);
 }
 
+// Shared helper/error text also supports controls outside .input-field.
+.supporting-text {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  margin: 4px 0 0;
+
+  &:has(> .material-icons) {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  &[hidden] { display: none; }
+
+  > .material-icons {
+    flex: 0 0 16px;
+    font-size: 16px;
+    line-height: 16px;
+  }
+}
+
 .input-field {
   --input-color: var(--md-sys-color-primary);
 
@@ -135,9 +157,7 @@ textarea.materialize-textarea {
 
   .supporting-text {
     color: var(--md-sys-color-on-surface-variant);
-    font-size: 12px;
     padding: 0 16px;
-    margin-top: 4px;
   }
 
   .character-counter {
@@ -518,4 +538,13 @@ textarea {
       &:focus-visible { outline: 2px solid currentColor; }
     }
   }
+}
+
+// FormSelect owns the outline inside its generated wrapper.
+.input-field.outlined.error > .select-wrapper > .input-outline {
+  border-color: var(--md-sys-color-error);
+}
+.input-field.error > .select-wrapper > label,
+.input-field.error > .select-wrapper:focus-within > label {
+  color: var(--md-sys-color-error);
 }

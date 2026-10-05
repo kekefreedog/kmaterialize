@@ -3,6 +3,19 @@ export function initOutlinedNotches() {
   if (typeof document === 'undefined') return;
   const start = () => {
     const selector = '.input-field.outlined, .input-field.outlined > .select-wrapper';
+    // Delegate label activation so dynamically inserted fields work immediately.
+    document.addEventListener('click', event => {
+      if (event.defaultPrevented || !(event.target instanceof Element)) return;
+      const label = event.target.closest('label');
+      if (!label?.parentElement?.matches(selector)) return;
+      if (event.target.closest('a, button, input, select, textarea, [contenteditable]')) return;
+      const input = label.previousElementSibling;
+      if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement)) return;
+      if (input.matches(':disabled, [type=hidden], [type=checkbox], [type=radio]')) return;
+      // Respect explicitly associated controls, including enhanced select labels.
+      if (label.hasAttribute('for') && label.control !== input) return;
+      input.focus();
+    });
     const entries = new Map<HTMLElement, { input: HTMLElement; outline: HTMLFieldSetElement }>();
     const position = (field: HTMLElement) => {
       const entry = entries.get(field);

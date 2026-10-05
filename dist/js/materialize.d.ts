@@ -148,6 +148,8 @@ interface OtpInputOptions extends BaseOptions$1 {
     /** Number of editable slots (1–32); inferred when pattern is supplied. */
     length?: number;
     characters?: 'digits' | 'alphanumeric';
+    /** Horizontal alignment of the code within its container. Defaults to center. */
+    align?: 'left' | 'center' | 'right';
     /** # = digit, A = ASCII letter, * = alphanumeric; backslash escapes literals. */
     pattern?: string;
     /** Maskito processing and overwrite behavior. The slot pattern owns the mask. */
@@ -4053,6 +4055,8 @@ declare class Editor {
     private prism?;
     private dropCaret;
     private dragPoint?;
+    private _dragScroll?;
+    private _dragScrollFrame?;
     private helpers;
     private undoStack;
     private redoStack;
@@ -4094,6 +4098,10 @@ declare class Editor {
     private validateData;
     private initialize;
     private build;
+    /** Freeze native scrolling until movement inside the source requests edge scrolling. */
+    private _startDragScroll;
+    private _updateDragScroll;
+    private _stopDragScroll;
     private expression;
     private renderTokens;
     /** Resolve a drop point in the unwrapped, monospace textarea, including scroll offset. */

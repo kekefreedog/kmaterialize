@@ -19751,6 +19751,58 @@ input[type=text].timepicker-input-minutes:focus {
   border-radius: 4px;
 }
 
+fieldset.radio-group {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 16px 12px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 4px;
+}
+fieldset.radio-group > legend {
+  padding: 0 4px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+  line-height: 16px;
+}
+fieldset.radio-group > p:not(.supporting-text) {
+  margin: 0;
+}
+fieldset.radio-group label {
+  position: relative;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  min-height: 44px;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+}
+fieldset.radio-group input[type=radio] + span {
+  height: auto;
+  min-height: 24px;
+  padding-left: 28px;
+  line-height: 24px;
+}
+fieldset.radio-group input[type=radio] + span::before, fieldset.radio-group input[type=radio] + span::after {
+  margin: 4px 0;
+}
+fieldset.radio-group input:focus-visible + span {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+fieldset.radio-group.error {
+  background: transparent;
+  border-color: var(--md-sys-color-error);
+}
+fieldset.radio-group.error > legend {
+  color: var(--md-sys-color-error);
+}
+
 /* Material Design 3 checkboxes, adapted to native Materialize markup. */
 :root {
   --checkbox-size: 20px;
@@ -19965,7 +20017,7 @@ p:has(> label:has(> input[type=checkbox]):has(> span:not(.lever))) {
 }
 .switch label input[type=checkbox]:checked + .lever:before, .switch label input[type=checkbox]:checked + .lever:after {
   top: var(--gap-on);
-  left: calc(var(--track-width) - var(--size-on) - var(--gap-on) - 2 * var(--border-width));
+  inset-inline-start: calc(var(--track-width) - var(--size-on) - var(--gap-on) - 2 * var(--border-width));
   width: var(--size-on);
   height: var(--size-on);
 }
@@ -19988,6 +20040,8 @@ p:has(> label:has(> input[type=checkbox]):has(> span:not(.lever))) {
   -webkit-transition: background 0.3s ease;
   transition: background 0.3s ease;
   vertical-align: middle;
+  -ms-touch-action: pan-y;
+      touch-action: pan-y;
   margin: 0 16px;
 }
 .switch label .lever:before, .switch label .lever:after {
@@ -19997,12 +20051,12 @@ p:has(> label:has(> input[type=checkbox]):has(> span:not(.lever))) {
   width: var(--size-off);
   height: var(--size-off);
   border-radius: 50%;
-  left: var(--gap-off);
+  inset-inline-start: var(--gap-off);
   top: var(--gap-off);
-  -webkit-transition: left 0.3s ease, background 0.3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
-  transition: left 0.3s ease, background 0.3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
-  transition: left 0.3s ease, background 0.3s ease, box-shadow 0.1s ease, transform 0.1s ease;
-  transition: left 0.3s ease, background 0.3s ease, box-shadow 0.1s ease, transform 0.1s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
+  -webkit-transition: inset-inline-start 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
+  transition: inset-inline-start 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
+  transition: inset-inline-start 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease, box-shadow 0.1s ease, transform 0.1s ease;
+  transition: inset-inline-start 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease, box-shadow 0.1s ease, transform 0.1s ease, -webkit-box-shadow 0.1s ease, -webkit-transform 0.1s ease;
 }
 .switch label .lever:after {
   background-color: var(--md-sys-color-outline);
@@ -20068,14 +20122,95 @@ input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
   color: var(--md-sys-color-primary);
 }
 
-.switch.switch-with-icon label input[type=checkbox]:focus-visible + .lever {
+.switch label input[type=checkbox]:focus-visible + .lever {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 4px;
 }
 
+.switch label input[type=checkbox] + .lever.is-dragging {
+  --switch-drag-size: calc(var(--size-off) + (var(--size-on) - var(--size-off)) * var(--switch-drag-progress));
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-surface-variant));
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-outline));
+  -webkit-transition: none;
+  transition: none;
+}
+.switch label input[type=checkbox] + .lever.is-dragging::before, .switch label input[type=checkbox] + .lever.is-dragging::after {
+  width: var(--switch-drag-size);
+  height: var(--switch-drag-size);
+  top: calc((var(--track-height) - var(--switch-drag-size)) / 2 - var(--border-width));
+  inset-inline-start: calc(var(--track-height) / 2 - var(--border-width) + (var(--track-width) - var(--track-height)) * var(--switch-drag-progress) - var(--switch-drag-size) / 2);
+  -webkit-transition: none;
+  transition: none;
+}
+.switch label input[type=checkbox] + .lever.is-dragging::after {
+  background-color: color-mix(in srgb, var(--md-sys-color-surface) var(--switch-drag-percent), var(--md-sys-color-outline));
+}
+
+.switch label input[type=checkbox]:not(:disabled) + .lever.is-dragging::before {
+  width: var(--size-on);
+  height: var(--size-on);
+  top: var(--gap-on);
+  inset-inline-start: calc(var(--track-height) / 2 - var(--border-width) + (var(--track-width) - var(--track-height)) * var(--switch-drag-progress) - var(--size-on) / 2);
+  -webkit-transform: scale(2.4);
+          transform: scale(2.4);
+  background-color: color-mix(in srgb, transparent, var(--md-sys-color-primary) 18%);
+  pointer-events: none;
+}
+
+.switch.switch-with-icon label input[type=checkbox] + .lever.is-dragging::after {
+  content: var(--switch-icon-off, "\e5cd");
+  color: color-mix(in srgb, var(--md-sys-color-primary) var(--switch-drag-percent), var(--md-sys-color-surface));
+}
+
+.switch.switch-with-icon label input[type=checkbox] + .lever.is-dragging.is-drag-on::after {
+  content: var(--switch-icon-on, "\e5ca");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch label .lever,
+  .switch label .lever::before,
+  .switch label .lever::after {
+    -webkit-transition: none;
+    transition: none;
+  }
+}
 .range-field {
   position: relative;
   min-width: 0;
+}
+.range-field:has(> .supporting-text) > input[type=range], .range-field:has(+ .supporting-text) > input[type=range] {
+  margin-bottom: 0;
+}
+.range-field > .supporting-text,
+.range-field + .supporting-text {
+  margin-top: 0;
+}
+
+.range-field-header {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+  -webkit-align-items: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 16px;
+}
+.range-field-header > label {
+  min-width: 0;
+}
+.range-field-header > output {
+  -webkit-flex-shrink: 0;
+      -ms-flex-negative: 0;
+          flex-shrink: 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 
 input[type=range] {
@@ -20642,6 +20777,35 @@ textarea.materialize-textarea {
   color: var(--md-sys-color-error);
 }
 
+.supporting-text {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  margin: 4px 0 0;
+}
+.supporting-text:has(> .material-icons) {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: start;
+  -webkit-align-items: flex-start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  gap: 4px;
+}
+.supporting-text[hidden] {
+  display: none;
+}
+.supporting-text > .material-icons {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 16px;
+      -ms-flex: 0 0 16px;
+          flex: 0 0 16px;
+  font-size: 16px;
+  line-height: 16px;
+}
+
 .input-field {
   --input-color: var(--md-sys-color-primary);
   position: relative;
@@ -20730,9 +20894,7 @@ textarea.materialize-textarea {
 }
 .input-field .supporting-text {
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 12px;
   padding: 0 16px;
-  margin-top: 4px;
 }
 .input-field .character-counter {
   color: var(--md-sys-color-on-surface-variant);
@@ -21183,6 +21345,15 @@ textarea.materialize-textarea {
   outline: 2px solid currentColor;
 }
 
+.input-field.outlined.error > .select-wrapper > .input-outline {
+  border-color: var(--md-sys-color-error);
+}
+
+.input-field.error > .select-wrapper > label,
+.input-field.error > .select-wrapper:focus-within > label {
+  color: var(--md-sys-color-error);
+}
+
 select.browser-default {
   opacity: 1;
   color: var(--md-sys-color-on-background);
@@ -21423,9 +21594,17 @@ select:disabled {
 
 .file-field {
   display: grid;
-  grid-template-columns: -webkit-min-content auto;
-  grid-template-columns: min-content auto;
+  grid-template-columns: -webkit-min-content minmax(0, 1fr);
+  grid-template-columns: min-content minmax(0, 1fr);
   gap: 10px;
+}
+.file-field:has(> .supporting-text) {
+  row-gap: 0;
+}
+.file-field > .supporting-text {
+  grid-column: 1/-1;
+  min-width: 0;
+  cursor: auto;
 }
 .file-field .file-path-wrapper {
   overflow: hidden;
@@ -22182,6 +22361,9 @@ input[data-date-picker=air-datepicker][readonly] {
   margin: 0.5rem 0 1rem 0;
   font-size: 1rem;
 }
+.file-field.file-field-enhanced:has(> .supporting-text) .filepond--root {
+  margin-bottom: 0;
+}
 .file-field.file-field-enhanced .filepond--panel-root {
   border-radius: 12px;
   background-color: var(--md-sys-color-surface-variant);
@@ -22487,6 +22669,16 @@ input[data-date-picker=air-datepicker][readonly] {
 div.suffix.suffix-tomselect {
   z-index: 2;
   top: 30px;
+}
+
+.input-field.error > .ts-wrapper > .ts-control,
+.input-field.outlined.error > .ts-wrapper > .ts-control {
+  border-color: var(--md-sys-color-error) !important;
+}
+
+.input-field.error > select.tomselected + .ts-wrapper + label,
+.input-field.error > select.tomselected + .ts-wrapper.focus + label {
+  color: var(--md-sys-color-error);
 }
 
 .pulse {
@@ -25217,6 +25409,18 @@ loading-screen-btn {
   width: max-content;
   max-width: 100%;
   margin-block: 8px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.otp-input[data-otp-align=left] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.otp-input[data-otp-align=right] {
+  margin-left: auto;
+  margin-right: 0;
+}
+.otp-input {
   border-radius: var(--otp-slot-radius);
 }
 .otp-input > input.otp-input-native {
@@ -25324,25 +25528,31 @@ loading-screen-btn {
   }
 }
 .input-field:has(> .otp-input) {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-      -ms-flex-direction: column;
-          flex-direction: column;
-  -webkit-box-align: start;
-  -webkit-align-items: flex-start;
-      -ms-flex-align: start;
-          align-items: flex-start;
-  margin-block: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, -webkit-max-content) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr);
+  justify-items: start;
+}
+.input-field:has(> .otp-input):has(> .otp-input[data-otp-align=left]) {
+  grid-template-columns: 0 minmax(0, -webkit-max-content) minmax(0, 1fr);
+  grid-template-columns: 0 minmax(0, max-content) minmax(0, 1fr);
+}
+.input-field:has(> .otp-input):has(> .otp-input[data-otp-align=right]) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, -webkit-max-content) 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 0;
 }
 .input-field:has(> .otp-input) > .otp-input {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+}
+.input-field:has(> .otp-input) > .otp-input[data-otp-align] {
   margin: 0;
 }
 .input-field:has(> .otp-input) > label {
+  grid-column: 2;
+  grid-row: 1;
+  max-width: 100%;
   position: static;
   -webkit-box-ordinal-group: 0;
   -webkit-order: -1;
@@ -25357,7 +25567,9 @@ loading-screen-btn {
   background: transparent;
 }
 .input-field:has(> .otp-input) > .supporting-text {
-  display: block;
+  grid-column: 2;
+  grid-row: 3;
+  max-width: 100%;
   padding-inline: 0;
 }
 .input-field:has(> .otp-input):focus-within > label {

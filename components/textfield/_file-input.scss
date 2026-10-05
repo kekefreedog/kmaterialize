@@ -1,8 +1,18 @@
 .file-field {
   display: grid;
-  grid-template-columns: min-content auto;
+  grid-template-columns: min-content minmax(0, 1fr);
   gap: 10px;
   //position: relative;
+
+  &:has(> .supporting-text) {
+    row-gap: 0;
+  }
+
+  > .supporting-text {
+    grid-column: 1 / -1;
+    min-width: 0;
+    cursor: auto;
+  }
 
   .file-path-wrapper {
     overflow: hidden;
