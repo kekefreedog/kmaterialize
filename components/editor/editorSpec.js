@@ -508,7 +508,7 @@ describe('Editor Handlebars workspace', function () {
         await begin();
         over(bounds.top + bounds.height / 2); over(bounds.bottom - 2);
         if (end === 'destroy') editor.destroy();
-        else if (end === 'Escape') document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        else if (end === 'Escape') input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         else document.dispatchEvent(new DragEvent(end));
         expect(frames.size).toBe(0);
         if (end !== 'destroy') {
