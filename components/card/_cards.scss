@@ -231,6 +231,21 @@
     }
   }
 
+  /// Match the card corners when its image is the only section.
+  > .card-image:only-child {
+    border-radius: inherit;
+
+    > img {
+      border-radius: inherit;
+    }
+
+    /// Keep the title scrim inside the rounded bottom corners.
+    > .card-title.gradient {
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: inherit;
+    }
+  }
+
   // Sticky Action Section
   &.sticky-action {
     .card-action {
@@ -259,7 +274,8 @@
     }
 
     .card-title {
-      color: var(--md-sys-color-surface);
+      /// Keep image overlay titles light in both themes.
+      color: var(--md-sys-color-surface-light);
       position: absolute;
       bottom: 0;
       left: 0;

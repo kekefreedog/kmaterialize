@@ -15184,6 +15184,16 @@ table span.badge {
       -ms-flex-positive: 1;
           flex-grow: 1;
 }
+.card > .card-image:only-child {
+  border-radius: inherit;
+}
+.card > .card-image:only-child > img {
+  border-radius: inherit;
+}
+.card > .card-image:only-child > .card-title.gradient {
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
 .card.sticky-action .card-action {
   z-index: 2;
 }
@@ -15205,7 +15215,7 @@ table span.badge {
   width: 100%;
 }
 .card .card-image .card-title {
-  color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-surface-light);
   position: absolute;
   bottom: 0;
   left: 0;
