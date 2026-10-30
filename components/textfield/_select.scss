@@ -71,21 +71,47 @@ select:disabled {
   color: var(--md-sys-color-on-surface);
 }
 
-.select-dropdown li.disabled,
-.select-dropdown li.disabled > span,
-.select-dropdown li.optgroup {
-  color: var(--md-sys-color-on-surface);
-  //background-color: transparent;
-}
+/// FormSelect inherits its surface, selection, and focus states from Dropdown.
+/// Keep its icon and checkbox rows aligned with the shared 48px menu items.
+.dropdown-content.select-dropdown > li {
+  display: flex;
+  align-items: center;
 
-// Icons
-.select-dropdown li {
-  img {
-    height: $dropdown-item-height - 10;
-    width: $dropdown-item-height - 10;
-    margin: 5px 15px;
+  > span { flex: 1; }
+
+  > img {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    margin-inline-end: 12px;
     object-fit: cover;
-    float: right;
+    float: none;
+    order: 1;
+
+    &.left {
+      order: -1;
+      margin-inline-start: 12px;
+      margin-inline-end: -4px;
+    }
+  }
+
+  /// Prevent floating field labels from changing multi-select option labels.
+  > span > label {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: auto;
+    min-height: 24px;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    transform: none;
+
+    > input[type="checkbox"] { flex-shrink: 0; }
+
+    > span { color: inherit; }
   }
 }
 
@@ -143,18 +169,33 @@ select:disabled {
   transform: scale(0.75) !important;
 }
 
-// Optgroup styles
-.select-dropdown li.optgroup {
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  &.selected > span {
-    color: var(--md-sys-color-on-background);
+/// Group headings use the same typography and section separators as peer menus.
+.dropdown-content.select-dropdown > li.optgroup {
+  min-height: 44px;
+  border-radius: 0;
+  cursor: default;
+  color: var(--md-sys-color-on-surface-variant);
+
+  &:not(:first-child) {
+    margin-top: 4px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
   }
-  & > span {
-    color: var(--md-sys-color-on-surface-variant);
+
+  > span {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
   }
-  & ~ li.optgroup-option {
-    padding-left: 1rem;
+
+  + li {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
   }
+}
+
+.dropdown-content.select-dropdown > li:has(+ .optgroup) {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 // Generated select inputs are readonly for typing, but remain interactive.

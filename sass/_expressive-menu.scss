@@ -1,0 +1,54 @@
+/// /// ///
+/// Expressive Menu Appearance
+///
+/// Shared Material 3 Expressive surfaces and states for native and peer menus.
+/// https://m3.material.io/components/menus/specs
+///
+/// @package    kmaterialize
+/// @author     kekefreedog <kevin.zarshenas@gmail.com>
+/// @copyright  2026 Kévin Zarshenas
+/// /// ///
+
+/// Use the current theme's low-emphasis surface, with a legacy-token fallback.
+@mixin surface {
+    --menu-surface: var(--md-sys-color-surface-container-low, color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-on-surface) 4%));
+
+    background-color: var(--menu-surface);
+    color: var(--md-sys-color-on-surface);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px 2px color-mix(in srgb, var(--md-sys-color-shadow) 15%, transparent),
+        0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent);
+}
+
+/// Keep the item surface separate from transient interaction layers.
+@mixin item {
+    --menu-item-surface: var(--menu-surface);
+    --menu-item-color: var(--md-sys-color-on-surface);
+
+    min-height: 48px;
+    color: var(--menu-item-color);
+    background-color: var(--menu-item-surface);
+    border-radius: 4px;
+    outline: none;
+    transition: background-color 150ms ease, border-radius 150ms ease;
+}
+
+/// Give persistent selection the Expressive standard color mapping.
+@mixin selected {
+    --menu-item-surface: var(--md-sys-color-tertiary-container);
+    --menu-item-color: var(--md-sys-color-on-tertiary-container);
+
+    border-radius: 12px;
+}
+
+/// Layer hover, focus, and pressed feedback over the selected or default surface.
+@mixin state-layer($opacity: 10%) {
+    background-color: color-mix(in srgb, var(--menu-item-surface), var(--menu-item-color) $opacity);
+}
+
+/// Keep the keyboard indicator entirely within scrolling menu rows.
+@mixin focus-ring {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: -3px;
+}

@@ -1,5 +1,6 @@
 @use '../../sass/variables' as *;
 @use '../../sass/global' as *;
+@use '../../sass/expressive-menu' as menu;
 
 [popover] {
   outline: none;
@@ -7,75 +8,181 @@
   border: none;
 }
 
+/// Material 3 Expressive vertical menus (standard surface color mapping).
+/// https://m3.material.io/components/menus/specs
 .dropdown-content {
-  padding-left: 0;
+  @include menu.surface;
+
+  padding: 2px 4px;
   list-style-type: none;
-  @extend .z-depth-1;
-  background-color: var(--md-sys-color-surface);
   margin: 0;
   display: none;
-  min-width: 100px;
-  border-radius: 12px;
-  border: 1px solid var(--md-sys-color-outline-variant);
+  min-width: 112px;
+  outline: none;
   overflow-y: auto;
   overflow-x: hidden;
+  scroll-padding-block: 2px;
   opacity: 0;
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 9999; // TODO: Check if this doesn't break other things
+  z-index: 9999;
   transform-origin: 0 0;
   user-select: none;
   white-space: nowrap;
-  
-  li {
+
+  /// Native top-layer submenus escape parent overflow without DOM portals.
+  &[data-submenu] {
+    position: fixed;
+    right: auto;
+    bottom: auto;
+    min-width: min(180px, calc(100vw - 16px));
+    max-width: min(280px, calc(100vw - 16px));
+  }
+
+  > li {
+    @include menu.item;
+
     clear: both;
-    color: var(--md-sys-color-on-background);
+    position: relative;
     cursor: pointer;
-    min-height: $dropdown-item-height;
-    line-height: 1.5rem;
+    line-height: 24px;
     width: 100%;
-    text-align: left;
+    text-align: start;
+
+    + li { margin-top: 2px; }
+
+    /// Round the outside corners of each section between dividers.
+    &:first-child, &:is(.divider + li) {
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    &:last-child, &:has(+ .divider) {
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
 
     &.divider {
       min-height: 0;
       height: 1px;
+      width: auto;
+      margin: 4px 12px;
+      border-radius: 0;
+      background-color: var(--md-sys-color-outline-variant);
+      cursor: default;
     }
-    & > a, & > span {
-      font-size: 16px;
-      color: var(--md-sys-color-on-surface);
+
+    > a, > span, > button {
       display: block;
-      line-height: 22px;
-      padding: (($dropdown-item-height - 22) * 0.5) 16px;
+      width: 100%;
+      min-height: inherit;
+      padding: 12px;
+      border: none;
+      border-radius: inherit;
+      background: transparent;
+      color: inherit;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.5px;
+      text-align: inherit;
+      cursor: inherit;
+      outline: none;
     }
-    & > span > label {
+
+    > span > label {
       top: 1px;
       left: 0;
       height: 18px;
     }
-    // Icon alignment override
-    & > a > i {
-      height: inherit;
-      line-height: inherit;
-      float: left;
-      margin: 0 24px 0 0;
-      width: 24px;
-    }
-  }
-  > li.disabled > a,
-  > li.disabled > span {
-    color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
-  }
 
-  li:not(.disabled):hover, li.active {
-    background-color: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-on-surface) 8%);
+    /// Keep existing icon markup aligned with Expressive menu measurements.
+    > :is(a, span, button) > i {
+      height: 24px;
+      line-height: 24px;
+      font-size: 20px;
+      float: inline-start;
+      margin: 0;
+      margin-inline-end: 8px;
+      width: 20px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    /// Indicate nested menus without requiring an icon font or extra markup.
+    > .dropdown-trigger {
+      padding-inline-end: 36px;
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset-inline-end: 16px;
+        top: calc(50% - 4px);
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid currentColor;
+        border-inline-end: 2px solid currentColor;
+        transform: rotate(45deg);
+      }
+
+      &:dir(rtl)::after { transform: rotate(-45deg); }
+    }
+
+    &:has(> .dropdown-trigger[aria-expanded="true"]) {
+      border-radius: 12px;
+      @include menu.state-layer;
+    }
+
+    /// Selection is persistent; keyboard focus remains a separate state.
+    &:is(.selected, [aria-selected="true"], [aria-checked="true"]) {
+      @include menu.selected;
+
+      > :is(a, span, button) > i { color: inherit; }
+    }
+
+    &:not(.disabled, .divider, .optgroup, [aria-disabled="true"]) {
+      &:hover {
+        @include menu.state-layer(8%);
+      }
+
+      &:is(:focus, :focus-within, .active) {
+        @include menu.state-layer;
+      }
+
+      /// Draw the keyboard indicator inside the row so scrolling cannot clip it.
+      &:focus-visible, &:has(> :focus-visible) {
+        @include menu.focus-ring;
+      }
+
+      &:active {
+        @include menu.state-layer;
+      }
+    }
+
+    &:is(.disabled, [aria-disabled="true"]) {
+      color: color-mix(in srgb, var(--menu-item-color) 38%, transparent);
+      cursor: default;
+
+      > :is(a, span, button) > i { color: inherit; }
+    }
   }
 }
 
-body.keyboard-focused {
-  .dropdown-content li:focus {
-    background-color: rgba(0, 0, 0, 0.12);
+/// Preserve a visible keyboard indicator when state-layer colors are suppressed.
+@media (forced-colors: active) {
+  .dropdown-content {
+    border: 1px solid CanvasText;
+
+    > li:not(.disabled, .divider, .optgroup, [aria-disabled="true"]):is(:focus, :focus-within, .active) {
+      outline: 3px solid Highlight;
+      outline-offset: -3px;
+    }
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-content > li { transition: none; }
 }
 
 // Input field specificity bugfix

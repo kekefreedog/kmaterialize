@@ -22,7 +22,7 @@ export default class CrazyButton extends Kmcomponent {
   static properties: KmcomponentProperties = {
     type: string('floating', ['floating', 'extended', 'icon', 'fab', 'extended-fab', 'rail']),
     depth: string('flat', ['flat', 'outlined', '1', '2', '3', '4', '5']),
-    shape: string('round', ['round', 'box', 'square']),
+    shape: string('round', ['round', 'box', 'square', 'round-left', 'round-right']),
     size: string('large', ['small', 'normal', 'large', 'extra-large', 'xs', 'sm', 'md', 'lg', 'xl']),
     wave: string('light', ['light', 'dark', 'false']),
     'tooltip-style': string('classic', ['classic', 'material']),
@@ -57,8 +57,13 @@ export default class CrazyButton extends Kmcomponent {
     const iconOnly = ['floating', 'icon', 'fab'].includes(String(a.type));
     const fab = ['fab', 'extended-fab'].includes(String(a.type));
     const variant = a.variant || (a.depth === 'flat' ? 'text' : a.depth === 'outlined' ? 'outlined' : 'elevated');
+    // Resolve asymmetric shapes independently from the legacy square aliases.
+    const shapeClass = ['round-left', 'round-right'].includes(String(a.shape))
+      ? `btn-${a.shape}` : a.shape !== 'round' ? 'btn-square' : '';
+
+    // Combine the chosen shape with the existing button variants.
     const classes = rail ? 'btn btn-rail' : ['btn', 'btn-expressive', variant === 'standard' ? 'btn-icon-standard' : variant,
-      `btn-${sizes[String(a.size)] || a.size}`, a.shape !== 'round' ? 'btn-square' : '',
+      `btn-${sizes[String(a.size)] || a.size}`, shapeClass,
       iconOnly ? 'btn-icon' : '', a.toggle ? 'btn-toggle' : '',
       a['icon-width'] !== 'normal' ? `btn-icon-${a['icon-width']}` : '',
       fab ? `btn-fab fab-${a['fab-color']} fab-${a['fab-size']}` : '',

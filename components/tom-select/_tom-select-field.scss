@@ -1,3 +1,5 @@
+@use '../../sass/expressive-menu' as menu;
+
 // Materialize styling for the wrapper generated after select.tomselected.
 .input-field:has(> select.tomselected) {
   margin-top: 16px;
@@ -26,13 +28,6 @@
 
   &.focus > .ts-control {
     border-bottom: 2px solid var(--input-color) !important;
-  }
-
-  // Join the control visually to its open dropdown. Closed controls retain
-  // their normal corner radius.
-  &.dropdown-active > .ts-control {
-    border-bottom-right-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
   }
 
   .ts-control {
@@ -114,50 +109,6 @@
   &.single.dropdown-active > .ts-control::after {
     margin-top: -3px;
     transform: rotate(-135deg);
-  }
-
-  .ts-dropdown {
-    z-index: 9999;
-    margin-top: 0;
-    color: var(--md-sys-color-on-surface);
-    background: var(--md-sys-color-background) !important;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 0 0 4px 4px;
-    overflow: hidden;
-    box-shadow: 0 2px 2px #00000024, 0 3px 1px -2px #0000001f, 0 1px 5px #0003;
-
-    .ts-dropdown-content {
-      background: inherit;
-    }
-
-    .create,
-    .no-results,
-    .option {
-      display: block;
-      padding: 14px 16px;
-      color: var(--md-sys-color-on-surface);
-      font-size: 16px;
-      line-height: 22px;
-      background: transparent;
-
-      &.active {
-        background: var(--md-sys-color-primary-container);
-      }
-    }
-  }
-
-  .ts-option-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-
-    img {
-      width: 32px;
-      height: 32px;
-      object-fit: cover;
-      border-radius: 50%;
-    }
   }
 }
 
@@ -263,4 +214,130 @@ div.suffix.suffix-tomselect {
 .input-field.error > select.tomselected + .ts-wrapper + label,
 .input-field.error > select.tomselected + .ts-wrapper.focus + label {
   color: var(--md-sys-color-error);
+}
+
+/// Share the Expressive menu surface even when Tom Select portals it to body.
+.ts-dropdown {
+  @include menu.surface;
+
+  z-index: 9999;
+  margin-top: 4px;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+
+  .ts-dropdown-content {
+    padding: 2px 4px;
+    background: inherit;
+    scroll-padding-block: 2px;
+  }
+
+  /// Keep option groups readable without vendor borders or white headers.
+  .optgroup {
+    border: 0;
+    opacity: 1;
+
+    /// Use the shared disabled text color without a second vendor opacity layer.
+    &[data-disabled] .option { opacity: 1; }
+
+    + .optgroup {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+    }
+  }
+
+  .optgroup-header {
+    padding: 12px;
+    color: var(--md-sys-color-on-surface-variant);
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+
+  .option, .create, .no-results {
+    @include menu.item;
+
+    position: relative;
+    display: block;
+    padding: 12px;
+    font-size: 16px;
+    line-height: 24px;
+    opacity: 1;
+
+    + :is(.option, .create, .no-results) { margin-top: 2px; }
+
+    &:first-child, &:is(.optgroup-header + *) {
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    &:last-child {
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    /// Persistent selection stays distinct from the keyboard cursor.
+    &.selected {
+      @include menu.selected;
+    }
+
+    &[data-selectable]:not([aria-disabled="true"], [data-disabled], [data-disabled] *) {
+      &:hover { @include menu.state-layer(8%); }
+
+      &.active {
+        color: var(--menu-item-color);
+        @include menu.state-layer;
+        @include menu.focus-ring;
+      }
+    }
+
+    /// Tom Select marks disabled options and disabled groups separately.
+    &[aria-disabled="true"], &[data-disabled], &:is([data-disabled] *) {
+      color: color-mix(in srgb, var(--menu-item-color) 38%, transparent);
+      opacity: 1;
+      cursor: default;
+    }
+  }
+
+  .no-results { color: var(--md-sys-color-on-surface-variant); }
+
+  [data-selectable] .highlight {
+    color: inherit;
+    background: color-mix(in srgb, var(--menu-item-color) 12%, transparent);
+  }
+}
+
+/// Icon templates work in both inline and portalled menus and selected values.
+.ts-dropdown .ts-option-content,
+.input-field > .ts-wrapper .ts-option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  img {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-dropdown :is(.option, .create, .no-results) { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .ts-dropdown {
+    border: 1px solid CanvasText;
+
+    [data-selectable].active {
+      outline: 3px solid Highlight;
+      outline-offset: -3px;
+    }
+  }
 }

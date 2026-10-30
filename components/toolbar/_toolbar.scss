@@ -9,7 +9,7 @@
 // :not(.fixed-action-btn) - "toolbar" is already a FAB display mode
 // (.fixed-action-btn.toolbar, see components/button/_buttons.scss); this
 // guards against also painting pill styles onto that unrelated element.
-.toolbar:not(.fixed-action-btn) {
+.toolbar:not(.fixed-action-btn):not(.code-toolbar > .toolbar) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -404,4 +404,59 @@
     height: 12px;
     background: currentColor;
   }
+}
+
+/// Prism command toolbars
+///////////////////////////////////////////////////////
+/// Keep copy controls separate from the full-width Material action bar.
+
+div.code-toolbar > .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: auto;
+    max-width: calc(100% - 1rem);
+    gap: 0.25rem;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    opacity: 1;
+
+    > .toolbar-item > button.copy-to-clipboard-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 4px 12px;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 16px;
+        background: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 20px;
+        box-shadow: none;
+        cursor: pointer;
+
+        &:hover {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: 2px;
+        }
+    }
+}
+
+/// Reserve a separate action row so the copy button never covers command text.
+div.code-toolbar > pre {
+    padding-top: 3rem;
 }

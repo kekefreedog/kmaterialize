@@ -19,6 +19,8 @@
     border-radius 180ms ease,
     background-color 180ms ease,
     flex-grow 180ms ease;
+  /// Give every icon font the same size instead of inheriting the smaller label size.
+  > i,
   > .material-icons {
     position: static;
     transform: none;
@@ -199,6 +201,18 @@
 }
 .btn-fab-menu .btn-menu-trigger[aria-expanded="true"] > .material-icons {
   transform: rotate(45deg);
+}
+
+/// Use half the height so CSS radius normalization preserves the 4px inner corners.
+.btn.btn-expressive.btn-round-left {
+  &, &:active:not(:disabled), &[aria-pressed="true"] {
+    border-radius: calc(var(--button-height) / 2) 4px 4px calc(var(--button-height) / 2);
+  }
+}
+.btn.btn-expressive.btn-round-right {
+  &, &:active:not(:disabled), &[aria-pressed="true"] {
+    border-radius: 4px calc(var(--button-height) / 2) calc(var(--button-height) / 2) 4px;
+  }
 }
 
 // Explicitly retain native disabled behavior across all custom variants.

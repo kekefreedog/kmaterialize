@@ -157,7 +157,7 @@
     "jasmine": "^5.1.0",
     "jasmine-browser-runner": "^2.5.0",
     "jasmine-core": "^5.2.0",
-    "kspreadsheet": "^2.7.0",
+    "kspreadsheet": "^2.10.0",
     "postcss": "^8.4.49",
     "prismjs": "^1.30.0",
     "quill": "2.0.3",

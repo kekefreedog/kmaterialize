@@ -426,6 +426,12 @@ declare class Dropdown extends Component<DropdownOptions> implements Openable {
     focusedIndex: number;
     filterQuery: string[];
     filterTimeout: NodeJS.Timeout | number;
+    /** Timers owned by the current opening or closing animation. */
+    private _animationTimers;
+    /** Delay before opening a submenu with the pointer. */
+    private _submenuTimer;
+    /** Whether this opening should transfer keyboard focus. */
+    private _focusOnOpen;
     constructor(el: HTMLElement, options: Partial<DropdownOptions>);
     static get defaults(): DropdownOptions;
     /**
@@ -449,6 +455,9 @@ declare class Dropdown extends Component<DropdownOptions> implements Openable {
     _handleClick: (e: MouseEvent) => void;
     _handleMouseEnter: () => void;
     _handleMouseLeave: (e: MouseEvent) => void;
+    private _handleMenuPointerOver;
+    private _handleMenuPointerLeave;
+    private _handleAncestorScroll;
     _handleDocumentClick: (e: MouseEvent) => void;
     _handleTriggerKeydown: (e: KeyboardEvent) => void;
     _handleDocumentTouchmove: (e: TouchEvent) => void;
@@ -459,6 +468,22 @@ declare class Dropdown extends Component<DropdownOptions> implements Openable {
     _resetDropdownStyles(): void;
     _resetDropdownPositioningStyles(): void;
     _moveDropdownToElement(containerEl?: HTMLElement): void;
+    /** Resolve the owning menu from the trigger, even if its popup is portalled. */
+    private _getParentDropdown;
+    /** Resolve direct child instances. */
+    private _getChildren;
+    /** Resolve a row's registered submenu trigger. */
+    private _getSubmenu;
+    /** Check whether a row can receive keyboard focus. */
+    private _isAvailable;
+    /** Include descendant popups when testing pointer containment. */
+    private _contains;
+    /** Open or refocus a child from keyboard navigation. */
+    private _openChild;
+    /** Cancel callbacks from a previous animation. */
+    private _clearAnimationTimers;
+    /** Place a submenu beside its parent and keep it in the viewport. */
+    private _placeSubmenu;
     _makeDropdownFocusable(): void;
     _focusFocusedItem(): void;
     _getDropdownPosition(closestOverflowParent: HTMLElement): {
@@ -477,10 +502,10 @@ declare class Dropdown extends Component<DropdownOptions> implements Openable {
      * Open dropdown.
      */
     open: () => void;
-    /**
-     * Close dropdown.
-     */
+    /** Close this menu and its descendants, restoring the trigger focus. */
     close: () => void;
+    /** Close descendants without repeatedly moving focus through the tree. */
+    private _close;
     /**
      * While dropdown is open, you can recalculate its dimensions if its contents have changed.
      */
@@ -2903,13 +2928,21 @@ declare class TomSelectField extends Component<TomSelectFieldOptions> {
     tomSelect: TomSelectCtor | undefined;
     ready: Promise<void>;
     private _dependsOnEl;
+    /** Popup whose scrolling must keep a body-mounted menu aligned. */
+    private _dropdownScrollParent;
     constructor(el: HTMLSelectElement, options: Partial<TomSelectFieldOptions>);
     static get defaults(): TomSelectFieldOptions;
     static init(el: HTMLSelectElement, options?: Partial<TomSelectFieldOptions>): TomSelectField;
     static init(els: InitElements<HTMLSelectElement | MElement>, options?: Partial<TomSelectFieldOptions>): TomSelectField[];
     static getInstance(el: HTMLSelectElement): TomSelectField;
+    /** Release the widget and its dependency and popup listeners. */
     destroy(): void;
     _handleDependencyChange: () => void;
+    /** Keep portalled menus aligned with controls inside scrolling popups. */
+    private _handlePopupScroll;
+    /** Let popup menus escape clipped content without overriding authored settings. */
+    private _setupPopupDropdown;
+    /** Load the optional peer and enhance the native select. */
     _setup(): Promise<void>;
 }
 
