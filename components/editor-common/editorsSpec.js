@@ -598,6 +598,14 @@ describe("Writing and storyboard components", () => {
         // Wait for the real inner native button.
         await duplicate.updateComplete;
 
+        // Support both bundled demos and plain-script hosts without the optional tooltip peer.
+        const tooltipError = await duplicate.tooltipReady.then(() => null, error => error);
+
+        // Retain a visible native label when enhanced tooltips are unavailable.
+        if(tooltipError)
+            // Verify graceful fallback instead of an unhandled page error.
+            expect(duplicate.querySelector("button").title).toBe("Duplicate");
+
         // Click through the real custom button event sequence.
         duplicate.querySelector("button").click();
 

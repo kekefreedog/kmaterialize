@@ -142,6 +142,13 @@ export default class CrazyButton extends Kmcomponent {
             content: String(a.label), placement: a['tooltip-position'] as Placement,
           });
       });
+      // Keep optional tooltip failures from becoming unhandled page errors.
+      void this.tooltipReady.catch(() => {
+        // Preserve a visual label when the tooltip peer is unavailable.
+        if (!cancelled)
+          // Fall back to the browser tooltip without changing the accessible name.
+          button.title = String(a.label);
+      });
     }
     // Handle native activation through one public custom event.
     const click = () => {
