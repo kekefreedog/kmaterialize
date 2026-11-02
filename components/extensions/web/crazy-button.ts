@@ -98,67 +98,126 @@ export default class CrazyButton extends Kmcomponent {
   }
 
   postRender(): void {
+    // Read the current component attributes.
     const a = this.prepareContext().attributes;
+    // Locate the rendered native control.
     const button = this.querySelector<HTMLElement>('[part="button"]')!;
+    // Apply caller colors to each rendered control.
     for (const el of this.querySelectorAll<HTMLElement>('.btn')) {
-      // CSSOM validates the value and supports keywords, var(), and image URLs.
-      // Invalid/empty values fall back to the host cursor; disabled controls keep their default.
-      if (!a.disabled && a.cursor) el.style.cursor = String(a.cursor);
+      // Respect disabled state when customizing the cursor.
+      if (!a.disabled && a.cursor)
+        // Let CSSOM validate the supplied cursor value.
+        el.style.cursor = String(a.cursor);
+      // Apply the background color before restoring focus.
       this.applyColor(el, String(a['color-primary']), false);
+      // Apply the foreground and outline color.
       this.applyColor(el, String(a['color-secondary']), true);
     }
-    // Focus can flush styles: apply custom colors first so a rebuilt button
-    // does not transition from its default background when focus is restored.
-    if (this.restoreFocus) { button.focus(); this.restoreFocus = false; }
+    // Restore focus after styles are applied to avoid a color transition.
+    if (this.restoreFocus) {
+      // Return keyboard focus to the rebuilt control.
+      button.focus();
+      // Clear the pending focus restoration.
+      this.restoreFocus = false;
+    }
+    // Give icon-only controls an accessible visual tooltip.
     if (['floating', 'icon', 'fab'].includes(String(a.type)) && a.label) {
+      // Track the optional tooltip instance.
       let tooltip: Instance | undefined;
+      // Track asynchronous cleanup.
       let cancelled = false;
-      this.onCleanup(() => { cancelled = true; tooltip?.destroy(); });
+      // Dispose tooltips when the control rerenders.
+      this.onCleanup(() => {
+        // Prevent late tooltip creation.
+        cancelled = true;
+        // Release an already-created tooltip.
+        tooltip?.destroy();
+      });
+      // Load the tooltip peer on demand.
       this.tooltipReady = loadTooltipPeer().then(peer => {
-        if (cancelled) return;
-        tooltip = createTooltipWith(peer.create, peer.fill, button, a['tooltip-style'] as TooltipStyle, {
-          content: String(a.label), placement: a['tooltip-position'] as Placement,
-        });
+        // Create tooltips only for the current render.
+        if (!cancelled)
+          // Attach the configured label and placement.
+          tooltip = createTooltipWith(peer.create, peer.fill, button, a['tooltip-style'] as TooltipStyle, {
+            content: String(a.label), placement: a['tooltip-position'] as Placement,
+          });
       });
     }
+    // Handle native activation through one public custom event.
     const click = () => {
-      if (this.getProperty('disabled')) return;
-      if (this.getProperty('toggle')) {
-        const group = this.closest('[data-selection]');
-        if (group?.getAttribute('data-selection') === 'single') {
-          group.querySelectorAll<CrazyButton>('crazy-button, regular-btn').forEach(peer => {
-            if (peer.closest('[data-selection]') === group && peer.getProperty('toggle')) peer.setProperty('pressed', peer === this);
-          });
-        } else this.setProperty('pressed', !this.getProperty('pressed'));
+      // Ignore disabled controls.
+      if (!this.getProperty('disabled')) {
+        // Update optional toggle state.
+        if (this.getProperty('toggle')) {
+          // Find an owning selection group.
+          const group = this.closest('[data-selection]');
+          // Enforce exclusive selection where configured.
+          if (group?.getAttribute('data-selection') === 'single') {
+            // Update toggle controls in the same group.
+            group.querySelectorAll<CrazyButton>('crazy-button, regular-btn').forEach(peer => {
+              // Exclude nested groups and non-toggle controls.
+              if (peer.closest('[data-selection]') === group && peer.getProperty('toggle'))
+                // Select this control and release its peers.
+                peer.setProperty('pressed', peer === this);
+            });
+          } else
+            // Toggle independent controls directly.
+            this.setProperty('pressed', !this.getProperty('pressed'));
+        }
+        // Emit the existing public activation event.
+        this.dispatchEvent(new CustomEvent('buttonaction', { bubbles: true, composed: true, detail: {
+          action: this.getProperty('action') || this.getProperty('label'),
+          pressed: this.getProperty('toggle') ? String(this.getProperty('pressed')) : null,
+        } }));
       }
-      this.dispatchEvent(new CustomEvent('buttonaction', { bubbles: true, composed: true, detail: {
-        action: this.getProperty('action') || this.getProperty('label'),
-        pressed: this.getProperty('toggle') ? String(this.getProperty('pressed')) : null,
-      } }));
     };
+    // Listen to the rendered native button.
     button.addEventListener('click', click);
+    // Preserve focus and release the listener on rerender.
     this.onCleanup(() => {
+      // Remember whether this render owned keyboard focus.
       this.restoreFocus = document.activeElement === button;
+      // Release the old native control.
       button.removeEventListener('click', click);
     });
+    // Resolve an optional dropdown trigger.
     const trigger = this.querySelector<HTMLElement>('.dropdown-trigger');
+    // Read its external menu identifier.
     const menuTarget = String(a['menu-target'] ?? '');
+    // Resolve the authored menu node.
     const menu = trigger && menuTarget ? document.getElementById(menuTarget) : null;
+    // Initialize an enabled menu control.
     if (trigger && menu && !a.disabled) {
+      // Preserve the original menu location.
       const parent = menu.parentNode;
+      // Preserve its position among siblings.
       const next = menu.nextSibling;
+      // Keep the menu outside light-DOM slots and scrolling toolbar clipping.
       const dropdown = Dropdown.init(trigger, {
+        container: this.closest('dialog') || this.ownerDocument.body,
         alignment: 'right', constrainWidth: false, coverTrigger: false, closeOnClick: true,
         onOpenStart: () => trigger.setAttribute('aria-expanded', 'true'),
         onCloseEnd: () => trigger.setAttribute('aria-expanded', 'false'),
       });
-      const keydown = (event: KeyboardEvent) => { if (event.key === 'Enter') event.preventDefault(); };
+      // Avoid duplicate activation from Enter's native default.
+      const keydown = (event: KeyboardEvent) => {
+        // Handle only the menu activation key.
+        if (event.key === 'Enter')
+          // Let Dropdown own keyboard activation.
+          event.preventDefault();
+      };
+      // Observe menu keys before default button activation.
       menu.addEventListener('keydown', keydown, true);
+      // Restore caller-owned menu nodes on rerender or disconnection.
       this.onCleanup(() => {
+        // Release dropdown behavior and positioning.
         dropdown.destroy();
+        // Remove this render's keyboard listener.
         menu.removeEventListener('keydown', keydown, true);
-        // Dropdown may relocate external menu nodes; retain them across rerenders.
-        if (parent) parent.insertBefore(menu, next?.parentNode === parent ? next : null);
+        // Restore the menu's authored location when available.
+        if (parent)
+          // Keep external menus out of subsequent slot projection.
+          parent.insertBefore(menu, next?.parentNode === parent ? next : null);
       });
     }
   }

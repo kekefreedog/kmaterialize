@@ -144,7 +144,8 @@
       color: var(--card-badge-color, var(--md-sys-color-on-primary-container));
       background-color: var(--card-badge-background, var(--md-sys-color-primary-container));
 
-      > i { flex-shrink: 0; font-size: 16px; line-height: 1; }
+      // Preserve the badge modifier within the card overlay.
+      &.round { border-radius: 999px; }
 
       // Labels pass clicks through to images; badge links remain usable.
       &:is(a, button) { pointer-events: auto; }

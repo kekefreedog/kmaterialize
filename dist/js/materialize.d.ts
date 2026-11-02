@@ -4190,6 +4190,256 @@ declare class Editor {
     destroy(): void;
 }
 
+/** A toolbar element or an already initialized Kmaterialize Toolbar. */
+type EditorToolbar = HTMLElement | Toolbar;
+
+/** Editable source text with a Prism presentation layer and native selection. */
+
+interface ScriptEditorOptions {
+    value: string;
+    language: string;
+    label: string;
+    readOnly: boolean;
+    tabSize: number;
+    lineNumbers: boolean;
+    onChange: ((value: string) => void) | null;
+}
+interface ScriptEditorSelection {
+    start: number;
+    end: number;
+}
+/** Code editor. Source is highlighted as text and is never executed. */
+declare class ScriptEditor extends Component<ScriptEditorOptions> {
+    ready: Promise<void>;
+    readonly textarea: HTMLTextAreaElement;
+    private _pre;
+    private _code;
+    private _gutter;
+    private _status;
+    private _prism?;
+    private _history;
+    private _originalNodes;
+    private _addedClass;
+    private _controller;
+    private _disconnect;
+    private _destroyed;
+    private _composing;
+    constructor(el: HTMLElement, options?: Partial<ScriptEditorOptions>);
+    static get defaults(): ScriptEditorOptions;
+    static init(el: HTMLElement, options?: Partial<ScriptEditorOptions>): ScriptEditor;
+    static init(els: InitElements<MElement>, options?: Partial<ScriptEditorOptions>): ScriptEditor[];
+    static getInstance(el: HTMLElement): ScriptEditor;
+    getValue(): string;
+    /** Programmatic loads remain available in read-only mode and are undoable. */
+    setValue(value: string): void;
+    getSelection(): ScriptEditorSelection;
+    setSelection(start: number, end?: number): void;
+    replaceSelection(text: string): void;
+    /** Indent or outdent all selected lines, preserving their selection. */
+    indent(outdent?: boolean): void;
+    undo(): void;
+    redo(): void;
+    /** Additional grammars must be loaded by the application before this call. */
+    setLanguage(language: string): void;
+    setReadOnly(value: boolean): void;
+    focus(): void;
+    canExecute(command: string): boolean;
+    execute(command: string): void;
+    connectToolbar(toolbar: EditorToolbar): () => void;
+    destroy(): void;
+    private _loadPrism;
+    private _snapshot;
+    private _commit;
+    private _restore;
+    private _emitChange;
+    private _render;
+    private _onSelection;
+    private _syncScroll;
+    private _onInput;
+    private _onCompositionStart;
+    private _onCompositionEnd;
+    private _onBeforeInput;
+    private _escapeTab;
+    private _onKeydown;
+}
+
+/** Structured screenplay writing, independent of the application's toolbar. */
+
+type ScreenplayZoom = "fit-parent" | number;
+type ScreenplayBlockType = "scene" | "action" | "character" | "dialogue" | "parenthetical" | "transition";
+interface ScreenplayBlock {
+    id: string;
+    type: ScreenplayBlockType;
+    text: string;
+}
+interface ScreenplayDocument {
+    title: string;
+    blocks: ScreenplayBlock[];
+}
+interface ScreenplayEditorOptions {
+    document: ScreenplayDocument;
+    readOnly: boolean;
+    zoom: ScreenplayZoom;
+    label: string;
+    onChange: ((document: ScreenplayDocument) => void) | null;
+}
+declare class ScreenplayEditor extends Component<ScreenplayEditorOptions> {
+    private _document;
+    private _history;
+    private _activeId;
+    private _originalNodes;
+    private _addedClass;
+    private _controller;
+    private _resize;
+    private _resizeFrame;
+    private _width;
+    private _disconnect;
+    private _destroyed;
+    private _composing;
+    private _focusedTitle;
+    private _paper;
+    private _pages;
+    private _draggedBlock;
+    private _dropIndex;
+    private _title;
+    private _cursor;
+    constructor(el: HTMLElement, options?: Partial<ScreenplayEditorOptions>);
+    static get defaults(): ScreenplayEditorOptions;
+    static init(el: HTMLElement, options?: Partial<ScreenplayEditorOptions>): ScreenplayEditor;
+    static init(els: InitElements<MElement>, options?: Partial<ScreenplayEditorOptions>): ScreenplayEditor[];
+    static getInstance(el: HTMLElement): ScreenplayEditor;
+    getDocument(): ScreenplayDocument;
+    /** Validate before replacing; programmatic loads are allowed in read-only mode. */
+    setDocument(document: ScreenplayDocument): void;
+    getActiveBlock(): ScreenplayBlock;
+    insertBlock(type?: ScreenplayBlockType, text?: string, afterId?: string): string;
+    updateBlock(id: string, patch: Partial<Pick<ScreenplayBlock, "type" | "text">>): void;
+    setBlockType(type: ScreenplayBlockType): void;
+    removeBlock(id?: string): void;
+    moveBlock(id: string, index: number): void;
+    toJSON(): string;
+    fromJSON(json: string): void;
+    /** Export readable plain text; this is not a Fountain or PDF serializer. */
+    toText(): string;
+    undo(): void;
+    redo(): void;
+    setReadOnly(value: boolean): void;
+    focus(id?: string, start?: number, end?: number): void;
+    canExecute(command: string): boolean;
+    execute(command: string, value?: string): void;
+    connectToolbar(toolbar: EditorToolbar): () => void;
+    destroy(): void;
+    private _normalize;
+    private _editable;
+    /** Change preview size without changing physical screenplay formatting. */
+    setZoom(zoom: ScreenplayZoom): void;
+    getZoom(): ScreenplayZoom;
+    private _validateZoom;
+    /** Read the number of complete A4 sheets in the writing layout. */
+    getPageCount(): number;
+    private _input;
+    private _render;
+    /** Paginate at the same physical width at every screen size. */
+    private _fitText;
+    private _createPage;
+    private _onResize;
+    private _scalePages;
+    private _state;
+    private _commit;
+    private _emitChange;
+    private _restore;
+    private _onDragStart;
+    private _onDragOver;
+    private _onDrop;
+    private _onDragLeave;
+    private _clearDrop;
+    private _clearDrag;
+    private _rememberSelection;
+    private _onFocus;
+    private _onInput;
+    private _onBeforeInput;
+    private _onCompositionStart;
+    private _onCompositionEnd;
+    private _onKeydown;
+}
+
+/** Visual shot planning with editable cards and serializable document data. */
+
+interface StoryboardShot {
+    id: string;
+    title: string;
+    image: string;
+    description: string;
+    camera: string;
+    duration: number;
+}
+interface StoryboardOptions {
+    shots: StoryboardShot[];
+    readOnly: boolean;
+    label: string;
+    onChange: ((shots: StoryboardShot[]) => void) | null;
+}
+/** A storyboard owns data and editing; image storage remains application-owned. */
+declare class Storyboard extends Component<StoryboardOptions> {
+    private _shots;
+    private _selectedId;
+    private _history;
+    private _originalNodes;
+    private _addedClass;
+    private _controller;
+    private _disconnect;
+    private _destroyed;
+    private _grid;
+    private _status;
+    private _draggedId;
+    private _dropIndex;
+    constructor(el: HTMLElement, options?: Partial<StoryboardOptions>);
+    static get defaults(): StoryboardOptions;
+    static init(el: HTMLElement, options?: Partial<StoryboardOptions>): Storyboard;
+    static init(els: InitElements<MElement>, options?: Partial<StoryboardOptions>): Storyboard[];
+    static getInstance(el: HTMLElement): Storyboard;
+    getShots(): StoryboardShot[];
+    setShots(shots: StoryboardShot[]): void;
+    getSelectedShot(): StoryboardShot | null;
+    selectShot(id: string): void;
+    addShot(shot?: Partial<Omit<StoryboardShot, "id">>, index?: number): string;
+    updateShot(id: string, patch: Partial<Omit<StoryboardShot, "id">>): void;
+    duplicateShot(id?: string): string;
+    removeShot(id?: string): void;
+    moveShot(id: string, index: number): void;
+    getTotalDuration(): number;
+    toJSON(): string;
+    fromJSON(json: string): void;
+    undo(): void;
+    redo(): void;
+    setReadOnly(value: boolean): void;
+    canExecute(command: string): boolean;
+    execute(command: string): void;
+    connectToolbar(toolbar: EditorToolbar): () => void;
+    destroy(): void;
+    private _editable;
+    private _normalize;
+    private _render;
+    private _field;
+    private _state;
+    private _commit;
+    private _emitChange;
+    private _restore;
+    private _focusSelected;
+    private _onFocus;
+    private _onClick;
+    private _onDragStart;
+    private _onDragOver;
+    private _onDrop;
+    private _onDragLeave;
+    private _clearDrop;
+    private _clearDrag;
+    private _onInput;
+    private _onChange;
+    private _onBeforeInput;
+    private _onKeydown;
+}
+
 declare const version = "2.3.3";
 /**
  * Convenience helper matching v1's `M.toast({...})` call, since Toast is a
@@ -4241,5 +4491,5 @@ interface AutoInitOptions {
  */
 declare function AutoInit(context?: HTMLElement, options?: Partial<AutoInitOptions>): void;
 
-export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, CodeCard, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RangeInterval, RichTextarea, ScrollSpy, Sidenav, Slider, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
-export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, CodeCardOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, GanttDependencyChange, GanttEditAction, GanttOptions, GanttProgressMeter, GanttTask, GanttTaskChange, GanttTone, GanttView, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, NavbarAutoHideOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepConfirmationOptions, PopupStepContext, PopupStepsOptions, RangeIntervalOptions, RangeOptions, RichTextareaOptions, TinyNavbarOptions, TinyNavbarPosition, ToastOptions };
+export { AirDatepickerField, Alert, AutoInit, Autocomplete, Cards, Carousel, CharacterCounter, Chips, CodeCard, Collapsible, ColorInput, CrazyButton, CrazyLoading, Datepicker, Dropdown, Editor, FileInput, FloatingActionButton, FormSelect, Forms, Gantt, Kanban, Kmcomponent, Loading, LoadingScreenBtn, MaskitoInput, Materialbox, Modal, NavbarAutoHide, NumberInput, OrgChart, OtpInput, Parallax, PasswordInput, Popup, Pushpin, Range, RangeInterval, RichTextarea, ScreenplayEditor, ScriptEditor, ScrollSpy, Sidenav, Slider, Storyboard, Tabs, TapTarget, Timepicker, TinyNavbar, Toast, TomSelectField, Toolbar, Tooltip, Waves, chartPrintLayout, enableCardHandles, enableChartConnections, enableChartGestures, initListChecklist, initMaterialButtons, initNavbarScroll, printChart, toast, version };
+export type { AutoInitOptions, ChartEndpoint, ChartPrintOptions, CodeCardOptions, EditorData, EditorDataSource, EditorEngine, EditorHelpers, EditorOptions, EditorSelectSettings, EditorSpreadsheetColumn, EditorSpreadsheetResult, EditorTemplate, EditorToolbar, GanttDependencyChange, GanttEditAction, GanttOptions, GanttProgressMeter, GanttTask, GanttTaskChange, GanttTone, GanttView, KmcomponentContext, KmcomponentOptions, KmcomponentProperties, KmcomponentProperty, KmcomponentStyles, KmcomponentTemplate, MaskitoInputOptions, NavbarAutoHideOptions, OrgChartAppearance, OrgChartData, OrgChartLink, OrgChartOptions, OrgChartPerson, OrgChartTeam, OtpInputOptions, PopupOptions, PopupResult, PopupStep, PopupStepConfirmationOptions, PopupStepContext, PopupStepsOptions, RangeIntervalOptions, RangeOptions, RichTextareaOptions, ScreenplayBlock, ScreenplayBlockType, ScreenplayDocument, ScreenplayEditorOptions, ScreenplayZoom, ScriptEditorOptions, ScriptEditorSelection, StoryboardOptions, StoryboardShot, TinyNavbarOptions, TinyNavbarPosition, ToastOptions };

@@ -455,8 +455,3 @@ div.code-toolbar > .toolbar {
         }
     }
 }
-
-/// Reserve a separate action row so the copy button never covers command text.
-div.code-toolbar > pre {
-    padding-top: 3rem;
-}

@@ -1,3 +1,67 @@
+// A compact footer with wrapping navigation and understated attribution.
+.page-footer.footer-compact {
+    margin-top: 3rem;
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.875rem;
+    line-height: 1.6;
+
+    .footer-content {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem 2rem;
+    }
+
+    .footer-brand {
+        display: inline-block;
+        color: var(--md-sys-color-on-surface);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .footer-description {
+        margin: 0.25rem 0 0;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem 1.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+        }
+    }
+
+    .footer-credits {
+        margin: 1rem 0 0;
+        padding-top: 1rem;
+        border-top: 1px solid var(--md-sys-color-outline-variant);
+        font-size: 0.8125rem;
+    }
+
+    a {
+        text-underline-offset: 0.2em;
+
+        &:hover { text-decoration: underline; }
+
+        &:focus-visible {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: 4px;
+            border-radius: 2px;
+        }
+    }
+}
+
 .page-footer.footer-bordered {
   border: 1px solid var(--md-sys-color-outline);
   border-radius: 12px;

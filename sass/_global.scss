@@ -264,8 +264,8 @@ ul.staggered-list li { opacity: 0; }
   a {
     color: var(--md-sys-color-primary);
   }
-  .footer-copyright,
-  .footer-copyright a:not(.btn) {
+  // Layout belongs to the copyright row; text links remain inline.
+  .footer-copyright {
     overflow: hidden;
     min-height: 50px;
     display: flex;

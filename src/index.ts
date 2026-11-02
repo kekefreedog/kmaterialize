@@ -280,3 +280,12 @@ export { Editor } from '../components/editor/editor';
 export type { EditorData, EditorDataSource, EditorTemplate, EditorSelectSettings, EditorEngine, EditorHelpers, EditorOptions } from '../components/editor/editor';
 
 export type { EditorSpreadsheetColumn, EditorSpreadsheetResult } from '../components/editor/spreadsheet-view';
+
+// Specialized writing and visual planning components.
+export { ScriptEditor } from '../components/script-editor/script-editor';
+export type { ScriptEditorOptions, ScriptEditorSelection } from '../components/script-editor/script-editor';
+export { ScreenplayEditor } from '../components/screenplay-editor/screenplay-editor';
+export type { ScreenplayEditorOptions, ScreenplayDocument, ScreenplayBlock, ScreenplayBlockType, ScreenplayZoom } from '../components/screenplay-editor/screenplay-editor';
+export { Storyboard } from '../components/storyboard/storyboard';
+export type { StoryboardOptions, StoryboardShot } from '../components/storyboard/storyboard';
+export type { EditorToolbar } from '../components/editor-common/toolbar';

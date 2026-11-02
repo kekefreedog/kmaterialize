@@ -4,6 +4,10 @@
 }
 
 span.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   min-width: 3rem;
   padding: 0 6px;
   margin-left: 14px;
@@ -22,12 +26,41 @@ span.badge {
     background-color: var(--md-sys-color-primary);
     border-radius: 2px;
   }
+
+  // Round badges use a pill shape without changing their height.
+  &.round { border-radius: 999px; }
+
   &.new:after {
     content: ' new';
   }
 
   &[data-badge-caption]::after {
     content: ' ' attr(data-badge-caption);
+  }
+
+  // Empty captions suppress the default suffix without leaving a flex gap.
+  &[data-badge-caption=""]::after,
+  &[data-badge-caption=" "]::after { content: none; }
+}
+
+// Badge icons share one size in normal, card, and navigation contexts.
+.badge > i,
+.navbar span.badge > i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  float: none;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+
+  // Match Material Icons' 20/24 glyph proportions within the same icon box.
+  &:is(.fa, [class^="fa-"], [class*=" fa-"]) {
+    font-size: calc(16px * 5 / 6);
   }
 }
 
@@ -38,7 +71,7 @@ span.badge {
 // Special cases
 
 .navbar ul a span.badge {
-  display: inline-block;
+  display: inline-flex;
   float: none;
   margin-left: 4px;
   line-height: var(--bagde-height);
@@ -69,7 +102,7 @@ span.badge {
 }
 
 table span.badge {
-  display: inline-block;
+  display: inline-flex;
   float: none;
   margin-left: auto;
 }

@@ -1,0 +1,112 @@
+/// Visual shot cards keep editing controls and ordering usable on touch screens.
+.storyboard {
+    min-width: 0;
+    color: var(--md-sys-color-on-surface);
+
+    .storyboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--storyboard-card-width, 260px)), 1fr));
+        align-items: start;
+        gap: 20px;
+    }
+
+    .storyboard-shot {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 12px;
+        background: var(--md-sys-color-surface);
+
+        &.is-selected { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 1px var(--md-sys-color-primary); }
+    }
+
+    .storyboard-shot-header { display: flex; align-items: center; background: var(--md-sys-color-surface-variant); }
+    .storyboard-shot.is-selected .storyboard-shot-header { background: var(--md-sys-color-primary-container); }
+    .storyboard-drag-handle {
+        display: grid;
+        place-items: center;
+        flex: 0 0 40px;
+        min-height: 44px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--md-sys-color-on-surface-variant);
+        cursor: grab;
+
+        &:active { cursor: grabbing; }
+        &:disabled { cursor: default; opacity: 0.4; }
+    }
+    .storyboard-shot.is-dragging { opacity: 0.45; }
+    .storyboard-shot.is-drop-before { box-shadow: -4px 0 0 var(--md-sys-color-primary); }
+    .storyboard-shot.is-drop-after { box-shadow: 4px 0 0 var(--md-sys-color-primary); }
+
+    .storyboard-shot.is-drop-vertical.is-drop-before { box-shadow: 0 -4px 0 var(--md-sys-color-primary); }
+    .storyboard-shot.is-drop-vertical.is-drop-after { box-shadow: 0 4px 0 var(--md-sys-color-primary); }
+
+    .storyboard-shot-select {
+        display: block;
+        flex: 1;
+        min-width: 0;
+        min-height: 44px;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 0;
+        background: var(--md-sys-color-surface-variant);
+        color: var(--md-sys-color-on-surface-variant);
+        font: inherit;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+
+        &[aria-pressed="true"] { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+    }
+
+    .storyboard-frame {
+        display: grid;
+        place-items: center;
+        aspect-ratio: var(--storyboard-frame-ratio, 16 / 9);
+        overflow: hidden;
+        background: var(--md-sys-color-surface-variant);
+
+        img { width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    .storyboard-image-placeholder { padding: 16px; color: var(--md-sys-color-on-surface-variant); text-align: center; }
+    .storyboard-shot-content { padding: 16px; }
+
+    label.storyboard-field {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--md-sys-color-on-surface-variant);
+        font-size: 0.75rem;
+
+        > span { display: block; margin-bottom: 4px; }
+    }
+
+    input.storyboard-input, textarea.storyboard-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: auto;
+        margin: 0;
+        padding: 8px;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 6px;
+        box-shadow: none;
+        background: transparent;
+        color: var(--md-sys-color-on-surface);
+        font: inherit;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    textarea.storyboard-input { min-height: 90px; resize: vertical; }
+    .storyboard-duration { font-size: 0.8125rem; color: var(--md-sys-color-on-surface-variant); }
+    .storyboard-details { margin-block: 12px; }
+    .storyboard-details > summary { min-height: 36px; cursor: pointer; color: var(--md-sys-color-primary); font-size: 0.875rem; }
+    .storyboard-shot-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+    .storyboard-shot-actions > crazy-button:nth-child(2) { margin-right: auto; }
+    .storyboard-status { color: var(--md-sys-color-on-surface-variant); font-size: 0.875rem; }
+    .storyboard-empty { grid-column: 1 / -1; padding: 32px; border: 1px dashed var(--md-sys-color-outline-variant); border-radius: 12px; text-align: center; }
+
+    :is(button, input, textarea, summary):focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+}

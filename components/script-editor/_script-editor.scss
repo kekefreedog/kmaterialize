@@ -1,0 +1,116 @@
+/// Native editing and highlighted text must keep identical font metrics.
+.script-editor {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+
+    &:focus-within { border-color: var(--md-sys-color-primary); }
+
+    .script-editor-viewport {
+        position: relative;
+        grid-column: 2;
+        min-width: 0;
+        height: var(--script-editor-height, 360px);
+    }
+
+    pre.script-editor-highlight,
+    textarea.script-editor-input,
+    pre.script-editor-gutter {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 12px;
+        border: 0;
+        border-radius: 0;
+        outline: 0;
+        box-shadow: none;
+        font: var(--script-editor-font-size, 14px)/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-variant-ligatures: none;
+        letter-spacing: normal;
+        text-align: left;
+        text-transform: none;
+        text-indent: 0;
+        text-shadow: none;
+        white-space: pre;
+        overflow-wrap: normal;
+        word-break: normal;
+        direction: ltr;
+    }
+
+    pre.script-editor-highlight,
+    textarea.script-editor-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+    }
+
+    pre.script-editor-highlight {
+        overflow: hidden;
+        pointer-events: none;
+        color: inherit;
+
+        code, .token {
+            font: inherit;
+            letter-spacing: inherit;
+            text-shadow: none;
+            background: transparent;
+        }
+
+        code { display: block; min-width: max-content; padding: 0; border: 0; color: inherit; }
+        .token.comment, .token.prolog, .token.doctype { color: var(--md-sys-color-on-surface-variant); }
+        .token.keyword, .token.tag, .token.boolean { color: var(--md-sys-color-primary); }
+        .token.string, .token.attr-value, .token.regex { color: var(--md-sys-color-tertiary); }
+        .token.number, .token.function, .token.class-name { color: var(--md-sys-color-secondary); }
+        .token.deleted, .token.important { color: var(--md-sys-color-error); }
+    }
+
+    textarea.script-editor-input {
+        z-index: 1;
+        resize: none;
+        overflow: auto;
+        color: transparent;
+        caret-color: var(--md-sys-color-on-surface);
+        -webkit-text-fill-color: transparent;
+
+        &::selection { background: color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent); }
+        &:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+    }
+
+    pre.script-editor-gutter {
+        grid-column: 1;
+        height: var(--script-editor-height, 360px);
+        padding-inline: 6px;
+        overflow: hidden;
+        text-align: right;
+        user-select: none;
+        color: var(--md-sys-color-on-surface-variant);
+        background: transparent;
+        border-right: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .script-editor-gutter[hidden] { display: none; }
+
+    .script-editor-status {
+        grid-column: 1 / -1;
+        padding: 8px 16px;
+        border-top: 1px solid var(--md-sys-color-outline-variant);
+        color: var(--md-sys-color-on-surface-variant);
+        font-size: 0.8125rem;
+    }
+
+    &.is-composing {
+        textarea.script-editor-input { color: inherit; -webkit-text-fill-color: currentColor; }
+        pre.script-editor-highlight { visibility: hidden; }
+    }
+}
+
+@media (forced-colors: active) {
+    .script-editor textarea.script-editor-input { color: CanvasText; -webkit-text-fill-color: CanvasText; }
+    .script-editor pre.script-editor-highlight { visibility: hidden; }
+}
